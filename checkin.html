@@ -1,0 +1,761 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Check-In System</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: 'Sarabun', sans-serif; background: #f0f2f5; min-height: 100vh; }
+
+/* Header */
+.header {
+  background: #0d1117; color: #58a6ff;
+  padding: 14px 20px; display: flex; justify-content: space-between; align-items: flex-start;
+}
+.header-left .title { font-size: 13px; font-weight: 700; letter-spacing: 1px; }
+.header-left .date  { font-size: 11px; color: #8b949e; margin-top: 2px; }
+.header-time { font-size: 24px; font-weight: 300; color: #e6edf3; }
+
+/* Test banner */
+.test-banner {
+  display: none; background: #7f1d1d; color: #fecaca;
+  padding: 8px 20px; font-size: 13px; font-weight: 700;
+  justify-content: space-between; align-items: center;
+}
+.test-banner.show { display: flex; }
+.test-banner button {
+  background: rgba(255,255,255,0.2); border: none; color: #fff;
+  padding: 3px 12px; border-radius: 20px; font-size: 12px; cursor: pointer;
+}
+
+/* Info bar */
+.info-bar {
+  background: #fff; padding: 12px 16px;
+  display: flex; gap: 10px; border-bottom: 1px solid #e1e4e8;
+}
+.info-bar input {
+  flex: 1; padding: 10px 12px; border: 1.5px solid #d0d7de;
+  border-radius: 10px; font-size: 14px; background: #f6f8fa; outline: none;
+}
+.info-bar input:focus { border-color: #0969da; background: #fff; }
+
+/* Action bar */
+.action-bar {
+  background: #161b22; padding: 10px 16px; display: flex; gap: 8px;
+}
+.btn-test {
+  flex: 1; padding: 11px; border-radius: 10px; border: none;
+  background: #450a0a; color: #fca5a5; font-size: 14px; font-weight: 700;
+  cursor: pointer;
+}
+.btn-test.on { background: #14532d; color: #86efac; }
+.btn-settings {
+  padding: 11px 16px; border-radius: 10px; border: none;
+  background: #21262d; color: #8b949e; font-size: 14px; cursor: pointer;
+}
+
+/* Settings panel */
+.settings-panel {
+  display: none; background: #0d1117; padding: 16px 20px;
+  border-bottom: 1px solid #30363d;
+}
+.settings-panel.open { display: block; }
+.settings-panel label { color: #8b949e; font-size: 12px; display: block; margin-bottom: 4px; }
+.settings-panel input {
+  width: 100%; padding: 9px 12px; background: #161b22;
+  border: 1px solid #30363d; color: #e6edf3; border-radius: 8px;
+  font-size: 13px; margin-bottom: 10px; outline: none;
+}
+.settings-panel .save-btn {
+  background: #238636; color: #fff; border: none; padding: 10px;
+  border-radius: 8px; font-size: 13px; cursor: pointer; width: 100%;
+  font-weight: 700;
+}
+
+/* Plan card */
+.plan-item {
+  background: #fff; border-radius: 10px; padding: 10px 14px;
+  border-left: 4px solid #0969da; display: flex; gap: 12px; align-items: flex-start;
+  box-shadow: 0 1px 3px rgba(0,0,0,.07);
+}
+.plan-item .pi-time { font-size: 12px; font-weight: 700; color: #0969da; white-space: nowrap; }
+.plan-item .pi-loc  { font-size: 14px; font-weight: 700; color: #1f2328; }
+.plan-item .pi-type { font-size: 12px; color: #57606a; }
+.plan-item .pi-note { font-size: 11px; color: #8c959f; margin-top:2px; }
+
+.warn-box {
+  background: #fff8ec; border: 1.5px solid #f97316; border-radius: 10px;
+  padding: 10px 14px; margin-bottom: 12px; font-size: 13px; color: #9a3412;
+  display: flex; gap: 8px; align-items: flex-start;
+}
+.warn-box .wi { font-size: 18px; flex-shrink:0; }
+
+/* Manage modal */
+.mgr-overlay {
+  display: none; position: fixed; inset: 0;
+  background: rgba(0,0,0,0.55); z-index: 200; align-items: flex-end; justify-content: center;
+}
+.mgr-overlay.open { display: flex; }
+.mgr-box {
+  background: #fff; border-radius: 20px 20px 0 0;
+  padding: 22px 20px 40px; width: 100%; max-width: 500px;
+  animation: slideUp .25s ease; max-height: 80vh; overflow-y: auto;
+}
+.mgr-box h3 { font-size: 16px; font-weight: 700; margin-bottom: 4px; }
+.mgr-box p  { font-size: 12px; color: #57606a; margin-bottom: 16px; }
+.mgr-section-title {
+  font-size: 12px; font-weight: 700; color: #57606a;
+  text-transform: uppercase; letter-spacing: .5px;
+  margin: 16px 0 8px; padding-bottom: 6px; border-bottom: 1px solid #e1e4e8;
+}
+.mgr-section-title:first-of-type { margin-top: 0; }
+.tag-list { display: flex; flex-wrap: wrap; gap: 8px; min-height: 32px; }
+.tag {
+  display: flex; align-items: center; gap: 6px;
+  background: #f0f7ff; border: 1px solid #b6d4fe;
+  color: #1f2328; border-radius: 20px; padding: 5px 10px 5px 12px;
+  font-size: 13px;
+}
+.tag-del {
+  background: none; border: none; cursor: pointer;
+  color: #cf222e; font-size: 16px; line-height: 1; padding: 0; font-weight: 700;
+}
+.tag-del:hover { color: #a40e26; }
+.tag-empty { font-size: 13px; color: #8c959f; font-style: italic; }
+.mgr-close {
+  width: 100%; padding: 13px; border-radius: 10px; border: 1px solid #d0d7de;
+  background: #f6f8fa; color: #57606a; font-size: 15px; font-weight: 700;
+  cursor: pointer; margin-top: 20px;
+}
+
+/* Rounds */
+.section-title { padding: 16px 20px 8px; font-size: 13px; color: #57606a; font-weight: 600; }
+.rounds { padding: 0 16px 24px; display: flex; flex-direction: column; gap: 10px; }
+
+.round-card {
+  background: #fff; border-radius: 12px; padding: 16px;
+  display: flex; align-items: center; gap: 14px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.08); border: 2px solid transparent;
+}
+.round-card.open   { border-color: #0969da; background: #f0f7ff; cursor: pointer; }
+.round-card.open:active { transform: scale(0.98); }
+.round-card.done   { border-color: #1a7f37; background: #f0fff4; }
+.round-card.locked { opacity: 0.5; }
+
+.round-num {
+  width: 38px; height: 38px; border-radius: 50%; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+  font-weight: 700; font-size: 15px;
+  background: #f6f8fa; color: #57606a;
+}
+.round-card.open   .round-num { background: #0969da; color: #fff; }
+.round-card.done   .round-num { background: #1a7f37; color: #fff; }
+
+.round-info { flex: 1; }
+.round-name { font-size: 16px; font-weight: 700; color: #1f2328; }
+.round-time { font-size: 12px; color: #57606a; margin-top: 2px; }
+.round-done-time { font-size: 11px; color: #1a7f37; margin-top: 3px; }
+
+.badge {
+  font-size: 11px; font-weight: 700; padding: 4px 10px;
+  border-radius: 20px; white-space: nowrap;
+}
+.badge-locked  { background: #f6f8fa; color: #8c959f; }
+.badge-open    { background: #ddf4ff; color: #0969da; animation: blink 2s infinite; }
+.badge-test    { background: #fef9c3; color: #854d0e; animation: blink 2s infinite; }
+.badge-done    { background: #dafbe1; color: #1a7f37; }
+@keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.5} }
+
+/* Modal */
+.overlay {
+  display: none; position: fixed; inset: 0;
+  background: rgba(0,0,0,0.6); z-index: 100; align-items: flex-end; justify-content: center;
+}
+.overlay.open { display: flex; }
+.modal {
+  background: #fff; border-radius: 20px 20px 0 0;
+  padding: 24px 20px 44px; width: 100%; max-width: 500px;
+  animation: slideUp .25s ease;
+}
+@keyframes slideUp { from{transform:translateY(100%)} to{transform:translateY(0)} }
+
+.modal-title    { font-size: 18px; font-weight: 700; color: #1f2328; margin-bottom: 2px; }
+.modal-subtitle { font-size: 13px; color: #57606a; margin-bottom: 16px; }
+
+/* Steps */
+.steps { display: flex; gap: 6px; margin-bottom: 20px; }
+.step-dot { flex: 1; height: 4px; border-radius: 2px; background: #e1e4e8; }
+.step-dot.active { background: #0969da; }
+.step-dot.done   { background: #1a7f37; }
+
+.pane { display: none; }
+.pane.show { display: block; }
+
+/* GPS pane */
+.gps-box {
+  background: #f6f8fa; border-radius: 12px; padding: 24px;
+  text-align: center; margin-bottom: 16px;
+}
+.gps-icon { font-size: 40px; margin-bottom: 8px; }
+.gps-text { font-size: 14px; color: #57606a; }
+.gps-coords { font-size: 12px; color: #0969da; font-family: monospace; margin-top: 6px; }
+
+/* Camera pane */
+.cam-wrap {
+  position: relative; border-radius: 12px; overflow: hidden;
+  background: #000; margin-bottom: 14px;
+  width: 100%; aspect-ratio: 3/4; max-height: 52vh;
+}
+#video { width: 100%; height: 100%; object-fit: cover; display: block; transform: scaleX(-1); }
+#canvas { display: none; width: 100%; height: 100%; object-fit: cover; }
+.cam-overlay {
+  position: absolute; bottom: 0; left: 0; right: 0;
+  background: linear-gradient(transparent, rgba(0,0,0,0.7));
+  padding: 20px 12px 10px; color: #fff; font-size: 11px; font-family: monospace;
+  display: flex; justify-content: space-between;
+}
+
+/* Confirm pane */
+.summary {
+  background: #f6f8fa; border-radius: 12px; padding: 14px; margin-bottom: 16px;
+}
+.summary-row { display: flex; justify-content: space-between; padding: 5px 0; font-size: 13px; }
+.summary-row .lbl { color: #57606a; }
+.summary-row .val { font-weight: 700; color: #1f2328; text-align: right; max-width: 55%; }
+
+/* Loading / Success */
+.center-pane { text-align: center; padding: 24px 0; }
+.spinner {
+  width: 40px; height: 40px; border: 3px solid #e1e4e8; border-top-color: #0969da;
+  border-radius: 50%; animation: spin .8s linear infinite; margin: 0 auto 12px;
+}
+@keyframes spin { to{transform:rotate(360deg)} }
+.success-icon { font-size: 56px; margin-bottom: 10px; }
+.success-title { font-size: 20px; font-weight: 700; color: #1a7f37; }
+.success-sub { font-size: 13px; color: #57606a; margin-top: 6px; }
+
+/* Buttons */
+.btn {
+  width: 100%; padding: 14px; border-radius: 10px; border: none;
+  font-size: 16px; font-weight: 700; cursor: pointer; margin-top: 8px;
+}
+.btn:first-child { margin-top: 0; }
+.btn-blue   { background: #0969da; color: #fff; }
+.btn-blue:active { background: #0550ae; }
+.btn-green  { background: #1a7f37; color: #fff; }
+.btn-green:active { background: #116329; }
+.btn-ghost  { background: #f6f8fa; color: #57606a; border: 1px solid #d0d7de; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-left">
+    <div class="title">CHECK-IN SYSTEM</div>
+    <div class="date" id="hdate"></div>
+  </div>
+  <div class="header-time" id="htime"></div>
+</div>
+
+<div class="test-banner" id="test-banner">
+  🧪 TEST MODE — กดได้ทุกรอบ
+  <button onclick="setTestMode(false)">ปิด</button>
+</div>
+
+<datalist id="dl-name"></datalist>
+<datalist id="dl-branch"></datalist>
+
+<div class="info-bar">
+  <input id="inp-name"   type="text" placeholder="👤 ชื่อพนักงาน"     maxlength="50" autocomplete="off" list="dl-name">
+  <input id="inp-branch" type="text" placeholder="📍 สาขา / โลเคชั่น" maxlength="50" autocomplete="off" list="dl-branch">
+</div>
+
+<!-- แผนงานวันนี้ -->
+<div id="plan-card" style="display:none">
+  <div style="padding:10px 16px 4px;font-size:12px;font-weight:700;color:#57606a;">📅 แผนงานวันนี้ของคุณ</div>
+  <div id="plan-list" style="padding:0 16px 10px;display:flex;flex-direction:column;gap:6px;"></div>
+</div>
+
+<div class="action-bar">
+  <button class="btn-test" id="btn-test" onclick="toggleTest()">🧪 Test Mode</button>
+  <button class="btn-settings" onclick="toggleSettings()">⚙ ตั้งค่า</button>
+</div>
+
+<div class="settings-panel" id="settings-panel">
+  <label>Apps Script URL (วางจาก Google Apps Script)</label>
+  <input id="inp-url" type="url" placeholder="https://script.google.com/macros/s/.../exec">
+  <button class="save-btn" onclick="saveUrl()">💾 บันทึก URL</button>
+  <button class="save-btn" onclick="openMgr()" style="background:#0969da;margin-top:8px;">✏️ จัดการรายชื่อ / สาขา</button>
+</div>
+
+<!-- Manage autocomplete modal -->
+<div class="mgr-overlay" id="mgr-overlay">
+  <div class="mgr-box">
+    <h3>✏️ จัดการรายชื่อ Autocomplete</h3>
+    <p>กด ✕ เพื่อลบรายการที่ไม่ต้องการออก</p>
+
+    <div class="mgr-section-title">👤 ชื่อพนักงาน</div>
+    <div class="tag-list" id="mgr-names"></div>
+
+    <div class="mgr-section-title">📍 สาขา / โลเคชั่น</div>
+    <div class="tag-list" id="mgr-branches"></div>
+
+    <button class="mgr-close" onclick="closeMgr()">เสร็จแล้ว</button>
+  </div>
+</div>
+
+<div class="section-title">รอบเช็กอินวันนี้</div>
+<div class="rounds" id="rounds"></div>
+
+<!-- Modal -->
+<div class="overlay" id="overlay">
+  <div class="modal">
+    <div class="modal-title"   id="m-title"></div>
+    <div class="modal-subtitle" id="m-sub"></div>
+    <div class="steps" id="m-steps"></div>
+
+    <!-- GPS -->
+    <div class="pane show" id="pane-gps">
+      <div class="gps-box" id="gps-box">
+        <div class="gps-icon">📍</div>
+        <div class="gps-text">กำลังระบุตำแหน่ง GPS...</div>
+      </div>
+      <button class="btn btn-blue" id="btn-next-cam" onclick="showCam()" disabled>📷 ถัดไป: ถ่ายรูป</button>
+      <button class="btn btn-ghost" onclick="closeModal()">ยกเลิก</button>
+    </div>
+
+    <!-- Camera -->
+    <div class="pane" id="pane-cam">
+      <div class="cam-wrap">
+        <video id="video" autoplay playsinline muted></video>
+        <canvas id="canvas"></canvas>
+        <div class="cam-overlay">
+          <span id="ov-name"></span>
+          <span id="ov-time"></span>
+        </div>
+      </div>
+      <button class="btn btn-blue"  id="btn-snap"   onclick="snap()">📸 ถ่ายรูป</button>
+      <button class="btn btn-ghost" id="btn-retake" onclick="retake()" style="display:none">🔄 ถ่ายใหม่</button>
+      <button class="btn btn-ghost" onclick="backToGps()">← ย้อนกลับ</button>
+    </div>
+
+    <!-- Confirm -->
+    <div class="pane" id="pane-confirm">
+      <div class="summary" id="m-summary"></div>
+      <button class="btn btn-green" onclick="submit()">✅ ยืนยัน Check-In</button>
+      <button class="btn btn-ghost" onclick="backToCam()">← ถ่ายรูปใหม่</button>
+    </div>
+
+    <!-- Loading -->
+    <div class="pane" id="pane-loading">
+      <div class="center-pane">
+        <div class="spinner"></div>
+        <div style="color:#57606a;font-size:14px;">กำลังส่งข้อมูล...</div>
+      </div>
+    </div>
+
+    <!-- Success -->
+    <div class="pane" id="pane-success">
+      <div class="center-pane">
+        <div class="success-icon">✅</div>
+        <div class="success-title">Check-In สำเร็จ!</div>
+        <div class="success-sub" id="m-success-sub"></div>
+      </div>
+      <button class="btn btn-ghost" onclick="closeModal()" style="margin-top:20px">ปิด</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const ROUNDS = [
+  { name: "รอบเช้า",  start: "10:00", end: "11:00" },
+  { name: "รอบบ่าย", start: "13:00", end: "14:00" },
+  { name: "รอบเย็น", start: "16:00", end: "18:00" },
+  { name: "รอบค่ำ",  start: "19:00", end: "21:00" }
+];
+
+let curRound = null, gps = null, photo = null, stream = null, ovTimer = null;
+
+// Safe storage — fallback to memory if localStorage blocked
+const mem = {};
+const store = {
+  get: k => { try { return localStorage.getItem(k); } catch(e) { return mem[k]||null; } },
+  set: (k,v) => { try { localStorage.setItem(k,v); } catch(e) { mem[k]=v; } }
+};
+
+// ── Clock ──────────────────────────────────────────
+function tick() {
+  const n = new Date();
+  document.getElementById('htime').textContent =
+    n.toLocaleTimeString('th-TH', { hour:'2-digit', minute:'2-digit', second:'2-digit' });
+  document.getElementById('hdate').textContent =
+    n.toLocaleDateString('th-TH', { weekday:'long', day:'numeric', month:'long', year:'numeric' });
+  renderRounds();
+}
+setInterval(tick, 1000);
+tick();
+
+// ── Today's Plan ──────────────────────────────────
+let todayPlan = [];
+let planFetchTimer = null;
+
+function onNameInput() {
+  const name = document.getElementById('inp-name').value.trim();
+  store.set('name', name);
+  clearTimeout(planFetchTimer);
+  if (!name) { hidePlanCard(); return; }
+  planFetchTimer = setTimeout(() => fetchTodayPlan(name), 600);
+}
+
+async function fetchTodayPlan(name) {
+  const url = store.get('scriptUrl');
+  if (!url) return;
+  const today = new Date().toISOString().split('T')[0]; // yyyy-mm-dd
+  try {
+    const r = await fetch(`${url}?action=getPlan&name=${encodeURIComponent(name)}&date=${today}&t=${Date.now()}`);
+    const j = await r.json();
+    todayPlan = (j.data || []).filter(t => t.staffName === name);
+    renderPlanCard();
+  } catch(e) {
+    todayPlan = [];
+    hidePlanCard();
+  }
+}
+
+function renderPlanCard() {
+  const card = document.getElementById('plan-card');
+  const list = document.getElementById('plan-list');
+  if (!todayPlan.length) { hidePlanCard(); return; }
+
+  list.innerHTML = todayPlan.map(t => `
+    <div class="plan-item">
+      <div class="pi-time">${t.startTime||''}${t.endTime?' – '+t.endTime:''}</div>
+      <div style="flex:1">
+        <div class="pi-loc">📍 ${t.branch||'-'}</div>
+        <div class="pi-type">${t.taskType||''}</div>
+        ${t.note ? `<div class="pi-note">📝 ${t.note}</div>` : ''}
+      </div>
+    </div>`).join('');
+  card.style.display = 'block';
+}
+function hidePlanCard() {
+  document.getElementById('plan-card').style.display = 'none';
+  todayPlan = [];
+}
+
+function checkBranchMismatch(enteredBranch) {
+  if (!todayPlan.length || !enteredBranch) return null;
+  const assigned = todayPlan[0].branch || '';
+  if (!assigned) return null;
+  if (enteredBranch.trim() !== assigned.trim()) return assigned;
+  return null;
+}
+
+// ── Autocomplete history ───────────────────────────
+function getList(key) {
+  try { return JSON.parse(store.get(key) || '[]'); } catch { return []; }
+}
+function addToList(key, val) {
+  if (!val) return;
+  let arr = getList(key);
+  arr = [val, ...arr.filter(x => x !== val)].slice(0, 20); // ไม่ซ้ำ, เก็บ 20 รายการ
+  store.set(key, JSON.stringify(arr));
+  renderDatalist(key);
+}
+function renderDatalist(key) {
+  const dlId = key === 'nameList' ? 'dl-name' : 'dl-branch';
+  const dl   = document.getElementById(dlId);
+  if (!dl) return;
+  dl.innerHTML = getList(key).map(v => `<option value="${v}">`).join('');
+}
+
+// ── Persist name/branch ────────────────────────────
+document.getElementById('inp-name').value   = store.get('name')   || '';
+document.getElementById('inp-branch').value = store.get('branch') || '';
+document.getElementById('inp-name')  .addEventListener('input', onNameInput);
+document.getElementById('inp-branch').addEventListener('input', e => store.set('branch', e.target.value));
+
+// โหลด datalist ที่บันทึกไว้
+renderDatalist('nameList');
+renderDatalist('branchList');
+
+// ── Test Mode ──────────────────────────────────────
+function isTest() { return store.get('testMode') === '1'; }
+function setTestMode(on) {
+  store.set('testMode', on ? '1' : '0');
+  document.getElementById('test-banner').classList.toggle('show', on);
+  const b = document.getElementById('btn-test');
+  b.textContent = on ? '✅ Test ON' : '🧪 Test Mode';
+  b.classList.toggle('on', on);
+  renderRounds();
+}
+function toggleTest() { setTestMode(!isTest()); }
+
+// ── Settings ───────────────────────────────────────
+function toggleSettings() {
+  const p = document.getElementById('settings-panel');
+  p.classList.toggle('open');
+  if (p.classList.contains('open'))
+    document.getElementById('inp-url').value = store.get('scriptUrl') || '';
+}
+function saveUrl() {
+  const v = document.getElementById('inp-url').value.trim();
+  if (v) store.set('scriptUrl', v);
+  document.getElementById('settings-panel').classList.remove('open');
+  alert('บันทึกแล้ว ✓');
+}
+
+// ── Rounds ─────────────────────────────────────────
+function toMins(t) { const [h,m]=t.split(':').map(Number); return h*60+m; }
+function nowMins() { const n=new Date(); return n.getHours()*60+n.getMinutes(); }
+function doneKey(i) { return 'done_' + new Date().toLocaleDateString('th-TH') + '_' + i; }
+
+function renderRounds() {
+  const nm = nowMins(), test = isTest();
+  const el = document.getElementById('rounds');
+  el.innerHTML = ROUNDS.map((r, i) => {
+    const done   = store.get(doneKey(i));
+    const inTime = nm >= toMins(r.start) && nm <= toMins(r.end);
+    const canOpen = (test || inTime) && !done;
+    const cls    = done ? 'done' : canOpen ? 'open' : 'locked';
+    const badge  = done
+      ? `<span class="badge badge-done">✓ เช็กแล้ว</span>`
+      : canOpen
+        ? `<span class="badge ${test?'badge-test':'badge-open'}">${test?'TEST':'OPEN'}</span>`
+        : `<span class="badge badge-locked">LOCKED</span>`;
+    const doneRow = done
+      ? `<div class="round-done-time">เช็กอินเมื่อ ${done}</div>` : '';
+    const click = canOpen ? `onclick="openRound(${i})"` : '';
+    return `
+      <div class="round-card ${cls}" ${click}>
+        <div class="round-num">${i+1}</div>
+        <div class="round-info">
+          <div class="round-name">${r.name}</div>
+          <div class="round-time">${r.start} – ${r.end} น.</div>
+          ${doneRow}
+        </div>
+        ${badge}
+      </div>`;
+  }).join('');
+}
+
+// ── Check-in flow ──────────────────────────────────
+function openRound(i) {
+  const name   = document.getElementById('inp-name').value.trim();
+  const branch = document.getElementById('inp-branch').value.trim();
+  if (!name || !branch) {
+    alert('กรุณากรอกชื่อพนักงานและสาขาก่อน');
+    document.getElementById('inp-name').focus();
+    return;
+  }
+  curRound = i; gps = null; photo = null;
+  document.getElementById('m-title').textContent = 'เช็กอิน: ' + ROUNDS[i].name;
+  document.getElementById('m-sub').textContent   = ROUNDS[i].start + ' – ' + ROUNDS[i].end + ' น.';
+  setStep(0);
+  showPane('gps');
+  document.getElementById('overlay').classList.add('open');
+  getGPS();
+}
+
+function setStep(active) {
+  document.getElementById('m-steps').innerHTML = [0,1,2].map(i => {
+    const c = i < active ? 'done' : i === active ? 'active' : '';
+    return `<div class="step-dot ${c}"></div>`;
+  }).join('');
+}
+
+function showPane(name) {
+  ['gps','cam','confirm','loading','success'].forEach(n => {
+    document.getElementById('pane-'+n).classList.remove('show');
+  });
+  document.getElementById('pane-'+name).classList.add('show');
+}
+
+// GPS
+function getGPS() {
+  document.getElementById('btn-next-cam').disabled = true;
+  const box = document.getElementById('gps-box');
+  if (!navigator.geolocation) {
+    box.innerHTML = '<div class="gps-icon">⚠️</div><div class="gps-text">ไม่รองรับ GPS<br>จะบันทึกโดยไม่มีพิกัด</div>';
+    gps = {lat:'',lng:'',acc:0};
+    document.getElementById('btn-next-cam').disabled = false;
+    return;
+  }
+  navigator.geolocation.getCurrentPosition(
+    pos => {
+      gps = { lat: pos.coords.latitude.toFixed(6), lng: pos.coords.longitude.toFixed(6), acc: Math.round(pos.coords.accuracy) };
+      box.innerHTML = `
+        <div class="gps-icon">✅</div>
+        <div class="gps-text">ระบุตำแหน่งสำเร็จ (±${gps.acc}m)</div>
+        <div class="gps-coords">${gps.lat}, ${gps.lng}</div>`;
+      document.getElementById('btn-next-cam').disabled = false;
+    },
+    err => {
+      box.innerHTML = `<div class="gps-icon">⚠️</div><div class="gps-text">รับ GPS ไม่ได้ — จะบันทึกโดยไม่มีพิกัด</div>`;
+      gps = {lat:'',lng:'',acc:0};
+      document.getElementById('btn-next-cam').disabled = false;
+    },
+    { timeout: 15000, enableHighAccuracy: true }
+  );
+}
+
+// Camera
+function showCam() {
+  setStep(1); showPane('cam');
+  photo = null;
+  document.getElementById('video').style.display  = 'block';
+  document.getElementById('canvas').style.display = 'none';
+  document.getElementById('btn-snap').style.display   = '';
+  document.getElementById('btn-retake').style.display = 'none';
+  startCamera();
+}
+function startCamera() {
+  navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user' }, audio: false })
+    .then(s => { stream = s; document.getElementById('video').srcObject = s; })
+    .catch(e => { alert('เปิดกล้องไม่ได้: ' + e.message); showPane('gps'); setStep(0); });
+  startOverlay();
+}
+function startOverlay() {
+  clearInterval(ovTimer);
+  ovTimer = setInterval(() => {
+    const name   = document.getElementById('inp-name').value;
+    const branch = document.getElementById('inp-branch').value;
+    document.getElementById('ov-name').textContent = name + ' | ' + branch;
+    document.getElementById('ov-time').textContent = new Date().toLocaleString('th-TH');
+  }, 500);
+}
+function snap() {
+  const vid = document.getElementById('video');
+  const cvs = document.getElementById('canvas');
+  const ctx = cvs.getContext('2d');
+  cvs.width  = vid.videoWidth  || 640;
+  cvs.height = vid.videoHeight || 480;
+  // mirror
+  ctx.save(); ctx.scale(-1,1); ctx.drawImage(vid, -cvs.width, 0, cvs.width, cvs.height); ctx.restore();
+  // overlay
+  const r    = ROUNDS[curRound];
+  const name = document.getElementById('inp-name').value;
+  const br   = document.getElementById('inp-branch').value;
+  const ts   = new Date().toLocaleString('th-TH');
+  const h    = Math.max(40, cvs.height * 0.09);
+  ctx.fillStyle = 'rgba(0,0,0,0.65)'; ctx.fillRect(0, cvs.height-h, cvs.width, h);
+  ctx.fillStyle = '#fff'; ctx.font = `bold ${h*.32}px monospace`;
+  ctx.fillText(`${name} | ${br} | ${r.name}`, 10, cvs.height - h*.55);
+  ctx.font = `${h*.28}px monospace`;
+  ctx.fillText(ts, 10, cvs.height - h*.18);
+  photo = cvs.toDataURL('image/jpeg', 0.75);
+  vid.style.display = 'none'; cvs.style.display = 'block';
+  document.getElementById('btn-snap').style.display   = 'none';
+  document.getElementById('btn-retake').style.display = '';
+  clearInterval(ovTimer); stopStream();
+  setStep(2); showConfirm();
+}
+function retake() { showCam(); }
+function stopStream() { if (stream) { stream.getTracks().forEach(t=>t.stop()); stream=null; } }
+
+// Confirm
+function showConfirm() {
+  showPane('confirm');
+  const r    = ROUNDS[curRound];
+  const name = document.getElementById('inp-name').value;
+  const br   = document.getElementById('inp-branch').value;
+
+  // ตรวจสอบสาขาไม่ตรงแผน
+  const mismatch = checkBranchMismatch(br);
+  const warnHTML = mismatch ? `
+    <div class="warn-box">
+      <div class="wi">⚠️</div>
+      <div>
+        <b>สาขาไม่ตรงกับแผนงาน</b><br>
+        แผน: <b>${mismatch}</b> → กรอก: <b>${br}</b><br>
+        <span style="font-size:11px">กด ยืนยัน หากถูกโยกงานแล้ว</span>
+      </div>
+    </div>` : '';
+
+  document.getElementById('m-summary').innerHTML = `
+    ${warnHTML}
+    <div class="summary-row"><span class="lbl">ชื่อ</span><span class="val">${name}</span></div>
+    <div class="summary-row"><span class="lbl">สาขา</span>
+      <span class="val" style="${mismatch?'color:#ea580c':''}">${br}${mismatch?' ⚠️':''}</span>
+    </div>
+    <div class="summary-row"><span class="lbl">รอบ</span><span class="val">${r.name}</span></div>
+    <div class="summary-row"><span class="lbl">เวลา</span><span class="val">${new Date().toLocaleTimeString('th-TH')}</span></div>
+    <div class="summary-row"><span class="lbl">GPS</span><span class="val" style="font-size:11px">${gps.lat||'ไม่มี'}</span></div>`;
+}
+function backToGps() { stopStream(); clearInterval(ovTimer); setStep(0); showPane('gps'); }
+function backToCam() { showCam(); }
+
+// Submit
+async function submit() {
+  showPane('loading');
+  const r    = ROUNDS[curRound];
+  const name = document.getElementById('inp-name').value.trim();
+  const br   = document.getElementById('inp-branch').value.trim();
+  const ts   = new Date().toLocaleString('th-TH');
+  const payload = {
+    name, branch:br, round:r.name, roundTime:`${r.start}-${r.end}`,
+    timestamp:ts, lat:gps.lat, lng:gps.lng, accuracy:gps.acc,
+    mapsLink: gps.lat ? `https://maps.google.com/?q=${gps.lat},${gps.lng}` : '',
+    photo: photo || ''
+  };
+  const url = store.get('scriptUrl');
+  if (url) {
+    try {
+      await fetch(url, { method:'POST', mode:'no-cors',
+        headers:{'Content-Type':'application/json'}, body:JSON.stringify(payload) });
+    } catch(e) { console.warn('send failed:', e); }
+  }
+  store.set(doneKey(curRound), ts);
+  addToList('nameList',   name);
+  addToList('branchList', br);
+  renderRounds();
+  document.getElementById('m-success-sub').textContent = `${name} | ${br} | ${r.name}`;
+  showPane('success');
+}
+
+function closeModal() {
+  stopStream(); clearInterval(ovTimer);
+  document.getElementById('overlay').classList.remove('open');
+}
+
+// ── Manage autocomplete modal ──────────────────────
+function openMgr() {
+  renderMgr();
+  document.getElementById('mgr-overlay').classList.add('open');
+  document.getElementById('settings-panel').classList.remove('open');
+}
+function closeMgr() {
+  document.getElementById('mgr-overlay').classList.remove('open');
+}
+function renderMgr() {
+  renderMgrList('nameList',   'mgr-names');
+  renderMgrList('branchList', 'mgr-branches');
+}
+function renderMgrList(storeKey, elId) {
+  const el   = document.getElementById(elId);
+  const list = getList(storeKey);
+  if (!list.length) {
+    el.innerHTML = '<span class="tag-empty">ยังไม่มีรายการ</span>';
+    return;
+  }
+  el.innerHTML = list.map(v => `
+    <div class="tag">
+      ${v}
+      <button class="tag-del" onclick="removeItem('${storeKey}','${v.replace(/'/g,"\\'")}')">✕</button>
+    </div>`).join('');
+}
+function removeItem(storeKey, val) {
+  const arr = getList(storeKey).filter(x => x !== val);
+  store.set(storeKey, JSON.stringify(arr));
+  renderDatalist(storeKey);
+  renderMgr();
+}
+
+// init test mode state on load
+setTestMode(isTest());
+
+window.addEventListener('beforeunload', () => { stopStream(); clearInterval(ovTimer); });
+</script>
+</body>
+</html>
