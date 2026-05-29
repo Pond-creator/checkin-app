@@ -156,6 +156,13 @@ body { font-family: 'Sarabun', sans-serif; background: #f0f2f5; min-height: 100v
 .round-name { font-size: 16px; font-weight: 700; color: #1f2328; }
 .round-time { font-size: 12px; color: #57606a; margin-top: 2px; }
 .round-done-time { font-size: 11px; color: #1a7f37; margin-top: 3px; }
+.round-checkout-time { font-size: 11px; color: #9a3412; margin-top: 2px; }
+.btn-checkout {
+  padding: 5px 12px; border-radius: 20px; border: none;
+  background: #fff7ed; color: #ea580c; font-size: 12px; font-weight: 700;
+  cursor: pointer; border: 1.5px solid #fdba74; white-space: nowrap;
+}
+.btn-checkout:active { background: #ffedd5; }
 
 .badge {
   font-size: 11px; font-weight: 700; padding: 4px 10px;
@@ -509,23 +516,32 @@ function saveUrl() {
 // ── Rounds ─────────────────────────────────────────
 function toMins(t) { const [h,m]=t.split(':').map(Number); return h*60+m; }
 function nowMins() { const n=new Date(); return n.getHours()*60+n.getMinutes(); }
-function doneKey(i) { return 'done_' + new Date().toLocaleDateString('th-TH') + '_' + i; }
+function doneKey(i)     { return 'done_'     + new Date().toLocaleDateString('th-TH') + '_' + i; }
+function checkoutKey(i) { return 'checkout_' + new Date().toLocaleDateString('th-TH') + '_' + i; }
 
 function renderRounds() {
   const nm = nowMins(), test = isTest();
   const el = document.getElementById('rounds');
   el.innerHTML = ROUNDS.map((r, i) => {
-    const done   = store.get(doneKey(i));
-    const inTime = nm >= toMins(r.start) && nm <= toMins(r.end);
-    const canOpen = (test || inTime) && !done;
-    const cls    = done ? 'done' : canOpen ? 'open' : 'locked';
-    const badge  = done
+    const done     = store.get(doneKey(i));
+    const checkout = store.get(checkoutKey(i));
+    const inTime   = nm >= toMins(r.start) && nm <= toMins(r.end);
+    const canOpen  = (test || inTime) && !done;
+    const cls      = done ? 'done' : canOpen ? 'open' : 'locked';
+
+    const badge = done
       ? `<span class="badge badge-done">✓ เช็กแล้ว</span>`
       : canOpen
         ? `<span class="badge ${test?'badge-test':'badge-open'}">${test?'TEST':'OPEN'}</span>`
         : `<span class="badge badge-locked">LOCKED</span>`;
+
     const doneRow = done
-      ? `<div class="round-done-time">เช็กอินเมื่อ ${done}</div>` : '';
+      ? `<div class="round-done-time">📥 เช็กอิน ${done}</div>` : '';
+    const checkoutRow = checkout
+      ? `<div class="round-checkout-time">📤 จบงาน ${checkout}</div>` : '';
+    const checkoutBtn = done && !checkout
+      ? `<button class="btn-checkout" onclick="event.stopPropagation();confirmCheckout(${i})">🏁 จบงาน</button>` : '';
+
     const click = canOpen ? `onclick="openRound(${i})"` : '';
     return `
       <div class="round-card ${cls}" ${click}>
@@ -533,9 +549,12 @@ function renderRounds() {
         <div class="round-info">
           <div class="round-name">${r.name}</div>
           <div class="round-time">${r.start} – ${r.end} น.</div>
-          ${doneRow}
+          ${doneRow}${checkoutRow}
         </div>
-        ${badge}
+        <div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px">
+          ${badge}
+          ${checkoutBtn}
+        </div>
       </div>`;
   }).join('');
 }
@@ -712,6 +731,37 @@ async function submit() {
   renderRounds();
   document.getElementById('m-success-sub').textContent = `${name} | ${br} | ${r.name}`;
   showPane('success');
+}
+
+// ── Checkout ───────────────────────────────────────
+async function confirmCheckout(i) {
+  const r      = ROUNDS[i];
+  const name   = document.getElementById('inp-name').value.trim();
+  const branch = document.getElementById('inp-branch').value.trim();
+  if (!name) { alert('กรุณากรอกชื่อก่อน'); return; }
+  if (!confirm(`จบงาน "${r.name}" ใช่ไหมครับ?`)) return;
+
+  const ts  = new Date().toLocaleString('th-TH');
+  const date = new Date().toLocaleDateString('th-TH');
+  store.set(checkoutKey(i), ts);
+  renderRounds();
+
+  const url = store.get('scriptUrl');
+  if (url) {
+    try {
+      await fetch(url, {
+        method: 'POST', mode: 'no-cors',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'checkout',
+          name, branch,
+          round: r.name,
+          date,
+          checkoutTime: ts
+        })
+      });
+    } catch(e) { console.warn('checkout send failed:', e); }
+  }
 }
 
 function closeModal() {
