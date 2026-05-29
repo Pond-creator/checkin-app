@@ -526,7 +526,11 @@ function renderRounds() {
     const done     = store.get(doneKey(i));
     const checkout = store.get(checkoutKey(i));
     const inTime   = nm >= toMins(r.start) && nm <= toMins(r.end);
-    const canOpen  = (test || inTime) && !done;
+    // รอบก่อนหน้าจบงานแล้ว → ปลดล็อครอบนี้ได้เลย
+    const prevDone     = i > 0 ? store.get(doneKey(i-1)) : null;
+    const prevCheckout = i > 0 ? store.get(checkoutKey(i-1)) : null;
+    const prevFinished = prevDone && prevCheckout;
+    const canOpen  = (test || inTime || prevFinished) && !done;
     const cls      = done ? 'done' : canOpen ? 'open' : 'locked';
 
     const badge = done
