@@ -357,6 +357,15 @@ body { font-family: 'Sarabun', sans-serif; background: #f0f2f5; min-height: 100v
 .btn-green:active { background: #116329; }
 .btn-ghost  { background: #f6f8fa; color: #57606a; border: 1px solid #d0d7de; }
 
+/* ปุ่มเข้างานก่อนเวลา */
+.btn-early {
+  margin-top: 8px; padding: 6px 12px; border-radius: 20px;
+  border: 1.5px solid #d0d7de; background: #f6f8fa;
+  color: #57606a; font-size: 12px; font-weight: 600;
+  cursor: pointer; font-family: inherit;
+}
+.btn-early:active { background: #e1e4e8; }
+
 /* ปุ่มลบรอบพิเศษ */
 .btn-del-extra {
   padding: 3px 8px; border-radius: 6px; border: 1px solid #fca5a5;
@@ -905,6 +914,10 @@ function renderRounds() {
     const deleteBtn = isExtra && !done
       ? `<button class="btn-del-extra" onclick="event.stopPropagation();deleteExtraRound(${extraIdx})">🗑️</button>` : '';
 
+    // ปุ่มเข้างานก่อนเวลา (เฉพาะรอบที่ล็อคและยังไม่ได้เช็ก)
+    const earlyBtn = cls === 'locked' && !done
+      ? `<button class="btn-early" onclick="event.stopPropagation();openRound(${i})">⏰ เข้างานก่อนเวลา</button>` : '';
+
     // แสดงรายละเอียดงาน
     const locRow  = r.location ? `<div style="font-size:12px;color:#0969da;margin-top:2px;">📍 ${r.location}</div>` : '';
     const typeRow = r.taskType ? `<div style="font-size:11px;color:#57606a;margin-top:1px;">🗂 ${r.taskType}</div>` : '';
@@ -918,6 +931,7 @@ function renderRounds() {
           <div class="round-name">${r.name}</div>
           <div class="round-time">${r.start} – ${r.end} น.</div>
           ${locRow}${typeRow}${noteRow}${doneRow}${checkoutRow}
+          ${earlyBtn}
         </div>
         <div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px">
           ${badge}
