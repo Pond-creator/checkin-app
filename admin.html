@@ -528,9 +528,8 @@ function populateDateFilter() {
   bSel.innerHTML = '<option value="">📍 ทุกสาขา</option>' + branches.map(b=>`<option value="${b}">${b}</option>`).join('');
   if (curBranch) bSel.value = curBranch;
 
-  // set date to today by default
-  const todayISO = new Date().toISOString().slice(0,10); // yyyy-MM-dd
-  document.getElementById('f-date').value = todayISO;
+  // leave date blank = ทุกวัน (don't auto-filter to today)
+  // document.getElementById('f-date').value = '';
 }
 
 // Convert dd/MM/yyyy → yyyy-MM-dd for comparison with <input type="date">
@@ -671,6 +670,7 @@ async function loadPlan() {
     const r = await fetch(`${url}?action=getPlans&t=${Date.now()}`);
     const j = await r.json();
     planData = j.data || [];
+    console.log('planData loaded:', planData.length, planData.slice(0,3));
     renderCal();
   } catch(e) { console.warn('plan load error:', e); }
   showLoad(false);
