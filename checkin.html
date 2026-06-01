@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>Check-In System</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>👤</text></svg>">
 <style>
 * { box-sizing: border-box; margin: 0; padding: 0; }
 body { font-family: 'Sarabun', sans-serif; background: #f0f2f5; min-height: 100vh; }
@@ -643,11 +644,16 @@ async function fetchAllBranches() {
   const url = SCRIPT_URL || store.get('scriptUrl');
   if (!url) return;
   try {
-    const r = await fetch(`${url}?action=getPlans&t=${Date.now()}`);
-    const j = await r.json();
-    const plans = j.data || [];
-    // เก็บสาขาที่ไม่ซ้ำทั้งหมดจาก Admin
-    window._allPlanBranches = [...new Set(plans.map(p => p.branch).filter(Boolean))].sort();
+    // ดึงทั้งจาก Plans + Log ทุก user
+    const [rPlan, rLog] = await Promise.all([
+      fetch(`${url}?action=getPlans&t=${Date.now()}`),
+      fetch(`${url}?action=getAll&t=${Date.now()}`)
+    ]);
+    const plans = (await rPlan.json()).data || [];
+    const logs  = (await rLog.json()).data  || [];
+    const fromPlans = plans.map(p => p.branch);
+    const fromLogs  = logs.map(l => l.branch);
+    window._allPlanBranches = [...new Set([...fromPlans, ...fromLogs].filter(Boolean))].sort();
   } catch(e) { window._allPlanBranches = []; }
 }
 
@@ -741,7 +747,7 @@ function renderRounds() {
     const isExtra   = i >= BASE_ROUNDS.length;
     const extraIdx  = i - BASE_ROUNDS.length;
     const deleteBtn = isExtra && !done
-      ? `<button class="btn-del-extra" onclick="event.stopPropagation();deleteExtraRound(${extraIdx})">🗑</button>` : '';
+      ? `<button class="btn-del-extra" onclick="event.stopPropagation();deleteExtraRound(${extraIdx})">🗑️</button>` : '';
 
     // แสดงสถานที่ถ้ามี
     const locRow = r.location ? `<div style="font-size:11px;color:#0969da;margin-top:2px;">📍 ${r.location}</div>` : '';
