@@ -678,6 +678,10 @@ function getAllRounds() { return [...getPlanRounds(), ...getExtraRounds()]; }
 let curRound = null, gps = null, photo = null, stream = null, ovTimer = null;
 let geofenceWarning = null; // เก็บ warning geofence ล่าสุด
 
+// ── Today's Plan (ต้องประกาศก่อน tick() เรียกใช้) ──────
+let todayPlan = [];
+let planFetched = false;
+
 // ── Clock ──────────────────────────────────────────
 function tick() {
   const n = new Date();
@@ -689,10 +693,6 @@ function tick() {
 }
 setInterval(tick, 1000);
 tick();
-
-// ── Today's Plan ───────────────────────────────────
-let todayPlan = [];
-let planFetched = false;
 
 async function fetchTodayPlan() {
   const url = SCRIPT_URL || store.get('scriptUrl');
