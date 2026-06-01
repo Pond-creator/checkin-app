@@ -691,10 +691,13 @@ function todayKey() { return new Date().toISOString().slice(0,10); } // yyyy-MM-
       if (prefix === 'extraRounds_') {
         const v = store.get(prefix+old);
         if (v && !store.get(prefix+newKey)) store.set(prefix+newKey, v);
+        // ลบ key เก่าทิ้งหลัง migrate แล้ว (ป้องกัน restore กลับมา)
+        try { localStorage.removeItem(prefix+old); } catch(e) {}
       } else {
         for (let i=0; i<20; i++) {
           const v = store.get(prefix+old+'_'+i);
           if (v && !store.get(prefix+newKey+'_'+i)) store.set(prefix+newKey+'_'+i, v);
+          try { localStorage.removeItem(prefix+old+'_'+i); } catch(e) {}
         }
       }
     });
