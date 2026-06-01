@@ -540,6 +540,24 @@ function dateThToISO(dth) {
   return `${p[2]}-${p[1].padStart(2,'0')}-${p[0].padStart(2,'0')}`;
 }
 
+// Get ISO date from a record (handles dd/MM/yyyy, Date.toString(), timestamp)
+function getRecordDateISO(r) {
+  // Try r.date in dd/MM/yyyy format
+  const d = (r.date || '').toString().trim();
+  const m1 = d.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})/);
+  if (m1) return `${m1[3]}-${m1[2].padStart(2,'0')}-${m1[1].padStart(2,'0')}`;
+  // Try parsing as a JS date string (e.g. "Thu Jun 01 2026 ...")
+  const dt1 = new Date(d);
+  if (!isNaN(dt1) && dt1.getFullYear() > 2000) return fmtDate(dt1);
+  // Fallback: parse from timestamp
+  const ts = (r.timestamp || '').toString().trim();
+  if (ts) {
+    const dt2 = new Date(ts);
+    if (!isNaN(dt2) && dt2.getFullYear() > 2000) return fmtDate(dt2);
+  }
+  return '';
+}
+
 // Clean timestamp: remove GMT info
 function cleanTime(ts) {
   if (!ts) return '';
@@ -580,7 +598,7 @@ function getFiltered() {
   return logData.filter(r => {
     if (user   && r.name   !== user)   return false;
     if (branch && r.branch !== branch) return false;
-    if (dateISO && dateThToISO(r.date||'') !== dateISO) return false;
+    if (dateISO && getRecordDateISO(r) !== dateISO) return false;
     if (round) {
       if (round === 'รอบพิเศษ') {
         if (['รอบเช้า','รอบบ่าย','รอบเย็น','รอบค่ำ'].includes(r.round)) return false;
