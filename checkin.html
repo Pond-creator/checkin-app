@@ -167,33 +167,53 @@ body { font-family: 'Sarabun', sans-serif; background: #f0f2f5; min-height: 100v
 }
 .nav-overlay.open { display: block; }
 .nav-drawer {
-  position: fixed; top: 0; right: -280px; width: 260px; height: 100%;
+  position: fixed; top: 0; right: -300px; width: 280px; height: 100%;
   background: #fff; z-index: 501; transition: right .25s ease;
   display: flex; flex-direction: column; box-shadow: -4px 0 20px rgba(0,0,0,0.2);
 }
 .nav-drawer.open { right: 0; }
 .nav-header {
-  background: #0d1117; padding: 20px 16px; color: #e6edf3;
+  background: #0d1117; padding: 20px 16px; color: #e6edf3; flex-shrink: 0;
 }
 .nav-header .nav-name { font-size: 16px; font-weight: 700; }
 .nav-header .nav-role {
   font-size: 11px; margin-top: 3px;
   color: #58a6ff; text-transform: uppercase; letter-spacing: 1px;
 }
-.nav-items { flex: 1; padding: 12px 0; }
+.nav-items { padding: 8px 0; flex-shrink: 0; border-bottom: 1px solid #e1e4e8; }
 .nav-item {
   display: flex; align-items: center; gap: 12px;
-  padding: 14px 20px; font-size: 15px; color: #1f2328; cursor: pointer;
+  padding: 12px 20px; font-size: 14px; color: #1f2328; cursor: pointer;
   border-bottom: 1px solid #f6f8fa; text-decoration: none;
 }
 .nav-item:hover { background: #f6f8fa; }
-.nav-item .ni-icon { font-size: 20px; width: 28px; text-align: center; }
+.nav-item .ni-icon { font-size: 18px; width: 26px; text-align: center; }
 .nav-logout {
-  padding: 14px 20px; margin: 0; border-top: 1px solid #e1e4e8;
+  padding: 14px 20px; margin: 0; border-top: 1px solid #e1e4e8; flex-shrink: 0;
   display: flex; align-items: center; gap: 12px;
-  font-size: 15px; color: #cf222e; cursor: pointer;
+  font-size: 14px; color: #cf222e; cursor: pointer;
 }
 .nav-logout:hover { background: #ffebe9; }
+
+/* Nav future plans */
+.nav-plans { flex: 1; overflow-y: auto; background: #f6f8fa; }
+.nav-plans-header {
+  padding: 10px 16px 6px; font-size: 11px; font-weight: 700;
+  color: #57606a; text-transform: uppercase; letter-spacing: .5px;
+  background: #fff; border-bottom: 1px solid #e1e4e8; position: sticky; top: 0;
+}
+.nav-day-group { margin-bottom: 2px; }
+.nav-day-label {
+  padding: 7px 16px; font-size: 12px; font-weight: 700;
+  color: #0550ae; background: #ddf4ff; border-left: 3px solid #0969da;
+}
+.nav-plan-item {
+  background: #fff; padding: 9px 16px; border-bottom: 1px solid #f0f2f5;
+}
+.nav-plan-branch { font-size: 13px; font-weight: 700; color: #1f2328; }
+.nav-plan-time   { font-size: 11px; color: #57606a; margin-top: 1px; }
+.nav-plan-note   { font-size: 11px; color: #8c959f; margin-top: 1px; }
+.nav-plans-empty { padding: 24px 16px; text-align: center; font-size: 13px; color: #8c959f; }
 
 /* Rounds */
 .section-title { padding: 14px 20px 8px; font-size: 13px; color: #57606a; font-weight: 600; }
@@ -367,7 +387,7 @@ body { font-family: 'Sarabun', sans-serif; background: #f0f2f5; min-height: 100v
 <!-- User bar -->
 <div class="user-bar">
   <div class="user-name">👤 <span id="display-name">—</span></div>
-  <div class="task-counter" id="task-counter">0 / 4 งาน</div>
+  <div class="task-counter" id="task-counter">0 / 4 งานวันนี้</div>
 </div>
 
 
@@ -377,15 +397,9 @@ body { font-family: 'Sarabun', sans-serif; background: #f0f2f5; min-height: 100v
   <div id="plan-list" style="padding:0 16px 10px;display:flex;flex-direction:column;gap:6px;"></div>
 </div>
 
-<div class="action-bar">
-  <button class="btn-test" id="btn-test" onclick="toggleTest()">🧪 Test Mode</button>
-  <button class="btn-settings" onclick="toggleSettings()">⚙ ตั้งค่า</button>
-</div>
-
-<div class="settings-panel" id="settings-panel">
-  <label>Apps Script URL</label>
-  <input id="inp-url" type="url" placeholder="https://script.google.com/macros/s/.../exec">
-  <button class="save-btn" onclick="saveUrl()">💾 บันทึก URL</button>
+<div style="display:none">
+  <button id="btn-test" onclick="toggleTest()">Test</button>
+  <div id="settings-panel"><input id="inp-url" type="url"></div>
 </div>
 
 
@@ -398,11 +412,16 @@ body { font-family: 'Sarabun', sans-serif; background: #f0f2f5; min-height: 100v
   </div>
   <div class="nav-items">
     <a class="nav-item" href="checkin.html">
-      <span class="ni-icon">🏁</span> Check-In
+      <span class="ni-icon">🏁</span> Check-In วันนี้
     </a>
     <div class="nav-item" id="nav-admin-link" style="display:none" onclick="location.href='admin.html'">
       <span class="ni-icon">⚡</span> Admin Dashboard
     </div>
+  </div>
+  <!-- Future plans -->
+  <div class="nav-plans">
+    <div class="nav-plans-header">📅 แผนงานที่กำลังจะมาถึง</div>
+    <div id="nav-plans-list"><div class="nav-plans-empty">กด ☰ เพื่อโหลด</div></div>
   </div>
   <div class="nav-logout" onclick="logout()">
     <span class="ni-icon">🚪</span> ออกจากระบบ
@@ -530,8 +549,76 @@ document.getElementById('nav-role').textContent = MY_ROLE === 'admin' ? 'ผู�
 if (MY_ROLE === 'admin') document.getElementById('nav-admin-link').style.display = 'flex';
 
 // Nav drawer
-function openNav()  { document.getElementById('nav-overlay').classList.add('open'); document.getElementById('nav-drawer').classList.add('open'); }
+function openNav()  {
+  document.getElementById('nav-overlay').classList.add('open');
+  document.getElementById('nav-drawer').classList.add('open');
+  fetchFuturePlans();
+}
 function closeNav() { document.getElementById('nav-overlay').classList.remove('open'); document.getElementById('nav-drawer').classList.remove('open'); }
+
+// ── Future plans in nav drawer ─────────────────────
+function normPlanDateCI(raw) {
+  if (!raw) return '';
+  raw = raw.toString().trim();
+  if (/^\d{4}-\d{2}-\d{2}$/.test(raw)) return raw;
+  const m1 = raw.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})/);
+  if (m1) return `${m1[3]}-${m1[2].padStart(2,'0')}-${m1[1].padStart(2,'0')}`;
+  const dt = new Date(raw);
+  if (!isNaN(dt) && dt.getFullYear() > 2000) {
+    return dt.getFullYear()+'-'+String(dt.getMonth()+1).padStart(2,'0')+'-'+String(dt.getDate()).padStart(2,'0');
+  }
+  return raw;
+}
+function normTimeCI(raw) {
+  if (!raw) return '';
+  raw = raw.toString().trim();
+  if (/^\d{1,2}:\d{2}/.test(raw)) return raw.substring(0,5);
+  const m = raw.match(/(\d{2}:\d{2}):\d{2}/);
+  return m ? m[1] : raw;
+}
+
+async function fetchFuturePlans() {
+  const list = document.getElementById('nav-plans-list');
+  list.innerHTML = '<div class="nav-plans-empty">⏳ กำลังโหลด...</div>';
+  const url = SCRIPT_URL || store.get('scriptUrl');
+  if (!url || !MY_NAME) { list.innerHTML = '<div class="nav-plans-empty">ไม่พบข้อมูล</div>'; return; }
+  try {
+    const r = await fetch(`${url}?action=getPlan&name=${encodeURIComponent(MY_NAME)}&t=${Date.now()}`);
+    const j = await r.json();
+    const todayISO = new Date().toISOString().slice(0,10);
+    const plans = (j.data || [])
+      .filter(t => t.staffName === MY_NAME && normPlanDateCI(t.date) >= todayISO)
+      .sort((a,b) => normPlanDateCI(a.date).localeCompare(normPlanDateCI(b.date)));
+
+    if (!plans.length) { list.innerHTML = '<div class="nav-plans-empty">ไม่มีแผนงานที่กำลังจะมาถึง</div>'; return; }
+
+    const MONTHS = ['ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'];
+    const DAYS   = ['อา.','จ.','อ.','พ.','พฤ.','ศ.','ส.'];
+    const groups = {};
+    plans.forEach(p => {
+      const d = normPlanDateCI(p.date);
+      if (!groups[d]) groups[d] = [];
+      groups[d].push(p);
+    });
+
+    list.innerHTML = Object.keys(groups).sort().map(iso => {
+      const dt = new Date(iso+'T00:00:00');
+      const label = `${DAYS[dt.getDay()]} ${dt.getDate()} ${MONTHS[dt.getMonth()]} ${dt.getFullYear()}`;
+      const isToday = iso === todayISO;
+      const items = groups[iso].map(p => `
+        <div class="nav-plan-item">
+          <div class="nav-plan-branch">📍 ${p.branch||'-'}</div>
+          <div class="nav-plan-time">${normTimeCI(p.startTime)}${p.endTime?' – '+normTimeCI(p.endTime):''} ${p.taskType||''}</div>
+          ${p.note?`<div class="nav-plan-note">📝 ${p.note}</div>`:''}
+        </div>`).join('');
+      return `<div class="nav-day-group">
+        <div class="nav-day-label">${isToday?'🔵 ':''}งานวันที่ ${label}</div>
+        ${items}</div>`;
+    }).join('');
+  } catch(e) {
+    list.innerHTML = '<div class="nav-plans-empty">โหลดไม่สำเร็จ</div>';
+  }
+}
 function logout()   { store.set('session',''); location.href = 'index.html'; }
 
 // ── Rounds config ──────────────────────────────────
@@ -714,7 +801,7 @@ function updateTaskCounter() {
   const total = getAllRounds().length;
   const done  = countDone();
   const el = document.getElementById('task-counter');
-  el.textContent = `${done} / ${total} งาน`;
+  el.textContent = `${done} / ${total} งานวันนี้`;
   el.classList.toggle('all-done', done === total && total > 0);
 }
 
@@ -833,7 +920,7 @@ function confirmAddExtra() {
   if (!location) { alert('กรุณาเลือกหรือพิมพ์สถานที่'); return; }
 
   const extra = getExtraRounds();
-  const num   = BASE_ROUNDS.length + extra.length + 1;
+  const num   = extra.length + 1;  // รีเซ็ตทุกวัน: 1, 2, 3...
   extra.push({ name: `รอบพิเศษ ${num}`, start, end, location });
   store.set('extraRounds_'+todayKey(), JSON.stringify(extra));
   closeExtraModal();
