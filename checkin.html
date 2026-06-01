@@ -49,16 +49,29 @@ body { font-family: 'Sarabun', sans-serif; background: #f0f2f5; min-height: 100v
 }
 .task-counter.all-done { background: #dafbe1; border-color: #a3f0b5; color: #1a7f37; }
 
-/* Info bar (branch only now — name from session) */
-.info-bar {
-  background: #fff; padding: 10px 16px;
-  border-bottom: 1px solid #e1e4e8;
+/* Extra round popup */
+.extra-modal-bg {
+  display: none; position: fixed; inset: 0; background: rgba(0,0,0,.55);
+  z-index: 300; align-items: center; justify-content: center; padding: 20px;
 }
-.info-bar input {
+.extra-modal-bg.open { display: flex; }
+.extra-modal-box {
+  background: #fff; border-radius: 16px; padding: 24px;
+  width: 100%; max-width: 360px; animation: popIn .2s ease;
+}
+@keyframes popIn { from{transform:scale(.95);opacity:0} to{transform:scale(1);opacity:1} }
+.extra-modal-box h3 { font-size: 17px; font-weight: 700; margin-bottom: 16px; }
+.ex-form-row { margin-bottom: 12px; }
+.ex-form-row label { font-size: 12px; font-weight: 700; color: #57606a; display: block; margin-bottom: 4px; }
+.ex-form-row input, .ex-form-row select {
   width: 100%; padding: 10px 12px; border: 1.5px solid #d0d7de;
-  border-radius: 10px; font-size: 14px; background: #f6f8fa; outline: none;
+  border-radius: 8px; font-size: 14px; outline: none; font-family: inherit;
 }
-.info-bar input:focus { border-color: #0969da; background: #fff; }
+.ex-form-row input:focus, .ex-form-row select:focus { border-color: #0969da; }
+.ex-time-row { display: flex; gap: 10px; }
+.ex-time-row > * { flex: 1; }
+.ex-actions { display: flex; gap: 8px; margin-top: 16px; }
+.ex-actions button { flex: 1; padding: 12px; border-radius: 10px; border: none; cursor: pointer; font-size: 14px; font-weight: 700; font-family: inherit; }
 
 /* Action bar */
 .action-bar {
@@ -350,11 +363,6 @@ body { font-family: 'Sarabun', sans-serif; background: #f0f2f5; min-height: 100v
   <div class="task-counter" id="task-counter">0 / 4 งาน</div>
 </div>
 
-<!-- Branch input -->
-<datalist id="dl-branch"></datalist>
-<div class="info-bar">
-  <input id="inp-branch" type="text" placeholder="📍 สาขา / โลเคชั่น" maxlength="50" autocomplete="off" list="dl-branch">
-</div>
 
 <!-- แผนงานวันนี้ -->
 <div id="plan-card" style="display:none">
@@ -371,19 +379,8 @@ body { font-family: 'Sarabun', sans-serif; background: #f0f2f5; min-height: 100v
   <label>Apps Script URL</label>
   <input id="inp-url" type="url" placeholder="https://script.google.com/macros/s/.../exec">
   <button class="save-btn" onclick="saveUrl()">💾 บันทึก URL</button>
-  <button class="save-btn" onclick="openMgr()" style="background:#0969da;margin-top:8px;">✏️ จัดการสาขา</button>
 </div>
 
-<!-- Manage branches modal -->
-<div class="mgr-overlay" id="mgr-overlay">
-  <div class="mgr-box">
-    <h3>✏️ จัดการรายชื่อสาขา</h3>
-    <p>กด ✕ เพื่อลบรายการที่ไม่ต้องการออก</p>
-    <div class="mgr-section-title">📍 สาขา / โลเคชั่น</div>
-    <div class="tag-list" id="mgr-branches"></div>
-    <button class="mgr-close" onclick="closeMgr()">เสร็จแล้ว</button>
-  </div>
-</div>
 
 <!-- Nav Drawer -->
 <div class="nav-overlay" id="nav-overlay" onclick="closeNav()"></div>
@@ -408,7 +405,35 @@ body { font-family: 'Sarabun', sans-serif; background: #f0f2f5; min-height: 100v
 <div class="section-title">รอบเช็กอินวันนี้</div>
 <div class="rounds" id="rounds"></div>
 <div class="extra-round-wrap">
-  <button class="btn-extra" onclick="addExtraRound()">＋ เพิ่มรอบพิเศษ</button>
+  <button class="btn-extra" onclick="openExtraModal()">＋ เพิ่มรอบพิเศษ</button>
+</div>
+
+<!-- Extra Round Modal -->
+<div class="extra-modal-bg" id="extra-modal-bg">
+  <div class="extra-modal-box">
+    <h3>➕ เพิ่มรอบพิเศษ</h3>
+    <div class="ex-form-row">
+      <label>⏰ เวลา</label>
+      <div class="ex-time-row">
+        <div>
+          <label style="font-size:11px;color:#8c959f">เริ่ม</label>
+          <select id="ex-start"></select>
+        </div>
+        <div>
+          <label style="font-size:11px;color:#8c959f">สิ้นสุด</label>
+          <select id="ex-end"></select>
+        </div>
+      </div>
+    </div>
+    <div class="ex-form-row">
+      <label>📍 สถานที่</label>
+      <input id="ex-location" type="text" placeholder="เช่น บางขุนกอง, สาขา 2" maxlength="60">
+    </div>
+    <div class="ex-actions">
+      <button onclick="closeExtraModal()" style="background:#f6f8fa;color:#57606a;">ยกเลิก</button>
+      <button onclick="confirmAddExtra()" style="background:#0969da;color:#fff;">➕ เพิ่มรอบ</button>
+    </div>
+  </div>
 </div>
 
 <!-- Check-in Modal -->
@@ -472,6 +497,9 @@ body { font-family: 'Sarabun', sans-serif; background: #f0f2f5; min-height: 100v
 </div>
 
 <script>
+// ── Script URL (ฝังถาวร) ──────────────────────────
+const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxst_UC3w1zJJ_1gc3aBthvRnEhYbdX76E0z7hDV8nWEKh2tVlWV2YEpQMiCVzM0huv/exec';
+
 // ── Safe storage ───────────────────────────────────
 const mem = {};
 const store = {
@@ -531,7 +559,7 @@ let todayPlan = [];
 let planFetched = false;
 
 async function fetchTodayPlan() {
-  const url = store.get('scriptUrl');
+  const url = SCRIPT_URL || store.get('scriptUrl');
   if (!url || !MY_NAME) return;
   const today = new Date().toISOString().split('T')[0];
   try {
@@ -585,20 +613,20 @@ function checkGeofence(userLat, userLng, roundIdx) {
   return dist > 500 ? Math.round(dist) : null; // alert ถ้าเกิน 500m
 }
 
-// ── Branch input ───────────────────────────────────
-document.getElementById('inp-branch').value = store.get('branch') || '';
-document.getElementById('inp-branch').addEventListener('input', e => store.set('branch', e.target.value));
-renderDatalist('branchList');
+// ── Branch จากแผนงาน ──────────────────────────────
+// ดึง branch จาก plan หรือ extra round
+function getBranch(roundIdx) {
+  const allRounds = getAllRounds();
+  const r = allRounds[roundIdx];
+  // extra round มี location เก็บไว้
+  if (r && r.location) return r.location;
+  // ดึงจากแผนงานวันนี้
+  if (todayPlan.length) return todayPlan[0].branch || '';
+  return store.get('branch') || '';
+}
 
-// Auto-fill branch from plan after a moment
-setTimeout(() => {
-  fetchTodayPlan().then(() => {
-    if (todayPlan.length && !store.get('branch')) {
-      document.getElementById('inp-branch').value = todayPlan[0].branch || '';
-      store.set('branch', todayPlan[0].branch || '');
-    }
-  });
-}, 500);
+// โหลดแผนเมื่อเริ่ม
+setTimeout(() => fetchTodayPlan(), 500);
 
 // ── Test Mode ──────────────────────────────────────
 function isTest() { return store.get('testMode') === '1'; }
@@ -704,27 +732,50 @@ function renderRounds() {
   updateTaskCounter();
 }
 
-// ── Extra round ────────────────────────────────────
-function addExtraRound() {
-  const now = new Date();
-  const hh  = String(now.getHours()).padStart(2,'0');
-  const mm  = String(now.getMinutes()).padStart(2,'0');
+// ── Extra round modal ──────────────────────────────
+function buildTimeOpts() {
+  let html = '';
+  for (let h=0; h<=23; h++) {
+    const hh = String(h).padStart(2,'0');
+    html += `<option value="${hh}:00">${hh}:00</option>`;
+    html += `<option value="${hh}:30">${hh}:30</option>`;
+  }
+  html += `<option value="24:00">24:00</option>`;
+  return html;
+}
+
+function openExtraModal() {
+  const now  = new Date();
+  const hh   = String(now.getHours()).padStart(2,'0');
+  const mm   = now.getMinutes() < 30 ? '00' : '30';
   const endH = String(now.getHours()+1 < 24 ? now.getHours()+1 : 23).padStart(2,'0');
+  const opts = buildTimeOpts();
+  document.getElementById('ex-start').innerHTML = opts;
+  document.getElementById('ex-end').innerHTML   = opts;
+  document.getElementById('ex-start').value = `${hh}:${mm}`;
+  document.getElementById('ex-end').value   = `${endH}:${mm}`;
+  // pre-fill location จากแผนงาน
+  document.getElementById('ex-location').value = todayPlan.length ? (todayPlan[0].branch||'') : '';
+  document.getElementById('extra-modal-bg').classList.add('open');
+}
+function closeExtraModal() {
+  document.getElementById('extra-modal-bg').classList.remove('open');
+}
+function confirmAddExtra() {
+  const start    = document.getElementById('ex-start').value;
+  const end      = document.getElementById('ex-end').value;
+  const location = document.getElementById('ex-location').value.trim();
+  if (!location) { alert('กรุณากรอกสถานที่'); return; }
   const extra = getExtraRounds();
   const num   = BASE_ROUNDS.length + extra.length + 1;
-  extra.push({ name: `รอบพิเศษ ${num}`, start: `${hh}:${mm}`, end: `${endH}:${mm}` });
+  extra.push({ name: `รอบพิเศษ ${num}`, start, end, location });
   store.set('extraRounds_'+todayKey(), JSON.stringify(extra));
+  closeExtraModal();
   renderRounds();
 }
 
 // ── Check-in flow ──────────────────────────────────
 function openRound(i) {
-  const branch = document.getElementById('inp-branch').value.trim();
-  if (!branch) {
-    alert('กรุณากรอกสาขา / โลเคชั่นก่อน');
-    document.getElementById('inp-branch').focus();
-    return;
-  }
   const rounds = getAllRounds();
   curRound = i; gps = null; photo = null; geofenceWarning = null;
   document.getElementById('m-title').textContent = 'เช็กอิน: ' + rounds[i].name;
@@ -809,7 +860,7 @@ function startCamera() {
 function startOverlay() {
   clearInterval(ovTimer);
   ovTimer = setInterval(() => {
-    const branch = document.getElementById('inp-branch').value;
+    const branch = getBranch(curRound);
     document.getElementById('ov-name').textContent = MY_NAME + ' | ' + branch;
     document.getElementById('ov-time').textContent = new Date().toLocaleString('th-TH');
   }, 500);
@@ -823,7 +874,7 @@ function snap() {
   ctx.save(); ctx.scale(-1,1); ctx.drawImage(vid, -cvs.width, 0, cvs.width, cvs.height); ctx.restore();
   const rounds = getAllRounds();
   const r    = rounds[curRound];
-  const br   = document.getElementById('inp-branch').value;
+  const br   = getBranch(curRound);
   const ts   = new Date().toLocaleString('th-TH');
   const h    = Math.max(40, cvs.height * 0.09);
   ctx.fillStyle = 'rgba(0,0,0,0.65)'; ctx.fillRect(0, cvs.height-h, cvs.width, h);
@@ -846,7 +897,7 @@ function showConfirm() {
   showPane('confirm');
   const rounds = getAllRounds();
   const r  = rounds[curRound];
-  const br = document.getElementById('inp-branch').value;
+  const br = getBranch(curRound);
   const mismatch = checkBranchMismatch(br);
   const geoHtml  = geofenceWarning ? `
     <div class="warn-box">
@@ -880,7 +931,7 @@ async function submit() {
   showPane('loading');
   const rounds = getAllRounds();
   const r  = rounds[curRound];
-  const br = document.getElementById('inp-branch').value.trim();
+  const br = getBranch(curRound);
   const ts = new Date().toLocaleString('th-TH');
   const payload = {
     name: MY_NAME, branch: br, round: r.name, roundTime: `${r.start}-${r.end}`,
@@ -889,7 +940,7 @@ async function submit() {
     photo: photo || '',
     geofenceAlert: geofenceWarning ? `ห่าง ${geofenceWarning}m` : ''
   };
-  const url = store.get('scriptUrl');
+  const url = SCRIPT_URL || store.get('scriptUrl');
   if (url) {
     try {
       await fetch(url, { method:'POST', mode:'no-cors',
@@ -897,7 +948,6 @@ async function submit() {
     } catch(e) { console.warn('send failed:', e); }
   }
   store.set(doneKey(curRound), ts);
-  addToList('branchList', br);
   renderRounds();
   document.getElementById('m-success-sub').textContent = `${MY_NAME} | ${br} | ${r.name}`;
   showPane('success');
@@ -907,13 +957,13 @@ async function submit() {
 async function confirmCheckout(i) {
   const rounds = getAllRounds();
   const r  = rounds[i];
-  const br = document.getElementById('inp-branch').value.trim();
+  const br = getBranch(i);
   if (!confirm(`จบงาน "${r.name}" ใช่ไหมครับ?`)) return;
   const ts   = new Date().toLocaleString('th-TH');
   const date = new Date().toLocaleDateString('th-TH');
   store.set(checkoutKey(i), ts);
   renderRounds();
-  const url = store.get('scriptUrl');
+  const url = SCRIPT_URL || store.get('scriptUrl');
   if (url) {
     try {
       await fetch(url, {
@@ -930,31 +980,6 @@ function closeModal() {
   document.getElementById('overlay').classList.remove('open');
 }
 
-// ── Manage branches modal ──────────────────────────
-function openMgr() {
-  renderMgr();
-  document.getElementById('mgr-overlay').classList.add('open');
-  document.getElementById('settings-panel').classList.remove('open');
-}
-function closeMgr() { document.getElementById('mgr-overlay').classList.remove('open'); }
-function renderMgr() {
-  const el   = document.getElementById('mgr-branches');
-  const list = getList('branchList');
-  if (!list.length) {
-    el.innerHTML = '<span style="font-size:13px;color:#8c959f;font-style:italic">ยังไม่มีรายการ</span>';
-    return;
-  }
-  el.innerHTML = list.map(v => `
-    <div class="tag">${v}
-      <button class="tag-del" onclick="removeBranch('${v.replace(/'/g,"\\'")}')">✕</button>
-    </div>`).join('');
-}
-function removeBranch(val) {
-  const arr = getList('branchList').filter(x => x !== val);
-  store.set('branchList', JSON.stringify(arr));
-  renderDatalist('branchList');
-  renderMgr();
-}
 
 // ── Init ───────────────────────────────────────────
 setTestMode(isTest());

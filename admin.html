@@ -466,7 +466,8 @@ const DAYS_TH   = ['อา','จ','อ','พ','พฤ','ศ','ส'];
 const MONTHS_TH = ['มกราคม','กุมภาพันธ์','มีนาคม','เมษายน','พฤษภาคม','มิถุนายน',
                    'กรกฎาคม','สิงหาคม','กันยายน','ตุลาคม','พฤศจิกายน','ธันวาคม'];
 
-function getUrl()    { return store.get('adminUrl') || store.get('scriptUrl') || ''; }
+const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxst_UC3w1zJJ_1gc3aBthvRnEhYbdX76E0z7hDV8nWEKh2tVlWV2YEpQMiCVzM0huv/exec';
+function getUrl()    { return SCRIPT_URL || store.get('adminUrl') || store.get('scriptUrl') || ''; }
 function showLoad(v) { document.getElementById('loading').classList.toggle('show', v); }
 function fmtDate(d)  { return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
 function todayStr()  { return fmtDate(new Date()); }

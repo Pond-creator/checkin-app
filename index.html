@@ -115,9 +115,11 @@ body {
 </div>
 
 <script>
+const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxst_UC3w1zJJ_1gc3aBthvRnEhYbdX76E0z7hDV8nWEKh2tVlWV2YEpQMiCVzM0huv/exec';
+
 const mem = {};
 const store = {
-  get: k => { try { return localStorage.getItem(k); } catch(e) { return mem[k]||null; } },
+  get: k => { try { return localStorage.getItem(k)||null; } catch(e) { return mem[k]||null; } },
   set: (k,v) => { try { localStorage.setItem(k,v); } catch(e) { mem[k]=v; } }
 };
 
@@ -139,12 +141,10 @@ async function doLogin() {
   const pass = document.getElementById('inp-pass').value;
   if (!id || !pass) { showErr('กรุณากรอก ID และรหัสผ่าน'); return; }
 
-  const url = store.get('scriptUrl');
-  if (!url) { showErr('กรุณาตั้งค่า Apps Script URL ก่อน'); toggleCfg(true); return; }
-
   hideErr();
   setLoading(true);
 
+  const url = SCRIPT_URL;
   try {
     const r = await fetch(`${url}?action=login&id=${encodeURIComponent(id)}&pass=${encodeURIComponent(pass)}&t=${Date.now()}`);
     const j = await r.json();
@@ -177,7 +177,7 @@ function toggleCfg(force) {
 }
 function saveCfg() {
   const v = document.getElementById('cfg-url').value.trim();
-  if (v) { store.set('scriptUrl', v); alert('บันทึกแล้ว ✓'); }
+  if (v) { store.set('scriptUrl', v); alert('บันทึกแล้ว ✓ (แต่ระบบใช้ URL ที่ฝังไว้อยู่แล้ว)'); }
 }
 </script>
 </body>
