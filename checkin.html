@@ -397,7 +397,10 @@ body { font-family: 'Sarabun', sans-serif; background: #f0f2f5; min-height: 100v
 <!-- User bar -->
 <div class="user-bar">
   <div class="user-name">👤 <span id="display-name">—</span></div>
-  <div class="task-counter" id="task-counter">0 / 4 งานวันนี้</div>
+  <div style="display:flex;align-items:center;gap:8px">
+    <button onclick="clearTodayData()" style="font-size:11px;padding:4px 10px;border-radius:20px;border:1px solid #fca5a5;background:#ffebe9;color:#cf222e;cursor:pointer;font-family:inherit;">🗑 ล้างวันนี้</button>
+    <div class="task-counter" id="task-counter">0 / 0 งานวันนี้</div>
+  </div>
 </div>
 
 
@@ -626,7 +629,25 @@ async function fetchFuturePlans() {
     list.innerHTML = '<div class="nav-plans-empty">โหลดไม่สำเร็จ</div>';
   }
 }
-function logout()   { store.set('session',''); location.href = 'index.html'; }
+function logout() { store.set('session',''); location.href = 'index.html'; }
+
+function clearTodayData() {
+  if (!confirm('ล้างข้อมูลรอบวันนี้ทั้งหมดใช่ไหมครับ?\n(เช็กอิน / จบงาน / รอบพิเศษ)')) return;
+  const d = todayKey();
+  try {
+    const keys = Object.keys(localStorage);
+    keys.forEach(k => {
+      if (k.startsWith('done_'+d) || k.startsWith('checkout_'+d) || k === 'extraRounds_'+d)
+        localStorage.removeItem(k);
+    });
+  } catch(e) {
+    // fallback: ล้างด้วย store
+    for (let i=0; i<20; i++) { store.set('done_'+d+'_'+i,''); store.set('checkout_'+d+'_'+i,''); }
+    store.set('extraRounds_'+d, '');
+  }
+  renderRounds();
+  alert('ล้างข้อมูลวันนี้เรียบร้อยแล้ว ✓');
+}
 
 // ── Rounds config ──────────────────────────────────
 // ไม่มี BASE_ROUNDS แล้ว — รอบมาจาก admin plan เท่านั้น
