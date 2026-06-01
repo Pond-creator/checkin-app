@@ -486,6 +486,21 @@ const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxst_UC3w1zJJ_1gc3aB
 function getUrl()    { return SCRIPT_URL || store.get('adminUrl') || store.get('scriptUrl') || ''; }
 function showLoad(v) { document.getElementById('loading').classList.toggle('show', v); }
 function fmtDate(d)  { return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
+
+// Normalize plan date to yyyy-MM-dd (handles Date.toString, dd/MM/yyyy, etc.)
+function normPlanDate(raw) {
+  if (!raw) return '';
+  raw = raw.toString().trim();
+  // Already yyyy-MM-dd
+  if (/^\d{4}-\d{2}-\d{2}$/.test(raw)) return raw;
+  // dd/MM/yyyy
+  const m1 = raw.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})/);
+  if (m1) return `${m1[3]}-${m1[2].padStart(2,'0')}-${m1[1].padStart(2,'0')}`;
+  // Date toString e.g. "Mon Jun 01 2026 ..."
+  const dt = new Date(raw);
+  if (!isNaN(dt) && dt.getFullYear() > 2000) return fmtDate(dt);
+  return raw;
+}
 function todayStr()  { return fmtDate(new Date()); }
 
 // ── Tab switch ─────────────────────────────────────
@@ -808,7 +823,7 @@ function renderWeek() {
     html += `<tr><td class="staff-cell">${staff}</td>`;
     days.forEach(d => {
       const ds = fmtDate(d);
-      const tasks = planData.filter(t=>t.staffName===staff&&t.date===ds);
+      const tasks = planData.filter(t=>t.staffName===staff&&normPlanDate(t.date)===ds);
       const chips = tasks.map(t=>`
         <div class="task-chip" onclick="editTask('${t.id}')">
           <div>
@@ -841,7 +856,7 @@ function renderMonth() {
   while(cur<=lastDay||cur.getDay()!==1) {
     if(cur.getDay()===1) html+=`<tr>`;
     const ds=fmtDate(cur), isOther=cur.getMonth()!==m, isToday=ds===today;
-    const tasks=planData.filter(t=>t.date===ds);
+    const tasks=planData.filter(t=>normPlanDate(t.date)===ds);
     const shown=tasks.slice(0,3), more=tasks.length-3;
     const dayNum=isToday?`<div class="day-num today">${cur.getDate()}</div>`:`<div class="day-num" style="${isOther?'color:#ccc':''}">${cur.getDate()}</div>`;
     const chips=shown.map(t=>`<div class="month-chip" onclick="editTask('${t.id}')" title="${t.staffName} - ${t.branch}">${t.staffName}</div>`).join('');

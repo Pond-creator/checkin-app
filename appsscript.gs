@@ -251,7 +251,11 @@ function readPlans() {
   const rows = sheet.getDataRange().getValues();
   if (rows.length<=1) return [];
   return rows.slice(1).map(r => ({
-    id:r[0]+'', staffName:r[1]+'', date:r[2]+'',
+    id:r[0]+'',
+    staffName:r[1]+'',
+    date: r[2] instanceof Date
+      ? Utilities.formatDate(r[2], 'Asia/Bangkok', 'yyyy-MM-dd')
+      : r[2]+'',
     startTime:r[3]+'', endTime:r[4]+'',
     branch:r[5]+'', taskType:r[6]+'', note:r[7]+'',
     lat:r[9]+'', lng:r[10]+''
