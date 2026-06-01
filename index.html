@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Check-In System — Login</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: 'Sarabun', sans-serif;
+  background: linear-gradient(135deg, #0d1117 0%, #161b22 100%);
+  min-height: 100vh; display: flex; align-items: center; justify-content: center;
+  padding: 24px;
+}
+.card {
+  background: #fff; border-radius: 20px; padding: 36px 28px 32px;
+  width: 100%; max-width: 380px;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.4);
+}
+.logo { text-align: center; margin-bottom: 28px; }
+.logo .ic  { font-size: 48px; margin-bottom: 6px; }
+.logo .t1  { font-size: 20px; font-weight: 800; color: #0d1117; letter-spacing: 1px; }
+.logo .t2  { font-size: 13px; color: #57606a; margin-top: 2px; }
+
+.form-group { margin-bottom: 16px; }
+.form-group label {
+  display: block; font-size: 12px; font-weight: 700; color: #57606a;
+  margin-bottom: 5px; text-transform: uppercase; letter-spacing: .5px;
+}
+.form-group input {
+  width: 100%; padding: 12px 14px; border: 1.5px solid #d0d7de;
+  border-radius: 10px; font-size: 15px; outline: none; transition: border .2s;
+  font-family: inherit; background: #f6f8fa;
+}
+.form-group input:focus { border-color: #0969da; background: #fff; }
+
+.btn-login {
+  width: 100%; padding: 14px; border-radius: 10px; border: none;
+  background: #0969da; color: #fff; font-size: 16px; font-weight: 700;
+  cursor: pointer; margin-top: 6px; transition: background .2s;
+  font-family: inherit;
+}
+.btn-login:hover  { background: #0550ae; }
+.btn-login:active { background: #033d8b; }
+
+.err-box {
+  display: none; background: #ffebe9; border: 1px solid #ffa0a0;
+  border-radius: 8px; padding: 10px 14px; font-size: 13px; color: #cf222e;
+  margin-bottom: 14px; text-align: center;
+}
+.err-box.show { display: block; }
+
+.spinner-wrap { display: none; text-align: center; padding: 8px 0; }
+.spinner-wrap.show { display: block; }
+.spinner {
+  width: 28px; height: 28px; border: 3px solid #e1e4e8; border-top-color: #0969da;
+  border-radius: 50%; animation: spin .8s linear infinite; margin: 0 auto;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.footer { text-align: center; margin-top: 20px; font-size: 11px; color: #8c959f; }
+
+/* Settings link */
+.cfg-link {
+  display: block; text-align: center; margin-top: 16px; font-size: 12px;
+  color: #0969da; cursor: pointer; text-decoration: underline;
+}
+.cfg-panel {
+  display: none; background: #f6f8fa; border-radius: 10px; padding: 14px;
+  margin-top: 14px; border: 1px solid #d0d7de;
+}
+.cfg-panel.show { display: block; }
+.cfg-panel label { font-size: 11px; color: #57606a; display: block; margin-bottom: 4px; }
+.cfg-panel input {
+  width: 100%; padding: 8px 10px; border: 1px solid #d0d7de; border-radius: 7px;
+  font-size: 12px; margin-bottom: 8px; font-family: inherit;
+}
+.cfg-panel .save-cfg {
+  background: #0969da; color: #fff; border: none; padding: 8px 16px;
+  border-radius: 7px; font-size: 12px; cursor: pointer; font-weight: 700; font-family: inherit;
+}
+</style>
+</head>
+<body>
+
+<div class="card">
+  <div class="logo">
+    <div class="ic">🏁</div>
+    <div class="t1">CHECK-IN SYSTEM</div>
+    <div class="t2">พนักงาน PC / โปรโมเตอร์</div>
+  </div>
+
+  <div class="err-box" id="err-box">รหัสผู้ใช้หรือรหัสผ่านไม่ถูกต้อง</div>
+
+  <div class="form-group">
+    <label>รหัสผู้ใช้ (ID)</label>
+    <input id="inp-id" type="text" placeholder="เช่น S001" autocomplete="username" autocorrect="off" autocapitalize="off">
+  </div>
+  <div class="form-group">
+    <label>รหัสผ่าน</label>
+    <input id="inp-pass" type="password" placeholder="••••••" autocomplete="current-password">
+  </div>
+
+  <div class="spinner-wrap" id="spin-wrap"><div class="spinner"></div></div>
+  <button class="btn-login" id="btn-login" onclick="doLogin()">🔐 เข้าสู่ระบบ</button>
+
+  <div class="footer">ระบบนี้ใช้สำหรับพนักงาน PC เท่านั้น</div>
+
+  <a class="cfg-link" onclick="toggleCfg()">⚙ ตั้งค่า Apps Script URL</a>
+  <div class="cfg-panel" id="cfg-panel">
+    <label>Apps Script URL</label>
+    <input id="cfg-url" type="url" placeholder="https://script.google.com/macros/s/.../exec">
+    <button class="save-cfg" onclick="saveCfg()">💾 บันทึก</button>
+  </div>
+</div>
+
+<script>
+const mem = {};
+const store = {
+  get: k => { try { return localStorage.getItem(k); } catch(e) { return mem[k]||null; } },
+  set: (k,v) => { try { localStorage.setItem(k,v); } catch(e) { mem[k]=v; } }
+};
+
+// Auto-redirect if already logged in
+const sess = (() => { try { return JSON.parse(store.get('session')||'null'); } catch { return null; } })();
+if (sess && sess.name) {
+  location.href = sess.role === 'admin' ? 'admin.html' : 'checkin.html';
+}
+
+// Load saved URL
+const cfgEl = document.getElementById('cfg-url');
+cfgEl.value = store.get('scriptUrl') || '';
+
+// Enter key support
+document.addEventListener('keydown', e => { if (e.key === 'Enter') doLogin(); });
+
+async function doLogin() {
+  const id   = document.getElementById('inp-id').value.trim();
+  const pass = document.getElementById('inp-pass').value;
+  if (!id || !pass) { showErr('กรุณากรอก ID และรหัสผ่าน'); return; }
+
+  const url = store.get('scriptUrl');
+  if (!url) { showErr('กรุณาตั้งค่า Apps Script URL ก่อน'); toggleCfg(true); return; }
+
+  hideErr();
+  setLoading(true);
+
+  try {
+    const r = await fetch(`${url}?action=login&id=${encodeURIComponent(id)}&pass=${encodeURIComponent(pass)}&t=${Date.now()}`);
+    const j = await r.json();
+    if (j.success) {
+      store.set('session', JSON.stringify({ id, name: j.name, role: j.role }));
+      location.href = j.role === 'admin' ? 'admin.html' : 'checkin.html';
+    } else {
+      showErr('รหัสผู้ใช้หรือรหัสผ่านไม่ถูกต้อง');
+    }
+  } catch(e) {
+    showErr('เชื่อมต่อไม่ได้ กรุณาตรวจสอบ URL และการเชื่อมต่ออินเทอร์เน็ต');
+  }
+  setLoading(false);
+}
+
+function showErr(msg) {
+  const b = document.getElementById('err-box');
+  b.textContent = msg; b.classList.add('show');
+}
+function hideErr() { document.getElementById('err-box').classList.remove('show'); }
+function setLoading(v) {
+  document.getElementById('spin-wrap').classList.toggle('show', v);
+  document.getElementById('btn-login').disabled = v;
+}
+
+function toggleCfg(force) {
+  const p = document.getElementById('cfg-panel');
+  if (force !== undefined) { p.classList.toggle('show', force); }
+  else { p.classList.toggle('show'); }
+}
+function saveCfg() {
+  const v = document.getElementById('cfg-url').value.trim();
+  if (v) { store.set('scriptUrl', v); alert('บันทึกแล้ว ✓'); }
+}
+</script>
+</body>
+</html>
