@@ -633,8 +633,23 @@ function getBranch(roundIdx) {
   return store.get('branch') || '';
 }
 
-// โหลดแผนเมื่อเริ่ม
-setTimeout(() => fetchTodayPlan(), 500);
+// โหลดแผนและรายชื่อสาขาจาก Admin เมื่อเริ่ม
+setTimeout(() => {
+  fetchTodayPlan();
+  fetchAllBranches();
+}, 500);
+
+async function fetchAllBranches() {
+  const url = SCRIPT_URL || store.get('scriptUrl');
+  if (!url) return;
+  try {
+    const r = await fetch(`${url}?action=getPlans&t=${Date.now()}`);
+    const j = await r.json();
+    const plans = j.data || [];
+    // เก็บสาขาที่ไม่ซ้ำทั้งหมดจาก Admin
+    window._allPlanBranches = [...new Set(plans.map(p => p.branch).filter(Boolean))].sort();
+  } catch(e) { window._allPlanBranches = []; }
+}
 
 // ── Test Mode ──────────────────────────────────────
 function isTest() { return store.get('testMode') === '1'; }
@@ -773,10 +788,14 @@ function openExtraModal() {
   document.getElementById('ex-start').value = `${hh}:${mm}`;
   document.getElementById('ex-end').value   = `${endH}:${mm}`;
 
-  // สร้าง choices จาก todayPlan + branchList
+  // สร้าง choices จากแผนงานของ Admin เท่านั้น (todayPlan + allPlanBranches)
   const choices = [];
+  // ดึงจากแผนวันนี้ก่อน
   todayPlan.forEach(t => { if (t.branch && !choices.includes(t.branch)) choices.push(t.branch); });
-  getList('branchList').forEach(b => { if (!choices.includes(b)) choices.push(b); });
+  // ดึงจากแผนงานทั้งหมดที่ cache ไว้ (ถ้ามี)
+  if (window._allPlanBranches) {
+    window._allPlanBranches.forEach(b => { if (!choices.includes(b)) choices.push(b); });
+  }
 
   const sel = document.getElementById('ex-location-sel');
   sel.innerHTML = choices.map(c => `<option value="${c}">${c}</option>`).join('') +
@@ -811,8 +830,7 @@ function confirmAddExtra() {
   const num   = BASE_ROUNDS.length + extra.length + 1;
   extra.push({ name: `รอบพิเศษ ${num}`, start, end, location });
   store.set('extraRounds_'+todayKey(), JSON.stringify(extra));
-  // เก็บใน branchList ด้วย
-  addToList('branchList', location);
+  // ไม่เก็บใน local list — choices มาจาก Admin เท่านั้น
   closeExtraModal();
   renderRounds();
 }
