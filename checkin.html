@@ -507,7 +507,7 @@ body { font-family: 'Sarabun', sans-serif; background: #f0f2f5; min-height: 100v
     <!-- Confirm -->
     <div class="pane" id="pane-confirm">
       <div class="summary" id="m-summary"></div>
-      <button class="btn btn-green" onclick="submit()">✅ ยืนยัน Check-In</button>
+      <button class="btn btn-green" id="btn-confirm-submit" onclick="checkoutIdx!=null?submitCheckout():submit()">✅ ยืนยัน Check-In</button>
       <button class="btn btn-ghost" onclick="backToCam()">← ถ่ายรูปใหม่</button>
     </div>
 
@@ -1150,8 +1150,9 @@ function stopStream() { if (stream) { stream.getTracks().forEach(t=>t.stop()); s
 function showConfirm() {
   showPane('confirm');
   const rounds = getAllRounds();
-  const r  = rounds[curRound];
-  const br = getBranch(curRound);
+  const idx = checkoutIdx != null ? checkoutIdx : curRound;
+  const r  = rounds[idx];
+  const br = getBranch(idx);
   const mismatch = checkBranchMismatch(br);
   const geoHtml  = geofenceWarning ? `
     <div class="warn-box">
@@ -1173,9 +1174,12 @@ function showConfirm() {
     <div class="summary-row"><span class="lbl">สาขา</span>
       <span class="val" style="${mismatch?'color:#ea580c':''}">${br}${mismatch?' ⚠️':''}</span></div>
     <div class="summary-row"><span class="lbl">รอบ</span><span class="val">${r.name}</span></div>
-    <div class="summary-row"><span class="lbl">เวลา</span><span class="val">${new Date().toLocaleTimeString('th-TH')}</span></div>
-    <div class="summary-row"><span class="lbl">GPS</span><span class="val" style="font-size:11px">${gps.lat||'ไม่มี'}</span></div>
+    <div class="summary-row"><span class="lbl">เวลา</span><span class="val">${nowTS().split(' ')[1]}</span></div>
+    <div class="summary-row"><span class="lbl">GPS</span><span class="val" style="font-size:11px">${gps ? (gps.lat||'ไม่มี') : 'ไม่มี'}</span></div>
     ${geofenceWarning?`<div class="summary-row"><span class="lbl">ระยะห่างสาขา</span><span class="val" style="color:#cf222e">${geofenceWarning}m ⚠️</span></div>`:''}`;
+  // เปลี่ยนข้อความปุ่มตามโหมด
+  document.getElementById('btn-confirm-submit').textContent =
+    checkoutIdx != null ? '🏁 ยืนยันจบงาน' : '✅ ยืนยัน Check-In';
 }
 function backToGps() { stopStream(); clearInterval(ovTimer); setStep(0); showPane('gps'); }
 function backToCam() { showCam(); }
@@ -1207,26 +1211,49 @@ async function submit() {
   showPane('success');
 }
 
-// ── Checkout ───────────────────────────────────────
-async function confirmCheckout(i) {
+// ── Checkout (ต้องถ่ายรูปก่อน) ─────────────────────
+let checkoutIdx = null; // เก็บ index รอบที่กำลังจบงาน
+
+function confirmCheckout(i) {
+  checkoutIdx = i;
   const rounds = getAllRounds();
-  const r  = rounds[i];
-  const br = getBranch(i);
-  if (!confirm(`จบงาน "${r.name}" ใช่ไหมครับ?`)) return;
+  const r = rounds[i];
+  // เปิด overlay กล้องในโหมด checkout
+  curRound = i; photo = null; geofenceWarning = null;
+  document.getElementById('m-title').textContent = '🏁 จบงาน: ' + r.name;
+  document.getElementById('m-sub').textContent   = 'ถ่ายรูปเพื่อยืนยันจบงาน';
+  document.getElementById('overlay').classList.add('open');
+  setStep(1); showCam();
+}
+
+async function submitCheckout() {
+  const rounds = getAllRounds();
+  const r  = rounds[checkoutIdx];
+  const br = getBranch(checkoutIdx);
   const ts   = nowTS();
   const date = nowDateStr();
-  store.set(checkoutKey(i), ts);
-  renderRounds();
+
+  showPane('loading');
+
+  // อัปโหลดรูป (ถ้ามี)
+  let checkoutPhoto = photo || '';
   const url = SCRIPT_URL || store.get('scriptUrl');
   if (url) {
     try {
       await fetch(url, {
         method: 'POST', mode: 'no-cors',
         headers: {'Content-Type':'application/json'},
-        body: JSON.stringify({ action:'checkout', name:MY_NAME, branch:br, round:r.name, date, checkoutTime:ts })
+        body: JSON.stringify({ action:'checkout', name:MY_NAME, branch:br, round:r.name,
+          date, checkoutTime:ts, photo: checkoutPhoto })
       });
     } catch(e) { console.warn('checkout send failed:', e); }
   }
+
+  store.set(checkoutKey(r.start), ts);
+  renderRounds();
+  document.getElementById('m-success-sub').textContent = `จบงาน ${MY_NAME} | ${r.name}`;
+  showPane('success');
+  checkoutIdx = null;
 }
 
 function closeModal() {
