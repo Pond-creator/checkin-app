@@ -735,10 +735,8 @@ function getBranch(roundIdx) {
 }
 
 // โหลดแผนและรายชื่อสาขาจาก Admin เมื่อเริ่ม
-setTimeout(() => {
-  fetchTodayPlan();
-  fetchAllBranches();
-}, 500);
+fetchTodayPlan();
+fetchAllBranches();
 
 async function fetchAllBranches() {
   const url = SCRIPT_URL || store.get('scriptUrl');
@@ -823,6 +821,15 @@ function renderRounds() {
   const allRounds = getAllRounds();
   const el = document.getElementById('rounds');
   if (!allRounds.length) {
+    if (!planFetched) {
+      // ยังโหลดอยู่ — แสดง spinner แทน
+      el.innerHTML = `<div style="text-align:center;padding:32px 16px;color:#8c959f;">
+        <div style="width:28px;height:28px;border:3px solid #e1e4e8;border-top-color:#0969da;border-radius:50%;animation:spin .8s linear infinite;margin:0 auto 10px;"></div>
+        <div style="font-size:13px;">กำลังโหลดแผนงาน...</div>
+      </div>`;
+      updateTaskCounter();
+      return;
+    }
     el.innerHTML = `<div style="text-align:center;padding:32px 16px;color:#8c959f;">
       <div style="font-size:36px;margin-bottom:8px;">📋</div>
       <div style="font-size:14px;font-weight:700;">ไม่มีงานวันนี้</div>
