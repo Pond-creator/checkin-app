@@ -487,6 +487,18 @@ function getUrl()    { return SCRIPT_URL || store.get('adminUrl') || store.get('
 function showLoad(v) { document.getElementById('loading').classList.toggle('show', v); }
 function fmtDate(d)  { return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
 
+// Clean time field (handles "Sat Dec 30 1899 09:00:00..." → "09:00")
+function normTime(raw) {
+  if (!raw) return '';
+  raw = raw.toString().trim();
+  // Already HH:mm or HH:mm:ss
+  if (/^\d{1,2}:\d{2}/.test(raw)) return raw.substring(0,5);
+  // Date object string — extract time part
+  const m = raw.match(/(\d{2}:\d{2}):\d{2}/);
+  if (m) return m[1];
+  return raw;
+}
+
 // Normalize plan date to yyyy-MM-dd (handles Date.toString, dd/MM/yyyy, etc.)
 function normPlanDate(raw) {
   if (!raw) return '';
@@ -827,7 +839,7 @@ function renderWeek() {
       const chips = tasks.map(t=>`
         <div class="task-chip" onclick="editTask('${t.id}')">
           <div>
-            <div style="font-weight:700">${t.startTime||''} ${t.branch||''}</div>
+            <div style="font-weight:700">${normTime(t.startTime)} ${t.branch||''}</div>
             <div style="opacity:.85">${t.taskType||''}</div>
           </div>
           <button class="chip-del" onclick="event.stopPropagation();quickDelete('${t.id}')">✕</button>
@@ -906,7 +918,7 @@ function editTask(id) {
   document.getElementById('t-lat').value=t.lat||'';
   document.getElementById('t-lng').value=t.lng||'';
   document.getElementById('btn-del-task').style.display='';
-  initTimeSelects(t.startTime||'09:00',t.endTime||'18:00');
+  initTimeSelects(normTime(t.startTime)||'09:00', normTime(t.endTime)||'18:00');
   document.getElementById('task-modal').classList.add('open');
 }
 

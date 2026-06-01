@@ -256,7 +256,8 @@ function readPlans() {
     date: r[2] instanceof Date
       ? Utilities.formatDate(r[2], 'Asia/Bangkok', 'yyyy-MM-dd')
       : r[2]+'',
-    startTime:r[3]+'', endTime:r[4]+'',
+    startTime: r[3] instanceof Date ? Utilities.formatDate(r[3],'Asia/Bangkok','HH:mm') : r[3]+'',
+    endTime:   r[4] instanceof Date ? Utilities.formatDate(r[4],'Asia/Bangkok','HH:mm') : r[4]+'',
     branch:r[5]+'', taskType:r[6]+'', note:r[7]+'',
     lat:r[9]+'', lng:r[10]+''
   }));
