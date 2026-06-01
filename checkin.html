@@ -722,7 +722,10 @@ function renderPlanCard() {
   const card = document.getElementById('plan-card');
   const list = document.getElementById('plan-list');
   if (!todayPlan.length) { card.style.display = 'none'; return; }
-  list.innerHTML = todayPlan.map(t => `
+  // แสดงเฉพาะแผนที่ยังไม่ได้เช็กอิน
+  const pending = todayPlan.filter(p => !store.get(doneKey(normTimeCI(p.startTime) || '00:00')));
+  if (!pending.length) { card.style.display = 'none'; return; }
+  list.innerHTML = pending.map(t => `
     <div class="plan-item">
       <div class="pi-time">${t.startTime||''}${t.endTime?' – '+t.endTime:''}</div>
       <div style="flex:1">
@@ -942,6 +945,7 @@ function renderRounds() {
       </div>`;
   }).join('');
   updateTaskCounter();
+  renderPlanCard(); // ซ่อนแผนที่เช็กแล้วออกจากด้านบน
 }
 
 // ── Extra round modal ──────────────────────────────
