@@ -260,29 +260,41 @@ tr:hover td { background:#f6f8fa; }
 <div class="tab-content active" id="tab-log">
   <div class="toolbar">
     <button class="btn btn-primary" onclick="loadLog()">🔄 โหลดข้อมูล</button>
-    <select id="f-date" onchange="renderLog()"><option value="">📅 ทุกวัน</option></select>
-    <select id="f-round" onchange="renderLog()">
+    <select id="f-user" onchange="renderLog()" style="padding:7px 12px;border:1px solid #d0d7de;border-radius:8px;font-size:13px;">
+      <option value="">👤 ทุกคน</option>
+    </select>
+    <input type="date" id="f-date" onchange="renderLog()" style="padding:7px 12px;border:1px solid #d0d7de;border-radius:8px;font-size:13px;">
+    <select id="f-round" onchange="renderLog()" style="padding:7px 12px;border:1px solid #d0d7de;border-radius:8px;font-size:13px;">
       <option value="">🕐 ทุกรอบ</option>
       <option>รอบเช้า</option><option>รอบบ่าย</option>
       <option>รอบเย็น</option><option>รอบค่ำ</option>
+      <option>รอบพิเศษ</option>
     </select>
-    <input type="text" id="f-search" placeholder="🔍 ชื่อ / สาขา" oninput="renderLog()" style="padding:7px 12px;border:1px solid #d0d7de;border-radius:8px;font-size:13px;">
+    <select id="f-branch" onchange="renderLog()" style="padding:7px 12px;border:1px solid #d0d7de;border-radius:8px;font-size:13px;">
+      <option value="">📍 ทุกสาขา</option>
+    </select>
+    <select id="f-status" onchange="renderLog()" style="padding:7px 12px;border:1px solid #d0d7de;border-radius:8px;font-size:13px;">
+      <option value="">🔖 ทุกสถานะ</option>
+      <option value="จบงาน">✅ จบงาน</option>
+      <option value="ไม่จบงาน">❌ ไม่จบงาน</option>
+      <option value="ยังไม่ถึงเวลา">⏳ ยังไม่ถึงเวลา</option>
+    </select>
     <button class="btn btn-success" onclick="exportCSV()">📊 Export CSV</button>
     <button class="btn btn-outline" onclick="openCfg()">⚙ ตั้งค่า</button>
   </div>
   <div class="stats">
     <div class="stat"><div class="n" id="s-total">0</div><div class="l">Check-in ทั้งหมด</div></div>
-    <div class="stat"><div class="n" id="s-today">0</div><div class="l">วันนี้</div></div>
     <div class="stat"><div class="n" id="s-staff">0</div><div class="l">พนักงาน</div></div>
     <div class="stat"><div class="n" id="s-branch">0</div><div class="l">สาขา</div></div>
     <div class="stat"><div class="n" id="s-alert" style="color:#cf222e">0</div><div class="l">แจ้งเตือน GPS</div></div>
+    <div class="stat"><div class="n" id="s-nocheckout" style="color:#9a3412">0</div><div class="l">ยังไม่จบงาน</div></div>
   </div>
   <div class="tbl-wrap">
     <table>
       <thead>
         <tr>
-          <th>#</th><th>รูป</th><th>ชื่อ</th><th>สาขา</th>
-          <th>รอบ</th><th>เวลา</th><th>จบงาน</th><th>GPS</th><th>±m</th><th>แจ้งเตือน</th>
+          <th>#</th><th>📷 รูป</th><th>ชื่อ</th><th>สาขา</th>
+          <th>รอบ</th><th>เวลา Check-in</th><th>จบงาน ✅</th><th>GPS</th><th>±m</th><th>แจ้งเตือน</th>
         </tr>
       </thead>
       <tbody id="log-body">
@@ -502,29 +514,91 @@ async function loadLog() {
 }
 
 function populateDateFilter() {
-  const dates = [...new Set(logData.map(r=>r.date||''))].filter(Boolean).sort().reverse();
-  const sel = document.getElementById('f-date');
-  sel.innerHTML = '<option value="">📅 ทุกวัน</option>';
-  dates.forEach(d => sel.innerHTML += `<option>${d}</option>`);
-  const td = new Date().toLocaleDateString('th-TH');
-  if (dates.includes(td)) sel.value = td;
+  // populate user filter
+  const users = [...new Set(logData.map(r=>r.name).filter(Boolean))].sort();
+  const uSel = document.getElementById('f-user');
+  const curUser = uSel.value;
+  uSel.innerHTML = '<option value="">👤 ทุกคน</option>' + users.map(n=>`<option value="${n}">${n}</option>`).join('');
+  if (curUser) uSel.value = curUser;
+
+  // populate branch filter
+  const branches = [...new Set(logData.map(r=>r.branch).filter(Boolean))].sort();
+  const bSel = document.getElementById('f-branch');
+  const curBranch = bSel.value;
+  bSel.innerHTML = '<option value="">📍 ทุกสาขา</option>' + branches.map(b=>`<option value="${b}">${b}</option>`).join('');
+  if (curBranch) bSel.value = curBranch;
+
+  // set date to today by default
+  const todayISO = new Date().toISOString().slice(0,10); // yyyy-MM-dd
+  document.getElementById('f-date').value = todayISO;
+}
+
+// Convert dd/MM/yyyy → yyyy-MM-dd for comparison with <input type="date">
+function dateThToISO(dth) {
+  if (!dth) return '';
+  const p = dth.split('/');
+  if (p.length !== 3) return dth;
+  return `${p[2]}-${p[1].padStart(2,'0')}-${p[0].padStart(2,'0')}`;
+}
+
+// Clean timestamp: remove GMT info
+function cleanTime(ts) {
+  if (!ts) return '';
+  return ts.replace(/\s*GMT[+-]\d+\s*\([^)]*\)/gi, '').trim();
+}
+
+// Determine record status
+function getStatus(r) {
+  const co = (r.checkoutTime||'').trim();
+  if (co) return 'จบงาน';
+  // try to check if end time has passed using roundTime field e.g. "09:00-18:00"
+  const match = (r.roundTime||'').match(/(\d{1,2}:\d{2})\s*[-–]\s*(\d{1,2}:\d{2})/);
+  const dateParts = (r.date||'').split('/');
+  const now = new Date();
+  if (match && dateParts.length === 3) {
+    const ep = match[2].split(':');
+    const endDt = new Date(parseInt(dateParts[2]), parseInt(dateParts[1])-1, parseInt(dateParts[0]), parseInt(ep[0]), parseInt(ep[1]));
+    if (now > endDt) return 'ไม่จบงาน';
+    return 'ยังไม่ถึงเวลา';
+  }
+  // fallback: past dates = ไม่จบงาน
+  if (dateParts.length === 3) {
+    const recDt = new Date(parseInt(dateParts[2]), parseInt(dateParts[1])-1, parseInt(dateParts[0]));
+    const today0 = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    if (recDt < today0) return 'ไม่จบงาน';
+    return 'ยังไม่ถึงเวลา';
+  }
+  return 'ไม่จบงาน';
 }
 
 function getFiltered() {
-  const date   = document.getElementById('f-date').value;
-  const round  = document.getElementById('f-round').value;
-  const search = document.getElementById('f-search').value.toLowerCase();
-  return logData.filter(r =>
-    (!date   || (r.date||'').includes(date)) &&
-    (!round  || r.round===round) &&
-    (!search || `${r.name} ${r.branch}`.toLowerCase().includes(search))
-  );
+  const dateISO = document.getElementById('f-date').value;  // yyyy-MM-dd or ''
+  const round   = document.getElementById('f-round').value;
+  const user    = document.getElementById('f-user').value;
+  const branch  = document.getElementById('f-branch').value;
+  const status  = document.getElementById('f-status').value;
+
+  return logData.filter(r => {
+    if (user   && r.name   !== user)   return false;
+    if (branch && r.branch !== branch) return false;
+    if (dateISO && dateThToISO(r.date||'') !== dateISO) return false;
+    if (round) {
+      if (round === 'รอบพิเศษ') {
+        if (['รอบเช้า','รอบบ่าย','รอบเย็น','รอบค่ำ'].includes(r.round)) return false;
+      } else {
+        if (r.round !== round) return false;
+      }
+    }
+    if (status && getStatus(r) !== status) return false;
+    return true;
+  });
 }
 
 function renderLog() {
   const rows  = getFiltered();
   const tbody = document.getElementById('log-body');
   const bmap  = {'รอบเช้า':'b-m','รอบบ่าย':'b-n','รอบเย็น':'b-e','รอบค่ำ':'b-k'};
+  updateStats(rows);
   if (!rows.length) {
     tbody.innerHTML = `<tr><td colspan="10"><div class="empty"><div class="ic">🔍</div>ไม่พบข้อมูล</div></td></tr>`;
     return;
@@ -534,29 +608,33 @@ function renderLog() {
     const maps = r.mapsLink || (r.lat&&r.lng ? `https://maps.google.com/?q=${r.lat},${r.lng}` : '');
     const gps  = maps ? `<a class="gps-a" href="${maps}" target="_blank">📍 ${r.lat},${r.lng}</a>` : '-';
     const ph   = r.photo ? `<img class="photo-th" src="${r.photo}" onclick="openLightbox('${r.photo}')">` : '<div class="no-ph">📷</div>';
-    const alert = r.geofenceAlert ? `<span class="alert-badge">🚨 ${r.geofenceAlert}</span>` : '-';
+    const alertBadge = r.geofenceAlert ? `<span class="alert-badge">🚨 ${r.geofenceAlert}</span>` : '-';
+    const co   = (r.checkoutTime||'').trim();
+    const coCell = co
+      ? `<span style="color:#1a7f37;font-size:12px">✅ ${cleanTime(co)}</span>`
+      : `<span style="color:#cf222e;font-size:13px">❌</span>`;
     return `<tr>
       <td style="color:#8c959f;font-size:11px">${i+1}</td>
       <td>${ph}</td>
       <td><b>${r.name||'-'}</b></td>
       <td>${r.branch||'-'}</td>
       <td><span class="badge ${bc}">${r.round||'-'}</span></td>
-      <td style="font-size:12px">${r.timestamp||'-'}</td>
-      <td style="font-size:11px;color:#9a3412">${r.checkoutTime||'-'}</td>
+      <td style="font-size:12px">${cleanTime(r.timestamp)||'-'}</td>
+      <td style="font-size:12px">${coCell}</td>
       <td>${gps}</td>
       <td style="font-size:11px;color:#57606a">${r.accuracy?'±'+r.accuracy+'m':'-'}</td>
-      <td>${alert}</td>
+      <td>${alertBadge}</td>
     </tr>`;
   }).join('');
 }
 
-function updateStats() {
-  const td = new Date().toLocaleDateString('th-TH');
-  document.getElementById('s-total').textContent  = logData.length;
-  document.getElementById('s-today').textContent  = logData.filter(r=>(r.date||r.timestamp||'').includes(td)).length;
-  document.getElementById('s-staff').textContent  = new Set(logData.map(r=>r.name)).size;
-  document.getElementById('s-branch').textContent = new Set(logData.map(r=>r.branch)).size;
-  document.getElementById('s-alert').textContent  = logData.filter(r=>r.geofenceAlert).length;
+function updateStats(rows) {
+  if (!rows) rows = getFiltered();
+  document.getElementById('s-total').textContent     = rows.length;
+  document.getElementById('s-staff').textContent     = new Set(rows.map(r=>r.name)).size;
+  document.getElementById('s-branch').textContent    = new Set(rows.map(r=>r.branch)).size;
+  document.getElementById('s-alert').textContent     = rows.filter(r=>r.geofenceAlert).length;
+  document.getElementById('s-nocheckout').textContent = rows.filter(r=>!(r.checkoutTime||'').trim()).length;
 }
 
 function exportCSV() {
@@ -576,6 +654,10 @@ function fillStaffDatalist() {
   document.getElementById('dl-staff').innerHTML = names.map(n=>`<option value="${n}">`).join('');
   const branches = [...new Set(logData.map(r=>r.branch).filter(Boolean))];
   document.getElementById('dl-branch-plan').innerHTML = branches.map(b=>`<option value="${b}">`).join('');
+  // also populate plan branch datalist from planData
+  const planBranches = [...new Set(planData.map(p=>p.branch).filter(Boolean))];
+  const allBranches  = [...new Set([...branches,...planBranches])].sort();
+  document.getElementById('dl-branch-plan').innerHTML = allBranches.map(b=>`<option value="${b}">`).join('');
 }
 
 // ══════════════════
