@@ -78,6 +78,10 @@ body { font-family: 'Sarabun', sans-serif; background: #f6f8fa; min-height: 100v
 .stat { background:#fff; border-radius:10px; padding:12px 18px; border:1px solid #d0d7de; flex:1; min-width:110px; }
 .stat .n { font-size:26px; font-weight:700; color:#1f2328; }
 .stat .l { font-size:11px; color:#57606a; margin-top:2px; }
+.stat-btn { cursor:pointer; transition:all .15s; user-select:none; }
+.stat-btn:hover { border-color:#0969da; background:#f0f7ff; }
+.stat-btn.active { border-color:#0969da; background:#ddf4ff; box-shadow:0 0 0 2px #0969da33; }
+.stat-btn.active .l { color:#0969da; font-weight:700; }
 
 /* ── Log table ── */
 .tbl-wrap { padding:0 20px 24px; overflow-x:auto; }
@@ -260,20 +264,20 @@ tr:hover td { background:#f6f8fa; }
 <div class="tab-content active" id="tab-log">
   <div class="toolbar">
     <button class="btn btn-primary" onclick="loadLog()">🔄 โหลดข้อมูล</button>
-    <select id="f-user" onchange="renderLog()" style="padding:7px 12px;border:1px solid #d0d7de;border-radius:8px;font-size:13px;">
+    <select id="f-user" onchange="renderLog(true)" style="padding:7px 12px;border:1px solid #d0d7de;border-radius:8px;font-size:13px;">
       <option value="">👤 ทุกคน</option>
     </select>
-    <input type="date" id="f-date" onchange="renderLog()" style="padding:7px 12px;border:1px solid #d0d7de;border-radius:8px;font-size:13px;">
-    <select id="f-round" onchange="renderLog()" style="padding:7px 12px;border:1px solid #d0d7de;border-radius:8px;font-size:13px;">
+    <input type="date" id="f-date" onchange="renderLog(true)" style="padding:7px 12px;border:1px solid #d0d7de;border-radius:8px;font-size:13px;">
+    <select id="f-round" onchange="renderLog(true)" style="padding:7px 12px;border:1px solid #d0d7de;border-radius:8px;font-size:13px;">
       <option value="">🕐 ทุกรอบ</option>
       <option>รอบเช้า</option><option>รอบบ่าย</option>
       <option>รอบเย็น</option><option>รอบค่ำ</option>
       <option>รอบพิเศษ</option>
     </select>
-    <select id="f-branch" onchange="renderLog()" style="padding:7px 12px;border:1px solid #d0d7de;border-radius:8px;font-size:13px;">
+    <select id="f-branch" onchange="renderLog(true)" style="padding:7px 12px;border:1px solid #d0d7de;border-radius:8px;font-size:13px;">
       <option value="">📍 ทุกสาขา</option>
     </select>
-    <select id="f-status" onchange="renderLog()" style="padding:7px 12px;border:1px solid #d0d7de;border-radius:8px;font-size:13px;">
+    <select id="f-status" onchange="renderLog(true)" style="padding:7px 12px;border:1px solid #d0d7de;border-radius:8px;font-size:13px;">
       <option value="">🔖 ทุกสถานะ</option>
       <option value="จบงาน">✅ จบงาน</option>
       <option value="ไม่จบงาน">❌ ไม่จบงาน</option>
@@ -283,11 +287,12 @@ tr:hover td { background:#f6f8fa; }
     <button class="btn btn-outline" onclick="openCfg()">⚙ ตั้งค่า</button>
   </div>
   <div class="stats">
-    <div class="stat"><div class="n" id="s-total">0</div><div class="l">Check-in ทั้งหมด</div></div>
-    <div class="stat"><div class="n" id="s-staff">0</div><div class="l">พนักงาน</div></div>
-    <div class="stat"><div class="n" id="s-branch">0</div><div class="l">สาขา</div></div>
-    <div class="stat"><div class="n" id="s-alert" style="color:#cf222e">0</div><div class="l">แจ้งเตือน GPS</div></div>
-    <div class="stat"><div class="n" id="s-nocheckout" style="color:#9a3412">0</div><div class="l">ยังไม่จบงาน</div></div>
+    <div class="stat stat-btn" id="sc-all"      onclick="statFilter('all')">      <div class="n" id="s-all">0</div>      <div class="l">งานทั้งหมด</div></div>
+    <div class="stat stat-btn" id="sc-total"    onclick="statFilter('total')">    <div class="n" id="s-total">0</div>    <div class="l">Check-in ทั้งหมด</div></div>
+    <div class="stat stat-btn" id="sc-nocheckout" onclick="statFilter('nocheckout')"><div class="n" id="s-nocheckout" style="color:#9a3412">0</div><div class="l">ยังไม่จบงาน</div></div>
+    <div class="stat stat-btn" id="sc-staff"    onclick="statFilter('staff')">    <div class="n" id="s-staff">0</div>    <div class="l">พนักงาน</div></div>
+    <div class="stat stat-btn" id="sc-branch"   onclick="statFilter('branch')">   <div class="n" id="s-branch">0</div>   <div class="l">สาขา</div></div>
+    <div class="stat stat-btn" id="sc-alert"    onclick="statFilter('alert')">    <div class="n" id="s-alert" style="color:#cf222e">0</div><div class="l">แจ้งเตือน GPS</div></div>
   </div>
   <div class="tbl-wrap">
     <table>
@@ -607,11 +612,16 @@ function getFiltered() {
       }
     }
     if (status && getStatus(r) !== status) return false;
+    if (activeStatCard === 'alert' && !r.geofenceAlert) return false;
     return true;
   });
 }
 
-function renderLog() {
+function renderLog(fromDropdown) {
+  if (fromDropdown) {
+    activeStatCard = null;
+    document.querySelectorAll('.stat-btn').forEach(el=>el.classList.remove('active'));
+  }
   const rows  = getFiltered();
   const tbody = document.getElementById('log-body');
   const bmap  = {'รอบเช้า':'b-m','รอบบ่าย':'b-n','รอบเย็น':'b-e','รอบค่ำ':'b-k'};
@@ -647,11 +657,45 @@ function renderLog() {
 
 function updateStats(rows) {
   if (!rows) rows = getFiltered();
-  document.getElementById('s-total').textContent     = rows.length;
-  document.getElementById('s-staff').textContent     = new Set(rows.map(r=>r.name)).size;
-  document.getElementById('s-branch').textContent    = new Set(rows.map(r=>r.branch)).size;
-  document.getElementById('s-alert').textContent     = rows.filter(r=>r.geofenceAlert).length;
+  document.getElementById('s-all').textContent        = logData.length;
+  document.getElementById('s-total').textContent      = rows.length;
+  document.getElementById('s-staff').textContent      = new Set(rows.map(r=>r.name)).size;
+  document.getElementById('s-branch').textContent     = new Set(rows.map(r=>r.branch)).size;
+  document.getElementById('s-alert').textContent      = rows.filter(r=>r.geofenceAlert).length;
   document.getElementById('s-nocheckout').textContent = rows.filter(r=>!(r.checkoutTime||'').trim()).length;
+}
+
+let activeStatCard = null;
+function statFilter(type) {
+  // toggle off if same card clicked again
+  if (activeStatCard === type) {
+    activeStatCard = null;
+    document.querySelectorAll('.stat-btn').forEach(el=>el.classList.remove('active'));
+    // clear status filter
+    document.getElementById('f-status').value = '';
+    renderLog();
+    return;
+  }
+  activeStatCard = type;
+  document.querySelectorAll('.stat-btn').forEach(el=>el.classList.remove('active'));
+  document.getElementById('sc-'+type)?.classList.add('active');
+
+  if (type === 'all') {
+    // clear all filters
+    document.getElementById('f-user').value   = '';
+    document.getElementById('f-date').value   = '';
+    document.getElementById('f-round').value  = '';
+    document.getElementById('f-branch').value = '';
+    document.getElementById('f-status').value = '';
+  } else if (type === 'total') {
+    document.getElementById('f-status').value = '';
+  } else if (type === 'nocheckout') {
+    document.getElementById('f-status').value = 'ไม่จบงาน';
+  } else if (type === 'alert') {
+    document.getElementById('f-status').value = '';
+    // filter via custom — handled in getFiltered via alertOnly flag
+  }
+  renderLog();
 }
 
 function exportCSV() {
