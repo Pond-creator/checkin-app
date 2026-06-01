@@ -282,17 +282,16 @@ tr:hover td { background:#f6f8fa; }
       <option value="จบงาน">✅ จบงาน</option>
       <option value="ไม่จบงาน">❌ ไม่จบงาน</option>
       <option value="ยังไม่ถึงเวลา">⏳ ยังไม่ถึงเวลา</option>
+      <option value="gps">🚨 แจ้งเตือน GPS</option>
     </select>
     <button class="btn btn-success" onclick="exportCSV()">📊 Export CSV</button>
     <button class="btn btn-outline" onclick="openCfg()">⚙ ตั้งค่า</button>
   </div>
   <div class="stats">
-    <div class="stat stat-btn" id="sc-all"      onclick="statFilter('all')">      <div class="n" id="s-all">0</div>      <div class="l">งานทั้งหมด</div></div>
-    <div class="stat stat-btn" id="sc-total"    onclick="statFilter('total')">    <div class="n" id="s-total">0</div>    <div class="l">Check-in ทั้งหมด</div></div>
-    <div class="stat stat-btn" id="sc-nocheckout" onclick="statFilter('nocheckout')"><div class="n" id="s-nocheckout" style="color:#9a3412">0</div><div class="l">ยังไม่จบงาน</div></div>
-    <div class="stat stat-btn" id="sc-staff"    onclick="statFilter('staff')">    <div class="n" id="s-staff">0</div>    <div class="l">พนักงาน</div></div>
-    <div class="stat stat-btn" id="sc-branch"   onclick="statFilter('branch')">   <div class="n" id="s-branch">0</div>   <div class="l">สาขา</div></div>
-    <div class="stat stat-btn" id="sc-alert"    onclick="statFilter('alert')">    <div class="n" id="s-alert" style="color:#cf222e">0</div><div class="l">แจ้งเตือน GPS</div></div>
+    <div class="stat stat-btn" id="sc-all"        onclick="statFilter('all')">        <div class="n" id="s-all">0</div>        <div class="l">งานทั้งหมด</div></div>
+    <div class="stat stat-btn" id="sc-total"      onclick="statFilter('total')">      <div class="n" id="s-total">0</div>      <div class="l">Check-in ทั้งหมด</div></div>
+    <div class="stat stat-btn" id="sc-nocheckout" onclick="statFilter('nocheckout')"> <div class="n" id="s-nocheckout" style="color:#9a3412">0</div><div class="l">ยังไม่จบงาน</div></div>
+    <div class="stat stat-btn" id="sc-alert"      onclick="statFilter('alert')">      <div class="n" id="s-alert" style="color:#cf222e">0</div><div class="l">แจ้งเตือน GPS</div></div>
   </div>
   <div class="tbl-wrap">
     <table>
@@ -519,8 +518,10 @@ async function loadLog() {
 }
 
 function populateDateFilter() {
-  // populate user filter
-  const users = [...new Set(logData.map(r=>r.name).filter(Boolean))].sort();
+  // populate user filter — from userData (all staff) + any names in logs
+  const fromUsers = userData.map(u=>u.name).filter(Boolean);
+  const fromLogs  = logData.map(r=>r.name).filter(Boolean);
+  const users = [...new Set([...fromUsers, ...fromLogs])].sort();
   const uSel = document.getElementById('f-user');
   const curUser = uSel.value;
   uSel.innerHTML = '<option value="">👤 ทุกคน</option>' + users.map(n=>`<option value="${n}">${n}</option>`).join('');
@@ -611,7 +612,8 @@ function getFiltered() {
         if (r.round !== round) return false;
       }
     }
-    if (status && getStatus(r) !== status) return false;
+    if (status === 'gps') { if (!r.geofenceAlert) return false; }
+    else if (status && getStatus(r) !== status) return false;
     if (activeStatCard === 'alert' && !r.geofenceAlert) return false;
     return true;
   });
@@ -659,8 +661,6 @@ function updateStats(rows) {
   if (!rows) rows = getFiltered();
   document.getElementById('s-all').textContent        = logData.length;
   document.getElementById('s-total').textContent      = rows.length;
-  document.getElementById('s-staff').textContent      = new Set(rows.map(r=>r.name)).size;
-  document.getElementById('s-branch').textContent     = new Set(rows.map(r=>r.branch)).size;
   document.getElementById('s-alert').textContent      = rows.filter(r=>r.geofenceAlert).length;
   document.getElementById('s-nocheckout').textContent = rows.filter(r=>!(r.checkoutTime||'').trim()).length;
 }
@@ -924,6 +924,7 @@ async function loadUsers() {
     const j=await r.json();
     userData=j.data||[];
     renderUsers();
+    populateDateFilter(); // refresh user dropdown with all staff names
   } catch(e){ console.warn(e); }
   showLoad(false);
 }
@@ -1035,7 +1036,7 @@ function initTimeSelects(startVal='09:00',endVal='18:00') {
 
 // ── Init ───────────────────────────────────────────
 renderCal();
-if(getUrl()) { loadLog(); loadPlan(); }
+if(getUrl()) { loadLog(); loadPlan(); loadUsers(); }
 </script>
 </body>
 </html>
