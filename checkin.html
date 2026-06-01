@@ -391,11 +391,8 @@ body { font-family: 'Sarabun', sans-serif; background: #f0f2f5; min-height: 100v
 </div>
 
 
-<!-- แผนงานวันนี้ -->
-<div id="plan-card" style="display:none">
-  <div style="padding:10px 16px 4px;font-size:12px;font-weight:700;color:#57606a;">📅 แผนงานวันนี้ของคุณ</div>
-  <div id="plan-list" style="padding:0 16px 10px;display:flex;flex-direction:column;gap:6px;"></div>
-</div>
+<!-- plan-card ซ่อนแล้ว (แสดงในรอบการ์ดแทน) -->
+<div id="plan-card" style="display:none"><div id="plan-list"></div></div>
 
 <div style="display:none">
   <button id="btn-test" onclick="toggleTest()">Test</button>
@@ -622,18 +619,34 @@ async function fetchFuturePlans() {
 function logout()   { store.set('session',''); location.href = 'index.html'; }
 
 // ── Rounds config ──────────────────────────────────
-const BASE_ROUNDS = [
-  { name: "รอบเช้า",  start: "10:00", end: "11:00" },
-  { name: "รอบบ่าย", start: "13:00", end: "14:00" },
-  { name: "รอบเย็น", start: "16:00", end: "18:00" },
-  { name: "รอบค่ำ",  start: "19:00", end: "21:00" }
-];
+// ไม่มี BASE_ROUNDS แล้ว — รอบมาจาก admin plan เท่านั้น
+
+function getRoundName(startTime) {
+  if (!startTime) return 'รอบงาน';
+  const h = parseInt((startTime+'').split(':')[0]);
+  if (h >= 9  && h < 12) return 'รอบเช้า';
+  if (h >= 12 && h < 16) return 'รอบบ่าย';
+  if (h >= 16 && h < 19) return 'รอบเย็น';
+  if (h >= 19 && h <= 21) return 'รอบค่ำ';
+  return 'รอบงาน';
+}
+
+function getPlanRounds() {
+  return todayPlan.map(p => ({
+    name:     getRoundName(normTimeCI(p.startTime)),
+    start:    normTimeCI(p.startTime) || '00:00',
+    end:      normTimeCI(p.endTime)   || '23:59',
+    location: p.branch   || '',
+    taskType: p.taskType || '',
+    note:     p.note     || ''
+  }));
+}
 
 function todayKey() { return new Date().toLocaleDateString('th-TH'); }
 function getExtraRounds() {
   try { return JSON.parse(store.get('extraRounds_'+todayKey())||'[]'); } catch { return []; }
 }
-function getAllRounds() { return [...BASE_ROUNDS, ...getExtraRounds()]; }
+function getAllRounds() { return [...getPlanRounds(), ...getExtraRounds()]; }
 
 let curRound = null, gps = null, photo = null, stream = null, ovTimer = null;
 let geofenceWarning = null; // เก็บ warning geofence ล่าสุด
@@ -809,6 +822,15 @@ function renderRounds() {
   const nm = nowMins(), test = isTest();
   const allRounds = getAllRounds();
   const el = document.getElementById('rounds');
+  if (!allRounds.length) {
+    el.innerHTML = `<div style="text-align:center;padding:32px 16px;color:#8c959f;">
+      <div style="font-size:36px;margin-bottom:8px;">📋</div>
+      <div style="font-size:14px;font-weight:700;">ไม่มีงานวันนี้</div>
+      <div style="font-size:12px;margin-top:4px;">สามารถเพิ่มรอบพิเศษได้ด้านล่าง</div>
+    </div>`;
+    updateTaskCounter();
+    return;
+  }
   el.innerHTML = allRounds.map((r, i) => {
     const done     = store.get(doneKey(i));
     const checkout = store.get(checkoutKey(i));
@@ -831,13 +853,16 @@ function renderRounds() {
       ? `<button class="btn-checkout" onclick="event.stopPropagation();confirmCheckout(${i})">🏁 จบงาน</button>` : '';
 
     // ปุ่มลบเฉพาะรอบพิเศษที่ยังไม่ได้เช็กอิน
-    const isExtra   = i >= BASE_ROUNDS.length;
-    const extraIdx  = i - BASE_ROUNDS.length;
+    const planCount = getPlanRounds().length;
+    const isExtra   = i >= planCount;
+    const extraIdx  = i - planCount;
     const deleteBtn = isExtra && !done
       ? `<button class="btn-del-extra" onclick="event.stopPropagation();deleteExtraRound(${extraIdx})">🗑️</button>` : '';
 
-    // แสดงสถานที่ถ้ามี
-    const locRow = r.location ? `<div style="font-size:11px;color:#0969da;margin-top:2px;">📍 ${r.location}</div>` : '';
+    // แสดงรายละเอียดงาน
+    const locRow  = r.location ? `<div style="font-size:12px;color:#0969da;margin-top:2px;">📍 ${r.location}</div>` : '';
+    const typeRow = r.taskType ? `<div style="font-size:11px;color:#57606a;margin-top:1px;">🗂 ${r.taskType}</div>` : '';
+    const noteRow = r.note     ? `<div style="font-size:11px;color:#8c959f;margin-top:1px;">📝 ${r.note}</div>` : '';
 
     const click = canOpen ? `onclick="openRound(${i})"` : '';
     return `
@@ -846,7 +871,7 @@ function renderRounds() {
         <div class="round-info">
           <div class="round-name">${r.name}</div>
           <div class="round-time">${r.start} – ${r.end} น.</div>
-          ${locRow}${doneRow}${checkoutRow}
+          ${locRow}${typeRow}${noteRow}${doneRow}${checkoutRow}
         </div>
         <div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px">
           ${badge}
