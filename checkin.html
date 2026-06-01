@@ -335,6 +335,12 @@ body { font-family: 'Sarabun', sans-serif; background: #f0f2f5; min-height: 100v
 .btn-green  { background: #1a7f37; color: #fff; }
 .btn-green:active { background: #116329; }
 .btn-ghost  { background: #f6f8fa; color: #57606a; border: 1px solid #d0d7de; }
+
+/* ปุ่มลบรอบพิเศษ */
+.btn-del-extra {
+  padding: 3px 8px; border-radius: 6px; border: 1px solid #fca5a5;
+  background: #ffebe9; color: #cf222e; font-size: 12px; cursor: pointer;
+}
 </style>
 </head>
 <body>
@@ -427,7 +433,9 @@ body { font-family: 'Sarabun', sans-serif; background: #f0f2f5; min-height: 100v
     </div>
     <div class="ex-form-row">
       <label>📍 สถานที่</label>
-      <input id="ex-location" type="text" placeholder="เช่น บางขุนกอง, สาขา 2" maxlength="60">
+      <select id="ex-location-sel" onchange="onLocationSelChange()"></select>
+      <input id="ex-location-other" type="text" placeholder="พิมพ์สถานที่..." maxlength="60"
+        style="display:none;margin-top:8px;">
     </div>
     <div class="ex-actions">
       <button onclick="closeExtraModal()" style="background:#f6f8fa;color:#57606a;">ยกเลิก</button>
@@ -714,6 +722,15 @@ function renderRounds() {
     const checkoutBtn = done && !checkout
       ? `<button class="btn-checkout" onclick="event.stopPropagation();confirmCheckout(${i})">🏁 จบงาน</button>` : '';
 
+    // ปุ่มลบเฉพาะรอบพิเศษที่ยังไม่ได้เช็กอิน
+    const isExtra   = i >= BASE_ROUNDS.length;
+    const extraIdx  = i - BASE_ROUNDS.length;
+    const deleteBtn = isExtra && !done
+      ? `<button class="btn-del-extra" onclick="event.stopPropagation();deleteExtraRound(${extraIdx})">🗑</button>` : '';
+
+    // แสดงสถานที่ถ้ามี
+    const locRow = r.location ? `<div style="font-size:11px;color:#0969da;margin-top:2px;">📍 ${r.location}</div>` : '';
+
     const click = canOpen ? `onclick="openRound(${i})"` : '';
     return `
       <div class="round-card ${cls}" ${click}>
@@ -721,11 +738,12 @@ function renderRounds() {
         <div class="round-info">
           <div class="round-name">${r.name}</div>
           <div class="round-time">${r.start} – ${r.end} น.</div>
-          ${doneRow}${checkoutRow}
+          ${locRow}${doneRow}${checkoutRow}
         </div>
         <div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px">
           ${badge}
           ${checkoutBtn}
+          ${deleteBtn}
         </div>
       </div>`;
   }).join('');
@@ -754,23 +772,56 @@ function openExtraModal() {
   document.getElementById('ex-end').innerHTML   = opts;
   document.getElementById('ex-start').value = `${hh}:${mm}`;
   document.getElementById('ex-end').value   = `${endH}:${mm}`;
-  // pre-fill location จากแผนงาน
-  document.getElementById('ex-location').value = todayPlan.length ? (todayPlan[0].branch||'') : '';
+
+  // สร้าง choices จาก todayPlan + branchList
+  const choices = [];
+  todayPlan.forEach(t => { if (t.branch && !choices.includes(t.branch)) choices.push(t.branch); });
+  getList('branchList').forEach(b => { if (!choices.includes(b)) choices.push(b); });
+
+  const sel = document.getElementById('ex-location-sel');
+  sel.innerHTML = choices.map(c => `<option value="${c}">${c}</option>`).join('') +
+    `<option value="__other__">✏️ อื่นๆ (พิมพ์เอง)</option>`;
+  sel.value = choices.length ? choices[0] : '__other__';
+
+  document.getElementById('ex-location-other').style.display = sel.value === '__other__' ? '' : 'none';
+  document.getElementById('ex-location-other').value = '';
   document.getElementById('extra-modal-bg').classList.add('open');
 }
+
+function onLocationSelChange() {
+  const isOther = document.getElementById('ex-location-sel').value === '__other__';
+  document.getElementById('ex-location-other').style.display = isOther ? '' : 'none';
+  if (isOther) document.getElementById('ex-location-other').focus();
+}
+
 function closeExtraModal() {
   document.getElementById('extra-modal-bg').classList.remove('open');
 }
+
 function confirmAddExtra() {
-  const start    = document.getElementById('ex-start').value;
-  const end      = document.getElementById('ex-end').value;
-  const location = document.getElementById('ex-location').value.trim();
-  if (!location) { alert('กรุณากรอกสถานที่'); return; }
+  const start = document.getElementById('ex-start').value;
+  const end   = document.getElementById('ex-end').value;
+  const sel   = document.getElementById('ex-location-sel').value;
+  const location = sel === '__other__'
+    ? document.getElementById('ex-location-other').value.trim()
+    : sel;
+  if (!location) { alert('กรุณาเลือกหรือพิมพ์สถานที่'); return; }
+
   const extra = getExtraRounds();
   const num   = BASE_ROUNDS.length + extra.length + 1;
   extra.push({ name: `รอบพิเศษ ${num}`, start, end, location });
   store.set('extraRounds_'+todayKey(), JSON.stringify(extra));
+  // เก็บใน branchList ด้วย
+  addToList('branchList', location);
   closeExtraModal();
+  renderRounds();
+}
+
+function deleteExtraRound(extraIdx) {
+  if (!confirm('ลบรอบพิเศษนี้?')) return;
+  const extra = getExtraRounds();
+  extra.splice(extraIdx, 1);
+  store.set('extraRounds_'+todayKey(), JSON.stringify(extra));
   renderRounds();
 }
 
