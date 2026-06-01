@@ -633,19 +633,26 @@ function logout() { store.set('session',''); location.href = 'index.html'; }
 
 function clearTodayData() {
   if (!confirm('ล้างข้อมูลรอบวันนี้ทั้งหมดใช่ไหมครับ?\n(เช็กอิน / จบงาน / รอบพิเศษ)')) return;
-  const d = todayKey();
+  const today = new Date();
+  // ครอบคลุมทุกรูปแบบวันที่ที่อาจเป็น key
+  const todayFmts = [
+    todayKey(),
+    today.toLocaleDateString('th-TH'),
+    today.toLocaleDateString('en-US'),
+    `${today.getDate()}/${today.getMonth()+1}/${today.getFullYear()}`,
+    `${today.getDate()}/${today.getMonth()+1}/${today.getFullYear()+543}`,
+    String(today.getDate()).padStart(2,'0')+'/'+String(today.getMonth()+1).padStart(2,'0')+'/'+today.getFullYear(),
+  ];
   try {
-    const keys = Object.keys(localStorage);
+    const keys = [...Object.keys(localStorage)];
     keys.forEach(k => {
-      if (k.startsWith('done_'+d) || k.startsWith('checkout_'+d) || k === 'extraRounds_'+d)
-        localStorage.removeItem(k);
+      if (!k.startsWith('done_') && !k.startsWith('checkout_') && !k.startsWith('extraRounds_')) return;
+      if (todayFmts.some(fmt => fmt && k.includes(fmt))) localStorage.removeItem(k);
     });
-  } catch(e) {
-    // fallback: ล้างด้วย store
-    for (let i=0; i<20; i++) { store.set('done_'+d+'_'+i,''); store.set('checkout_'+d+'_'+i,''); }
-    store.set('extraRounds_'+d, '');
-  }
+  } catch(e) {}
+  todayPlan = []; planFetched = false;
   renderRounds();
+  fetchTodayPlan();
   alert('ล้างข้อมูลวันนี้เรียบร้อยแล้ว ✓');
 }
 
