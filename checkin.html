@@ -642,7 +642,7 @@ function getPlanRounds() {
   }));
 }
 
-function todayKey() { return new Date().toLocaleDateString('th-TH'); }
+function todayKey() { return new Date().toISOString().slice(0,10); } // yyyy-MM-dd, consistent all browsers
 function getExtraRounds() {
   try { return JSON.parse(store.get('extraRounds_'+todayKey())||'[]'); } catch { return []; }
 }
@@ -798,7 +798,7 @@ function renderDatalist(key) {
 }
 
 // ── Rounds ─────────────────────────────────────────
-function toMins(t)  { const [h,m]=t.split(':').map(Number); return h*60+m; }
+function toMins(t)  { if(!t||!t.includes(':')) return -1; const [h,m]=(t+'').split(':').map(Number); return (h||0)*60+(m||0); }
 function nowMins()  { const n=new Date(); return n.getHours()*60+n.getMinutes(); }
 function doneKey(i)     { return 'done_'     + todayKey() + '_' + i; }
 function checkoutKey(i) { return 'checkout_' + todayKey() + '_' + i; }
