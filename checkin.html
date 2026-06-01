@@ -594,7 +594,7 @@ async function fetchFuturePlans() {
     const j = await r.json();
     const todayISO = new Date().toISOString().slice(0,10);
     const plans = (j.data || [])
-      .filter(t => t.staffName === MY_NAME && normPlanDateCI(t.date) >= todayISO)
+      .filter(t => t.staffName === MY_NAME && normPlanDateCI(t.date) > todayISO)
       .sort((a,b) => normPlanDateCI(a.date).localeCompare(normPlanDateCI(b.date)));
 
     if (!plans.length) { list.innerHTML = '<div class="nav-plans-empty">ไม่มีแผนงานที่กำลังจะมาถึง</div>'; return; }
