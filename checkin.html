@@ -1009,7 +1009,9 @@ async function submit() {
   const rounds = getAllRounds();
   const r  = rounds[curRound];
   const br = getBranch(curRound);
-  const ts = new Date().toLocaleString('th-TH');
+  const _now = new Date();
+  const _p = n => String(n).padStart(2,'0');
+  const ts = `${_p(_now.getDate())}/${_p(_now.getMonth()+1)}/${_now.getFullYear()} ${_p(_now.getHours())}:${_p(_now.getMinutes())}:${_p(_now.getSeconds())}`;
   const payload = {
     name: MY_NAME, branch: br, round: r.name, roundTime: `${r.start}-${r.end}`,
     timestamp: ts, lat: gps.lat, lng: gps.lng, accuracy: gps.acc,

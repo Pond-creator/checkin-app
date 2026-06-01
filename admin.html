@@ -555,19 +555,49 @@ function getRecordDateISO(r) {
   // Try parsing as a JS date string (e.g. "Thu Jun 01 2026 ...")
   const dt1 = new Date(d);
   if (!isNaN(dt1) && dt1.getFullYear() > 2000) return fmtDate(dt1);
-  // Fallback: parse from timestamp
+  // Try D/M/YYYY(BE) from timestamp e.g. "1/6/2569 13:27:02"
   const ts = (r.timestamp || '').toString().trim();
-  if (ts) {
-    const dt2 = new Date(ts);
-    if (!isNaN(dt2) && dt2.getFullYear() > 2000) return fmtDate(dt2);
+  const m2 = ts.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})/);
+  if (m2) {
+    let y = parseInt(m2[3]); if (y > 2400) y -= 543;
+    return `${y}-${m2[2].padStart(2,'0')}-${m2[1].padStart(2,'0')}`;
   }
   return '';
 }
 
-// Clean timestamp: remove GMT info
+// Clean & reformat timestamp → DD/MM/YYYY HH:mm
 function cleanTime(ts) {
   if (!ts) return '';
+  ts = ts.trim();
+  // Already DD/MM/YYYY HH:mm[:ss] — just trim seconds
+  if (/^\d{1,2}\/\d{1,2}\/\d{4}/.test(ts)) {
+    return ts.replace(/:\d{2}$/, '').substring(0, 16);
+  }
+  // Thai locale D/M/YYYY(BE) e.g. "1/6/2569 13:27:02"
+  const m1 = ts.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})\s+(\d{2}:\d{2})/);
+  if (m1) {
+    let y = parseInt(m1[3]);
+    if (y > 2400) y -= 543; // พ.ศ. → ค.ศ.
+    return `${m1[1].padStart(2,'0')}/${m1[2].padStart(2,'0')}/${y} ${m1[4]}`;
+  }
+  // e.g. "Thu Jun 01 2569 13:27:02"
+  const months = {Jan:1,Feb:2,Mar:3,Apr:4,May:5,Jun:6,Jul:7,Aug:8,Sep:9,Oct:10,Nov:11,Dec:12};
+  const m2 = ts.match(/(\w{3})\s+(\d{1,2})\s+(\d{4})\s+(\d{2}:\d{2})/);
+  if (m2 && months[m2[1]]) {
+    let y = parseInt(m2[3]);
+    if (y > 2400) y -= 543;
+    return `${m2[2].padStart(2,'0')}/${String(months[m2[1]]).padStart(2,'0')}/${y} ${m2[4]}`;
+  }
+  // Remove GMT text as last resort
   return ts.replace(/\s*GMT[+-]\d+\s*\([^)]*\)/gi, '').trim();
+}
+
+// Fix Google Drive photo URL for display (old uc?id= → thumbnail)
+function fixPhotoUrl(url) {
+  if (!url) return '';
+  const m = url.match(/[?&]id=([^&]+)/);
+  if (m) return `https://drive.google.com/thumbnail?id=${m[1]}&sz=w200`;
+  return url;
 }
 
 // Determine record status
@@ -636,7 +666,8 @@ function renderLog(fromDropdown) {
     const bc   = bmap[r.round] || 'b-special';
     const maps = r.mapsLink || (r.lat&&r.lng ? `https://maps.google.com/?q=${r.lat},${r.lng}` : '');
     const gps  = maps ? `<a class="gps-a" href="${maps}" target="_blank">📍 ${r.lat},${r.lng}</a>` : '-';
-    const ph   = r.photo ? `<img class="photo-th" src="${r.photo}" onclick="openLightbox('${r.photo}')">` : '<div class="no-ph">📷</div>';
+    const phUrl = fixPhotoUrl(r.photo);
+    const ph   = phUrl ? `<img class="photo-th" src="${phUrl}" onclick="openLightbox('${phUrl}')" onerror="this.parentNode.innerHTML='<div class=\'no-ph\'>📷</div>'">` : '<div class="no-ph">📷</div>';
     const alertBadge = r.geofenceAlert ? `<span class="alert-badge">🚨 ${r.geofenceAlert}</span>` : '-';
     const co   = (r.checkoutTime||'').trim();
     const coCell = co

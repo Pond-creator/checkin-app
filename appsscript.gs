@@ -51,7 +51,7 @@ function saveCheckin(data) {
       );
       const file = getFolder().createFile(blob);
       file.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
-      photoUrl = `https://drive.google.com/uc?id=${file.getId()}`;
+      photoUrl = `https://drive.google.com/thumbnail?id=${file.getId()}&sz=w400`;
     } catch(err) { photoUrl = 'error: '+err.message; }
   }
 
