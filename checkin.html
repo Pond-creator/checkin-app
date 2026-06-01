@@ -836,9 +836,11 @@ function confirmAddExtra() {
   const num   = BASE_ROUNDS.length + extra.length + 1;
   extra.push({ name: `รอบพิเศษ ${num}`, start, end, location });
   store.set('extraRounds_'+todayKey(), JSON.stringify(extra));
-  // ไม่เก็บใน local list — choices มาจาก Admin เท่านั้น
   closeExtraModal();
   renderRounds();
+  // เปิด check-in flow ทันที
+  const newIdx = BASE_ROUNDS.length + extra.length - 1;
+  openRound(newIdx);
 }
 
 function deleteExtraRound(extraIdx) {
