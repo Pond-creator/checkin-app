@@ -380,6 +380,7 @@ tr:hover td { background:#f6f8fa; }
     <div class="sum-stat clickable" onclick="showSumDetail('checkin')" title="คลิกดูรายละเอียด"><div class="ss-n" id="ss-cin" style="color:#1a7f37">0</div><div class="ss-l">เช็กอินแล้ว</div></div>
     <div class="sum-stat clickable" onclick="showSumDetail('completed')" title="คลิกดูรายละเอียด"><div class="ss-n" id="ss-done" style="color:#1a7f37">0</div><div class="ss-l">จบงานแล้ว</div></div>
     <div class="sum-stat clickable" onclick="showSumDetail('missing')" title="คลิกดูรายละเอียด"><div class="ss-n" id="ss-miss" style="color:#cf222e">0</div><div class="ss-l">ยังไม่เช็กอิน</div></div>
+    <div class="sum-stat clickable" onclick="showSumDetail('extra')" title="คลิกดูรายละเอียด"><div class="ss-n" id="ss-extra" style="color:#d97706">0</div><div class="ss-l">งานพิเศษ ⭐</div></div>
     <div class="sum-stat"><div class="ss-n" id="ss-pct" style="color:#6e40c9">0%</div><div class="ss-l">% สำเร็จ (จบงาน)</div></div>
   </div>
   <div class="sum-body">
@@ -1191,8 +1192,9 @@ function renderSummary(dateISO) {
         return rt.startsWith(pStart) || (r.round||'').includes(p.branch||pStart);
       });
     });
-    const pct = plans.length ? Math.round(completed.length / plans.length * 100) : 0;
-    return { staff, plans, logs, completed, missing, pct };
+    const extra = Math.max(0, logs.length - plans.length); // งานพิเศษที่เช็กเกินแผน
+    const pct   = plans.length ? Math.min(100, Math.round(completed.length / plans.length * 100)) : 0;
+    return { staff, plans, logs, completed, missing, extra, pct };
   });
 
   // Summary totals
@@ -1200,12 +1202,14 @@ function renderSummary(dateISO) {
   const totCin   = logsToday.length;
   const totDone  = logsToday.filter(r=>(r.checkoutTime||'').trim()).length;
   const totMiss  = Math.max(0, totPlans - totCin);
-  const totPct   = totPlans ? Math.round(totDone / totPlans * 100) : 0;
+  const totExtra = Math.max(0, totCin - totPlans);
+  const totPct   = totPlans ? Math.min(100, Math.round(totDone / totPlans * 100)) : 0;
 
   document.getElementById('ss-plans').textContent = totPlans;
   document.getElementById('ss-cin').textContent   = totCin;
   document.getElementById('ss-done').textContent  = totDone;
   document.getElementById('ss-miss').textContent  = totMiss;
+  document.getElementById('ss-extra').textContent = totExtra;
   document.getElementById('ss-pct').textContent   = totPct + '%';
 
   // Table
@@ -1231,6 +1235,7 @@ function renderSummary(dateISO) {
           <th>เช็กอิน</th>
           <th>จบงาน ✅</th>
           <th>ขาด ❌</th>
+          <th>⭐ งานพิเศษ</th>
           <th>% สำเร็จ</th>
           <th>รายละเอียด</th>
         </tr>
@@ -1242,6 +1247,10 @@ function renderSummary(dateISO) {
           <td><span class="sum-num" onclick="showStaffDetail('${escHtml(row.staff)}','checkin',${i})" style="color:${row.logs.length?'#1a7f37':'#cf222e'}">${row.logs.length}</span></td>
           <td><span class="sum-num" onclick="showStaffDetail('${escHtml(row.staff)}','completed',${i})" style="color:${row.completed.length?'#1a7f37':'#cf222e'}">${row.completed.length}</span></td>
           <td><span class="sum-num" onclick="showStaffDetail('${escHtml(row.staff)}','missing',${i})" style="color:${row.missing.length?'#cf222e':'#1a7f37'}">${row.missing.length}</span></td>
+          <td>${row.extra > 0
+            ? `<span class="sum-num" onclick="showStaffDetail('${escHtml(row.staff)}','extra',${i})" style="color:#d97706">+${row.extra}</span>`
+            : `<span style="color:#8c959f">-</span>`
+          }</td>
           <td>
             <b style="color:${row.pct>=100?'#1a7f37':row.pct>=50?'#9a6700':'#cf222e'}">${row.pct}%</b>
             <span class="prog-bar"><span class="prog-fill" style="width:${row.pct}%;background:${row.pct>=100?'#1a7f37':row.pct>=50?'#d4a017':'#cf222e'}"></span></span>
@@ -1266,11 +1275,23 @@ function showSumDetail(type) {
     rows = logData.filter(r => getRecordDateISO(r) === dateISO && (r.checkoutTime||'').trim());
   } else if (type === 'missing') {
     title = '❌ ยังไม่เช็กอิน';
-    // staff who have plans but no log
     const logsToday = logData.filter(r => getRecordDateISO(r) === dateISO);
     const logNames  = new Set(logsToday.map(r=>r.name));
     const plansToday= planData.filter(t => normPlanDate(t.date) === dateISO);
     rows = plansToday.filter(t => !logNames.has(t.staffName));
+  } else if (type === 'extra') {
+    title = '⭐ งานพิเศษ';
+    const logsToday  = logData.filter(r => getRecordDateISO(r) === dateISO);
+    const plansToday = planData.filter(t => normPlanDate(t.date) === dateISO);
+    // logs that exceed plan count per staff
+    const byStaff = {};
+    logsToday.forEach(r => { byStaff[r.name] = (byStaff[r.name]||[]).concat(r); });
+    rows = [];
+    Object.entries(byStaff).forEach(([name, logs]) => {
+      const planCnt = plansToday.filter(t=>t.staffName===name).length;
+      const extras  = logs.slice(planCnt);
+      rows.push(...extras);
+    });
   }
   const [y,mo,d] = dateISO.split('-');
   const dateDisplay = `${parseInt(d)}/${mo}/${y}`;
@@ -1313,6 +1334,17 @@ function showStaffDetail(staff, type, idx) {
   let html = '';
 
   if (type === 'all' || type === 'plans' || type === 'completed' || type === 'checkin') {
+    // งานพิเศษ (เช็กอินเกินแผน)
+    if ((type === 'all') && row.extra > 0) {
+      const extraLogs = row.logs.slice(row.plans.length);
+      html += `<div class="det-section" style="margin-bottom:16px">
+        <h4 style="background:#fef9c3;color:#d97706">⭐ งานพิเศษ (${extraLogs.length} รายการ)</h4>
+        ${extraLogs.map(r=>`<div class="det-row">
+          <span>${r.branch||'-'} <span class="badge b-special" style="font-size:10px">${r.round||''}</span></span>
+          <span style="font-size:12px;color:#57606a">${cleanTime(r.timestamp)||'-'}${r.checkoutTime?' → '+cleanTime(r.checkoutTime):''}</span>
+        </div>`).join('')}
+      </div>`;
+    }
     // Completed / checked-in
     if (row.completed.length) {
       html += `<div class="det-section done">
@@ -1334,6 +1366,19 @@ function showStaffDetail(staff, type, idx) {
         </div>`).join('')}
       </div>`;
     }
+  }
+
+  if (type === 'extra') {
+    const extraLogs = row.logs.slice(row.plans.length);
+    html += extraLogs.length
+      ? `<div class="det-section" style="margin-bottom:16px">
+          <h4 style="background:#fef9c3;color:#d97706">⭐ งานพิเศษ (${extraLogs.length} รายการ)</h4>
+          ${extraLogs.map(r=>`<div class="det-row">
+            <span>${r.branch||'-'} <span class="badge b-special" style="font-size:10px">${r.round||''}</span></span>
+            <span style="font-size:12px;color:#57606a">${cleanTime(r.timestamp)||'-'}${r.checkoutTime?' → '+cleanTime(r.checkoutTime):''}</span>
+          </div>`).join('')}
+        </div>`
+      : '<div style="text-align:center;padding:20px;color:#8c959f">ไม่มีงานพิเศษ</div>';
   }
 
   if (type === 'all' || type === 'plans' || type === 'missing') {
