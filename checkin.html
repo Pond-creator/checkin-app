@@ -228,6 +228,12 @@ body { font-family: 'Sarabun', sans-serif; background: #f0f2f5; min-height: 100v
 .round-card.open:active { transform: scale(0.98); }
 .round-card.done   { border-color: #1a7f37; background: #f0fff4; }
 .round-card.locked { opacity: 0.5; }
+/* เข้างานก่อนเวลา — สีส้ม (ยังไม่จบงาน) */
+.round-card.early  { border-color: #ea580c; background: #fff7ed; cursor: pointer; }
+.round-card.early:active { transform: scale(0.98); }
+/* รอบพิเศษ (extra) — สีเหลือง */
+.round-card.open.extra  { border-color: #d97706; background: #fffbeb; }
+.round-card.early.extra { border-color: #d97706; background: #fffbeb; }
 
 .round-num {
   width: 36px; height: 36px; border-radius: 50%; flex-shrink: 0;
@@ -237,6 +243,9 @@ body { font-family: 'Sarabun', sans-serif; background: #f0f2f5; min-height: 100v
 }
 .round-card.open   .round-num { background: #0969da; color: #fff; }
 .round-card.done   .round-num { background: #1a7f37; color: #fff; }
+.round-card.early  .round-num { background: #ea580c; color: #fff; }
+.round-card.open.extra  .round-num { background: #d97706; color: #fff; }
+.round-card.early.extra .round-num { background: #ea580c; color: #fff; }
 
 .round-info { flex: 1; }
 .round-name { font-size: 15px; font-weight: 700; color: #1f2328; }
@@ -257,6 +266,8 @@ body { font-family: 'Sarabun', sans-serif; background: #f0f2f5; min-height: 100v
 .badge-open   { background: #ddf4ff; color: #0969da; animation: blink 2s infinite; }
 .badge-test   { background: #fef9c3; color: #854d0e; animation: blink 2s infinite; }
 .badge-done   { background: #dafbe1; color: #1a7f37; }
+.badge-early  { background: #ffedd5; color: #ea580c; animation: blink 2s infinite; }
+.badge-extra  { background: #fef9c3; color: #d97706; animation: blink 2s infinite; }
 @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.5} }
 
 /* Extra round button */
@@ -646,7 +657,7 @@ function clearTodayData() {
   try {
     const keys = [...Object.keys(localStorage)];
     keys.forEach(k => {
-      if (!k.startsWith('done_') && !k.startsWith('checkout_') && !k.startsWith('extraRounds_')) return;
+      if (!k.startsWith('done_') && !k.startsWith('checkout_') && !k.startsWith('extraRounds_') && !k.startsWith('earlyCI_')) return;
       if (todayFmts.some(fmt => fmt && k.includes(fmt))) localStorage.removeItem(k);
     });
   } catch(e) {}
@@ -888,7 +899,7 @@ function checkoutKey(i) { return 'checkout_' + todayKey() + '_' + i; }
 
 function countDone() {
   const all = getAllRounds();
-  return all.filter((_, i) => store.get(doneKey(i))).length;
+  return all.filter(r => store.get(doneKey(r.start))).length;
 }
 
 function updateTaskCounter() {
@@ -922,36 +933,52 @@ function renderRounds() {
     return;
   }
   el.innerHTML = allRounds.map((r, i) => {
-    const done     = store.get(doneKey(i));
-    const checkout = store.get(checkoutKey(i));
+    const done     = store.get(doneKey(r.start));
+    const checkout = store.get(checkoutKey(r.start));
     const inTime   = nm >= toMins(r.start) && nm <= toMins(r.end);
-    const prevDone     = i > 0 ? store.get(doneKey(i-1)) : null;
-    const prevCheckout = i > 0 ? store.get(checkoutKey(i-1)) : null;
+    const prevDone     = i > 0 ? store.get(doneKey(allRounds[i-1].start)) : null;
+    const prevCheckout = i > 0 ? store.get(checkoutKey(allRounds[i-1].start)) : null;
     const prevFinished = prevDone && prevCheckout;
     const canOpen  = (test || inTime || prevFinished) && !done;
-    const cls      = done ? 'done' : canOpen ? 'open' : 'locked';
+
+    // ตรวจว่าเป็นรอบพิเศษหรือไม่
+    const planCount = getPlanRounds().length;
+    const isExtra   = i >= planCount;
+    const extraIdx  = i - planCount;
+
+    // ตรวจว่ากดเข้างานก่อนเวลาหรือไม่
+    const isEarlyCheckin = done && !!store.get('earlyCI_' + todayKey() + '_' + r.start);
+
+    // กำหนด class หลัก
+    let cls;
+    if (done) {
+      cls = isEarlyCheckin && !checkout ? 'early' : 'done';
+    } else {
+      cls = canOpen ? 'open' : 'locked';
+    }
+    // เพิ่ม class extra สำหรับรอบพิเศษที่ยังไม่จบ
+    if (isExtra && cls !== 'done') cls += ' extra';
 
     const badge = done
-      ? `<span class="badge badge-done">✓ เช็กแล้ว</span>`
+      ? (isEarlyCheckin && !checkout
+          ? `<span class="badge badge-early">⏰ ก่อนเวลา</span>`
+          : `<span class="badge badge-done">✓ เช็กแล้ว</span>`)
       : canOpen
-        ? `<span class="badge ${test?'badge-test':'badge-open'}">${test?'TEST':'OPEN'}</span>`
+        ? `<span class="badge ${test ? 'badge-test' : isExtra ? 'badge-extra' : 'badge-open'}">${test ? 'TEST' : isExtra ? 'พิเศษ' : 'OPEN'}</span>`
         : `<span class="badge badge-locked">LOCKED</span>`;
 
-    const doneRow     = done    ? `<div class="round-done-time">📥 เช็กอิน ${done}</div>` : '';
+    const doneRow     = done     ? `<div class="round-done-time">📥 เช็กอิน ${done}</div>` : '';
     const checkoutRow = checkout ? `<div class="round-checkout-time">📤 จบงาน ${checkout}</div>` : '';
     const checkoutBtn = done && !checkout
       ? `<button class="btn-checkout" onclick="event.stopPropagation();confirmCheckout(${i})">🏁 จบงาน</button>` : '';
 
     // ปุ่มลบเฉพาะรอบพิเศษที่ยังไม่ได้เช็กอิน
-    const planCount = getPlanRounds().length;
-    const isExtra   = i >= planCount;
-    const extraIdx  = i - planCount;
     const deleteBtn = isExtra && !done
       ? `<button class="btn-del-extra" onclick="event.stopPropagation();deleteExtraRound(${extraIdx})">🗑️</button>` : '';
 
-    // ปุ่มเข้างานก่อนเวลา (เฉพาะรอบที่ล็อคและยังไม่ได้เช็ก)
-    const earlyBtn = cls === 'locked' && !done
-      ? `<button class="btn-early" onclick="event.stopPropagation();openRound(${i})">⏰ เข้างานก่อนเวลา</button>` : '';
+    // ปุ่มเข้างานก่อนเวลา (เฉพาะรอบที่ล็อค)
+    const earlyBtn = cls.includes('locked') && !done
+      ? `<button class="btn-early" onclick="event.stopPropagation();openEarlyRound(${i})">⏰ เข้างานก่อนเวลา</button>` : '';
 
     // แสดงรายละเอียดงาน
     const locRow  = r.location ? `<div style="font-size:12px;color:#0969da;margin-top:2px;">📍 ${r.location}</div>` : '';
@@ -1070,6 +1097,13 @@ function openRound(i) {
   document.getElementById('geo-warn').classList.remove('show');
   document.getElementById('overlay').classList.add('open');
   getGPS();
+}
+
+// เปิดเช็กอินก่อนเวลา — บันทึก flag แล้วเปิดปกติ
+function openEarlyRound(i) {
+  const r = getAllRounds()[i];
+  store.set('earlyCI_' + todayKey() + '_' + r.start, '1');
+  openRound(i);
 }
 
 function setStep(active) {

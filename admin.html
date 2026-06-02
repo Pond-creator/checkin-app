@@ -163,6 +163,48 @@ tr:hover td { background:#f6f8fa; }
   background:#ddf4ff; color:#0969da; cursor:pointer; }
 .more-chip { font-size:10px; color:#0969da; cursor:pointer; }
 
+/* ── SUMMARY TAB ── */
+.sum-toolbar {
+  background:#fff; border-bottom:1px solid #d0d7de;
+  padding:12px 20px; display:flex; gap:10px; align-items:center; flex-wrap:wrap;
+}
+.sum-toolbar label { font-size:13px; font-weight:700; color:#57606a; }
+.sum-toolbar input[type=date] { padding:7px 12px; border:1.5px solid #d0d7de; border-radius:8px; font-size:13px; }
+.sum-stats { display:flex; gap:10px; padding:14px 20px; flex-wrap:wrap; }
+.sum-stat { background:#fff; border-radius:10px; padding:14px 20px; border:1px solid #d0d7de; flex:1; min-width:120px; text-align:center; }
+.sum-stat .ss-n { font-size:28px; font-weight:800; }
+.sum-stat .ss-l { font-size:11px; color:#57606a; margin-top:3px; }
+.sum-stat.clickable { cursor:pointer; transition:all .15s; }
+.sum-stat.clickable:hover { border-color:#0969da; background:#f0f7ff; }
+.sum-body { padding:0 20px 28px; }
+.sum-table { width:100%; border-collapse:collapse; background:#fff; border-radius:10px;
+  overflow:hidden; box-shadow:0 1px 3px rgba(0,0,0,.07); margin-top:4px; }
+.sum-table thead { background:#f6f8fa; }
+.sum-table th { padding:10px 14px; text-align:left; font-size:12px; font-weight:700;
+  color:#57606a; border-bottom:1px solid #d0d7de; white-space:nowrap; }
+.sum-table td { padding:10px 14px; font-size:13px; border-bottom:1px solid #f0f2f5; vertical-align:middle; }
+.sum-table tr:last-child td { border-bottom:none; }
+.sum-table tr:hover td { background:#f6f8fa; }
+.sum-num { cursor:pointer; color:#0969da; font-weight:700; text-decoration:underline dotted; }
+.sum-num:hover { color:#0550ae; }
+.prog-bar { background:#e1e4e8; border-radius:20px; height:8px; width:80px; display:inline-block; overflow:hidden; vertical-align:middle; margin-left:6px; }
+.prog-fill { height:100%; border-radius:20px; background:#1a7f37; }
+/* Detail modal for summary */
+.det-modal-bg { display:none; position:fixed; inset:0; background:rgba(0,0,0,.55); z-index:350;
+  align-items:center; justify-content:center; padding:16px; }
+.det-modal-bg.open { display:flex; }
+.det-modal-box { background:#fff; border-radius:16px; padding:24px; width:100%; max-width:560px;
+  max-height:88vh; overflow-y:auto; animation:popIn .2s ease; }
+.det-modal-box h3 { font-size:16px; font-weight:700; margin-bottom:4px; }
+.det-modal-box .sub { font-size:12px; color:#57606a; margin-bottom:16px; }
+.det-section { margin-bottom:16px; }
+.det-section h4 { font-size:13px; font-weight:700; margin-bottom:8px; padding:6px 10px;
+  border-radius:6px; }
+.det-section.done h4 { background:#e6ffed; color:#1a7f37; }
+.det-section.miss h4 { background:#ffebe9; color:#cf222e; }
+.det-row { display:flex; align-items:center; justify-content:space-between;
+  padding:7px 10px; border-radius:6px; font-size:13px; margin-bottom:4px; background:#f6f8fa; }
+
 /* ── USERS TAB ── */
 .users-wrap { padding:16px 20px 24px; }
 .users-toolbar { display:flex; gap:8px; margin-bottom:14px; flex-wrap:wrap; }
@@ -257,6 +299,7 @@ tr:hover td { background:#f6f8fa; }
 <div class="tabs">
   <div class="tab active" onclick="switchTab('log')">📋 Check-in Log</div>
   <div class="tab" onclick="switchTab('plan')">📅 แผนงาน</div>
+  <div class="tab" onclick="switchTab('summary')">📊 สรุปแผนงาน</div>
   <div class="tab" onclick="switchTab('users')">👥 ผู้ใช้งาน</div>
 </div>
 
@@ -323,6 +366,39 @@ tr:hover td { background:#f6f8fa; }
     <button class="btn btn-outline" onclick="loadPlan()">🔄 รีเฟรช</button>
   </div>
   <div class="cal-wrap"><div class="cal-grid" id="cal-grid"></div></div>
+</div>
+
+<!-- ══════════ TAB: SUMMARY ══════════ -->
+<div class="tab-content" id="tab-summary">
+  <div class="sum-toolbar">
+    <label>📅 วันที่:</label>
+    <input type="date" id="sum-date" onchange="loadSummary()">
+    <button class="btn btn-primary" onclick="loadSummary()">🔄 โหลดสรุป</button>
+  </div>
+  <div class="sum-stats" id="sum-stats">
+    <div class="sum-stat"><div class="ss-n" id="ss-plans" style="color:#0969da">0</div><div class="ss-l">แผนทั้งหมด</div></div>
+    <div class="sum-stat clickable" onclick="showSumDetail('checkin')" title="คลิกดูรายละเอียด"><div class="ss-n" id="ss-cin" style="color:#1a7f37">0</div><div class="ss-l">เช็กอินแล้ว</div></div>
+    <div class="sum-stat clickable" onclick="showSumDetail('completed')" title="คลิกดูรายละเอียด"><div class="ss-n" id="ss-done" style="color:#1a7f37">0</div><div class="ss-l">จบงานแล้ว</div></div>
+    <div class="sum-stat clickable" onclick="showSumDetail('missing')" title="คลิกดูรายละเอียด"><div class="ss-n" id="ss-miss" style="color:#cf222e">0</div><div class="ss-l">ยังไม่เช็กอิน</div></div>
+    <div class="sum-stat"><div class="ss-n" id="ss-pct" style="color:#6e40c9">0%</div><div class="ss-l">% สำเร็จ (จบงาน)</div></div>
+  </div>
+  <div class="sum-body">
+    <div id="sum-table-wrap">
+      <div class="empty" style="padding:40px 20px"><div class="ic">📊</div>เลือกวันที่แล้วกด "โหลดสรุป"</div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════ DETAIL MODAL (Summary) ══════════ -->
+<div class="det-modal-bg" id="det-modal">
+  <div class="det-modal-box">
+    <h3 id="det-title">รายละเอียด</h3>
+    <div class="sub" id="det-sub"></div>
+    <div id="det-body"></div>
+    <div style="margin-top:18px;text-align:right">
+      <button class="btn btn-outline" onclick="closeSumDetail()">✕ ปิด</button>
+    </div>
+  </div>
 </div>
 
 <!-- ══════════ TAB: USERS ══════════ -->
@@ -517,11 +593,18 @@ function todayStr()  { return fmtDate(new Date()); }
 
 // ── Tab switch ─────────────────────────────────────
 function switchTab(name) {
-  document.querySelectorAll('.tab').forEach((t,i)=>t.classList.toggle('active',['log','plan','users'][i]===name));
+  const tabNames = ['log','plan','summary','users'];
+  document.querySelectorAll('.tab').forEach((t,i)=>t.classList.toggle('active', tabNames[i]===name));
   document.querySelectorAll('.tab-content').forEach(c=>c.classList.remove('active'));
   document.getElementById('tab-'+name).classList.add('active');
-  if (name==='plan')  renderCal();
-  if (name==='users') loadUsers();
+  if (name==='plan')    renderCal();
+  if (name==='users')   loadUsers();
+  if (name==='summary') {
+    if (!document.getElementById('sum-date').value) {
+      document.getElementById('sum-date').value = todayStr();
+    }
+    loadSummary();
+  }
 }
 
 // ══════════════════
@@ -1062,6 +1145,227 @@ async function deleteUser() {
   closeUserModal(); renderUsers();
 }
 
+// ══════════════════
+//  SUMMARY TAB
+// ══════════════════
+let sumData = []; // computed per-staff rows for current summary date
+
+async function loadSummary() {
+  const dateISO = document.getElementById('sum-date').value; // yyyy-MM-dd
+  if (!dateISO) return;
+  const url = getUrl();
+  if (!url) { openCfg(); return; }
+  showLoad(true);
+  try {
+    // Load both plans and logs in parallel (use cached if available, else fetch)
+    const [plansRes, logsRes] = await Promise.all([
+      planData.length ? Promise.resolve(null) : fetch(`${url}?action=getPlans&t=${Date.now()}`).then(r=>r.json()),
+      fetch(`${url}?action=getAll&t=${Date.now()}`).then(r=>r.json())
+    ]);
+    if (plansRes) planData = plansRes.data || [];
+    logData = logsRes.data || [];
+
+    renderSummary(dateISO);
+    document.getElementById('last-sync').textContent = 'อัปเดต ' + new Date().toLocaleTimeString('th-TH');
+  } catch(e) { alert('โหลดไม่สำเร็จ: '+e.message); }
+  showLoad(false);
+}
+
+function renderSummary(dateISO) {
+  // Plans for this date
+  const plansToday = planData.filter(t => normPlanDate(t.date) === dateISO);
+  // Logs for this date
+  const logsToday  = logData.filter(r => getRecordDateISO(r) === dateISO);
+
+  // Build per-staff breakdown
+  const staffSet = [...new Set(plansToday.map(t => t.staffName))].sort();
+  sumData = staffSet.map(staff => {
+    const plans     = plansToday.filter(t => t.staffName === staff);
+    const logs      = logsToday.filter(r  => r.name === staff);
+    const completed = logs.filter(r => (r.checkoutTime||'').trim());
+    const missing   = plans.filter(p => {
+      // A plan is "missing" if no log entry with matching round/time exists
+      const pStart = normTime(p.startTime);
+      return !logs.some(r => {
+        const rt = (r.roundTime||'');
+        return rt.startsWith(pStart) || (r.round||'').includes(p.branch||pStart);
+      });
+    });
+    const pct = plans.length ? Math.round(completed.length / plans.length * 100) : 0;
+    return { staff, plans, logs, completed, missing, pct };
+  });
+
+  // Summary totals
+  const totPlans = plansToday.length;
+  const totCin   = logsToday.length;
+  const totDone  = logsToday.filter(r=>(r.checkoutTime||'').trim()).length;
+  const totMiss  = Math.max(0, totPlans - totCin);
+  const totPct   = totPlans ? Math.round(totDone / totPlans * 100) : 0;
+
+  document.getElementById('ss-plans').textContent = totPlans;
+  document.getElementById('ss-cin').textContent   = totCin;
+  document.getElementById('ss-done').textContent  = totDone;
+  document.getElementById('ss-miss').textContent  = totMiss;
+  document.getElementById('ss-pct').textContent   = totPct + '%';
+
+  // Table
+  const wrap = document.getElementById('sum-table-wrap');
+  if (!staffSet.length) {
+    wrap.innerHTML = `<div class="empty"><div class="ic">📭</div>ไม่มีแผนงานในวันที่นี้</div>`;
+    return;
+  }
+
+  // Format date for display
+  const [y,mo,d] = dateISO.split('-');
+  const dateDisplay = `${parseInt(d)} ${['','ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'][parseInt(mo)]} ${parseInt(y)+543}`;
+
+  wrap.innerHTML = `
+    <div style="font-size:13px;color:#57606a;margin-bottom:10px;font-weight:700">
+      📅 สรุปแผนงานวันที่ ${dateDisplay} — พนักงาน ${staffSet.length} คน
+    </div>
+    <table class="sum-table">
+      <thead>
+        <tr>
+          <th>👤 พนักงาน</th>
+          <th>แผน</th>
+          <th>เช็กอิน</th>
+          <th>จบงาน ✅</th>
+          <th>ขาด ❌</th>
+          <th>% สำเร็จ</th>
+          <th>รายละเอียด</th>
+        </tr>
+      </thead>
+      <tbody>
+        ${sumData.map((row,i) => `<tr>
+          <td><b>${row.staff}</b></td>
+          <td><span class="sum-num" onclick="showStaffDetail('${escHtml(row.staff)}','plans',${i})">${row.plans.length}</span></td>
+          <td><span class="sum-num" onclick="showStaffDetail('${escHtml(row.staff)}','checkin',${i})" style="color:${row.logs.length?'#1a7f37':'#cf222e'}">${row.logs.length}</span></td>
+          <td><span class="sum-num" onclick="showStaffDetail('${escHtml(row.staff)}','completed',${i})" style="color:${row.completed.length?'#1a7f37':'#cf222e'}">${row.completed.length}</span></td>
+          <td><span class="sum-num" onclick="showStaffDetail('${escHtml(row.staff)}','missing',${i})" style="color:${row.missing.length?'#cf222e':'#1a7f37'}">${row.missing.length}</span></td>
+          <td>
+            <b style="color:${row.pct>=100?'#1a7f37':row.pct>=50?'#9a6700':'#cf222e'}">${row.pct}%</b>
+            <span class="prog-bar"><span class="prog-fill" style="width:${row.pct}%;background:${row.pct>=100?'#1a7f37':row.pct>=50?'#d4a017':'#cf222e'}"></span></span>
+          </td>
+          <td><button class="btn-sm btn-edit" onclick="showStaffDetail('${escHtml(row.staff)}','all',${i})">🔍 ดูทั้งหมด</button></td>
+        </tr>`).join('')}
+      </tbody>
+    </table>`;
+}
+
+function escHtml(s) { return (s||'').replace(/'/g,"\\'"); }
+
+function showSumDetail(type) {
+  // Summary-level detail: show across all staff
+  const dateISO = document.getElementById('sum-date').value;
+  let title = '', rows = [];
+  if (type === 'checkin') {
+    title = '✅ เช็กอินแล้ว';
+    rows = logData.filter(r => getRecordDateISO(r) === dateISO);
+  } else if (type === 'completed') {
+    title = '🏁 จบงานแล้ว';
+    rows = logData.filter(r => getRecordDateISO(r) === dateISO && (r.checkoutTime||'').trim());
+  } else if (type === 'missing') {
+    title = '❌ ยังไม่เช็กอิน';
+    // staff who have plans but no log
+    const logsToday = logData.filter(r => getRecordDateISO(r) === dateISO);
+    const logNames  = new Set(logsToday.map(r=>r.name));
+    const plansToday= planData.filter(t => normPlanDate(t.date) === dateISO);
+    rows = plansToday.filter(t => !logNames.has(t.staffName));
+  }
+  const [y,mo,d] = dateISO.split('-');
+  const dateDisplay = `${parseInt(d)}/${mo}/${y}`;
+  document.getElementById('det-title').textContent = title;
+  document.getElementById('det-sub').textContent   = `วันที่ ${dateDisplay} — ${rows.length} รายการ`;
+
+  if (!rows.length) {
+    document.getElementById('det-body').innerHTML = '<div style="text-align:center;padding:20px;color:#8c959f">ไม่มีข้อมูล</div>';
+  } else if (type === 'missing') {
+    document.getElementById('det-body').innerHTML = `
+      <div class="det-section miss">
+        <h4>❌ ยังไม่ได้เช็กอิน (${rows.length} แผน)</h4>
+        ${rows.map(t=>`<div class="det-row">
+          <span><b>${t.staffName}</b> — ${t.branch||'-'}</span>
+          <span style="font-size:12px;color:#57606a">${normTime(t.startTime)}–${normTime(t.endTime)}</span>
+        </div>`).join('')}
+      </div>`;
+  } else {
+    document.getElementById('det-body').innerHTML = `
+      <div class="det-section done">
+        <h4>${title} (${rows.length} รายการ)</h4>
+        ${rows.map(r=>`<div class="det-row">
+          <span><b>${r.name}</b> — ${r.branch||'-'} <span class="badge b-special" style="font-size:10px">${r.round||''}</span></span>
+          <span style="font-size:12px;color:#57606a">${cleanTime(r.timestamp)||'-'}${r.checkoutTime?' → '+cleanTime(r.checkoutTime):''}</span>
+        </div>`).join('')}
+      </div>`;
+  }
+  document.getElementById('det-modal').classList.add('open');
+}
+
+function showStaffDetail(staff, type, idx) {
+  const row = sumData[idx];
+  if (!row) return;
+  const dateISO = document.getElementById('sum-date').value;
+  const [y,mo,d] = dateISO.split('-');
+  const dateDisplay = `${parseInt(d)}/${mo}/${y}`;
+  document.getElementById('det-title').textContent = `👤 ${staff}`;
+  document.getElementById('det-sub').textContent   = `วันที่ ${dateDisplay}`;
+
+  let html = '';
+
+  if (type === 'all' || type === 'plans' || type === 'completed' || type === 'checkin') {
+    // Completed / checked-in
+    if (row.completed.length) {
+      html += `<div class="det-section done">
+        <h4>🏁 จบงานแล้ว (${row.completed.length} รายการ)</h4>
+        ${row.completed.map(r=>`<div class="det-row">
+          <span>${r.branch||'-'} <span class="badge b-special" style="font-size:10px">${r.round||''}</span></span>
+          <span style="font-size:12px;color:#57606a">${cleanTime(r.timestamp)||'-'} → ${cleanTime(r.checkoutTime)||'-'}</span>
+        </div>`).join('')}
+      </div>`;
+    }
+    // Checked in but not completed
+    const cinOnly = row.logs.filter(r=>!(r.checkoutTime||'').trim());
+    if (cinOnly.length) {
+      html += `<div class="det-section" style="margin-bottom:16px">
+        <h4 style="background:#fff8c5;color:#9a6700">⏳ เช็กอินแล้ว ยังไม่จบงาน (${cinOnly.length} รายการ)</h4>
+        ${cinOnly.map(r=>`<div class="det-row">
+          <span>${r.branch||'-'} <span class="badge b-special" style="font-size:10px">${r.round||''}</span></span>
+          <span style="font-size:12px;color:#57606a">${cleanTime(r.timestamp)||'-'}</span>
+        </div>`).join('')}
+      </div>`;
+    }
+  }
+
+  if (type === 'all' || type === 'plans' || type === 'missing') {
+    // Plans (for reference)
+    if (row.plans.length) {
+      html += `<div class="det-section" style="margin-bottom:16px">
+        <h4 style="background:#ddf4ff;color:#0969da">📋 แผนงานทั้งหมด (${row.plans.length} แผน)</h4>
+        ${row.plans.map(p=>`<div class="det-row">
+          <span><b>${p.branch||'-'}</b>${p.taskType?' — '+p.taskType:''}</span>
+          <span style="font-size:12px;color:#57606a">${normTime(p.startTime)}–${normTime(p.endTime)}</span>
+        </div>`).join('')}
+      </div>`;
+    }
+    // Missing
+    if (row.missing.length && (type === 'all' || type === 'missing')) {
+      html += `<div class="det-section miss">
+        <h4>❌ ยังไม่มีการเช็กอิน (${row.missing.length} แผน)</h4>
+        ${row.missing.map(p=>`<div class="det-row">
+          <span><b>${p.branch||'-'}</b>${p.taskType?' — '+p.taskType:''}</span>
+          <span style="font-size:12px;color:#57606a">${normTime(p.startTime)}–${normTime(p.endTime)}</span>
+        </div>`).join('')}
+      </div>`;
+    }
+  }
+
+  if (!html) html = '<div style="text-align:center;padding:20px;color:#8c959f">ไม่มีข้อมูล</div>';
+  document.getElementById('det-body').innerHTML = html;
+  document.getElementById('det-modal').classList.add('open');
+}
+
+function closeSumDetail() { document.getElementById('det-modal').classList.remove('open'); }
+
 // ── Config ─────────────────────────────────────────
 function openCfg() {
   document.getElementById('cfg-url').value=getUrl();
@@ -1096,6 +1400,8 @@ function initTimeSelects(startVal='09:00',endVal='18:00') {
 }
 
 // ── Init ───────────────────────────────────────────
+document.getElementById('sum-date').value = todayStr();
+document.getElementById('det-modal').addEventListener('click', function(e){ if(e.target===this) closeSumDetail(); });
 renderCal();
 if(getUrl()) { loadLog(); loadPlan(); loadUsers(); }
 </script>
