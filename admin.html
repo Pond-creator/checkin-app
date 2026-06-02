@@ -842,13 +842,25 @@ function updateStats(rows) {
   });
   const planCount  = plansFiltered.length;
   const normalCin  = rows.filter(r => !isSpecialRound(r)).length;
-  const missingCnt = Math.max(0, planCount - normalCin);
+
+  // ขาดงาน = นับเฉพาะแผนที่ผ่านมาแล้ว (ไม่ใช่วันนี้หรืออนาคต) และไม่มีเช็กอิน
+  const todayISO = todayStr();
+  let missingCnt = '-';
+  if (dateISO) {
+    if (dateISO < todayISO) {
+      // วันที่ผ่านมา → นับขาดได้
+      missingCnt = Math.max(0, planCount - normalCin);
+    } else {
+      // วันนี้หรืออนาคต → ยังไม่นับขาด
+      missingCnt = 0;
+    }
+  }
 
   document.getElementById('s-plan').textContent       = planCount || (dateISO ? '0' : '-');
   document.getElementById('s-all').textContent        = rows.length;
   document.getElementById('s-total').textContent      = normalCin;
   document.getElementById('s-special').textContent    = rows.filter(r=>isSpecialRound(r)).length;
-  document.getElementById('s-missing').textContent    = dateISO ? missingCnt : '-';
+  document.getElementById('s-missing').textContent    = missingCnt;
   document.getElementById('s-alert').textContent      = rows.filter(r=>r.geofenceAlert).length;
   document.getElementById('s-nocheckout').textContent = rows.filter(r=>!(r.checkoutTime||'').trim()).length;
 }
