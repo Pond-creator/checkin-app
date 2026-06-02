@@ -371,8 +371,18 @@ tr:hover td { background:#f6f8fa; }
 <!-- ══════════ TAB: SUMMARY ══════════ -->
 <div class="tab-content" id="tab-summary">
   <div class="sum-toolbar">
-    <label>📅 วันที่:</label>
-    <input type="date" id="sum-date" onchange="loadSummary()">
+    <div class="view-toggle" style="border-radius:8px">
+      <button id="sb-day"   class="on" onclick="setSumMode('day')">วันที่</button>
+      <button id="sb-week"  onclick="setSumMode('week')">สัปดาห์</button>
+      <button id="sb-month" onclick="setSumMode('month')">เดือน</button>
+      <button id="sb-range" onclick="setSumMode('range')">ช่วงวันที่</button>
+    </div>
+    <div id="sum-date-wrap" style="display:flex;align-items:center;gap:6px">
+      <label style="font-size:13px;color:#57606a;font-weight:700" id="sum-date-label">📅</label>
+      <input type="date" id="sum-date-from" onchange="loadSummary()">
+      <span id="sum-date-sep" style="display:none;color:#57606a">ถึง</span>
+      <input type="date" id="sum-date-to" style="display:none" onchange="loadSummary()">
+    </div>
     <button class="btn btn-primary" onclick="loadSummary()">🔄 โหลดสรุป</button>
   </div>
   <div class="sum-stats" id="sum-stats">
@@ -602,10 +612,11 @@ function switchTab(name) {
   if (name==='plan')    renderCal();
   if (name==='users')   loadUsers();
   if (name==='summary') {
-    if (!document.getElementById('sum-date').value) {
-      document.getElementById('sum-date').value = todayStr();
+    if (!document.getElementById('sum-date-from').value) {
+      setSumMode('day');
+    } else {
+      loadSummary();
     }
-    loadSummary();
   }
 }
 
@@ -1150,61 +1161,131 @@ async function deleteUser() {
 // ══════════════════
 //  SUMMARY TAB
 // ══════════════════
-let sumData = []; // computed per-staff rows for current summary date
+let sumData = [];
+let sumMode = 'day'; // 'day' | 'week' | 'month' | 'range'
+
+function setSumMode(mode) {
+  sumMode = mode;
+  ['day','week','month','range'].forEach(m => document.getElementById('sb-'+m).classList.toggle('on', m===mode));
+
+  const fromEl = document.getElementById('sum-date-from');
+  const toEl   = document.getElementById('sum-date-to');
+  const sepEl  = document.getElementById('sum-date-sep');
+  const lblEl  = document.getElementById('sum-date-label');
+  const today  = todayStr();
+
+  if (mode === 'day') {
+    lblEl.textContent = '📅';
+    toEl.style.display = 'none'; sepEl.style.display = 'none';
+    fromEl.value = fromEl.value || today;
+  } else if (mode === 'week') {
+    lblEl.textContent = '📅 สัปดาห์:';
+    toEl.style.display = ''; sepEl.style.display = '';
+    const d = new Date(); const day = d.getDay();
+    const mon = new Date(d); mon.setDate(d.getDate() - (day===0?6:day-1));
+    const sun = new Date(mon); sun.setDate(mon.getDate()+6);
+    fromEl.value = fmtDate(mon); toEl.value = fmtDate(sun);
+  } else if (mode === 'month') {
+    lblEl.textContent = '📅 เดือน:';
+    toEl.style.display = ''; sepEl.style.display = '';
+    const d = new Date();
+    fromEl.value = fmtDate(new Date(d.getFullYear(), d.getMonth(), 1));
+    toEl.value   = fmtDate(new Date(d.getFullYear(), d.getMonth()+1, 0));
+  } else { // range
+    lblEl.textContent = '📅 จาก:';
+    toEl.style.display = ''; sepEl.style.display = '';
+    if (!fromEl.value) fromEl.value = today;
+    if (!toEl.value)   toEl.value   = today;
+  }
+  loadSummary();
+}
+
+// ตรวจว่าเวลาสิ้นสุดของ plan/log ผ่านไปแล้วหรือยัง
+function isEndPassed(endTimeStr, dateISO) {
+  if (!endTimeStr || !dateISO) return true;
+  const [y,mo,d] = dateISO.split('-').map(Number);
+  const tp = endTimeStr.toString().trim().match(/(\d{1,2}):(\d{2})/);
+  if (!tp) return true;
+  return new Date() > new Date(y, mo-1, d, parseInt(tp[1]), parseInt(tp[2]));
+}
 
 async function loadSummary() {
-  const dateISO = document.getElementById('sum-date').value; // yyyy-MM-dd
-  if (!dateISO) return;
+  const fromISO = document.getElementById('sum-date-from').value;
+  if (!fromISO) return;
+  const toISO = sumMode === 'day' ? fromISO : (document.getElementById('sum-date-to').value || fromISO);
   const url = getUrl();
   if (!url) { openCfg(); return; }
   showLoad(true);
   try {
-    // Load both plans and logs in parallel (use cached if available, else fetch)
     const [plansRes, logsRes] = await Promise.all([
-      planData.length ? Promise.resolve(null) : fetch(`${url}?action=getPlans&t=${Date.now()}`).then(r=>r.json()),
+      fetch(`${url}?action=getPlans&t=${Date.now()}`).then(r=>r.json()),
       fetch(`${url}?action=getAll&t=${Date.now()}`).then(r=>r.json())
     ]);
-    if (plansRes) planData = plansRes.data || [];
-    logData = logsRes.data || [];
-
-    renderSummary(dateISO);
+    planData = plansRes.data || [];
+    logData  = logsRes.data || [];
+    renderSummary(fromISO, toISO);
     document.getElementById('last-sync').textContent = 'อัปเดต ' + new Date().toLocaleTimeString('th-TH');
   } catch(e) { alert('โหลดไม่สำเร็จ: '+e.message); }
   showLoad(false);
 }
 
-function renderSummary(dateISO) {
-  // Plans for this date
-  const plansToday = planData.filter(t => normPlanDate(t.date) === dateISO);
-  // Logs for this date
-  const logsToday  = logData.filter(r => getRecordDateISO(r) === dateISO);
+const MONTHS_SHORT = ['','ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'];
+function isoToDisplay(iso) {
+  if (!iso) return '';
+  const [y,mo,d] = iso.split('-');
+  return `${parseInt(d)} ${MONTHS_SHORT[parseInt(mo)]} ${parseInt(y)+543}`;
+}
+
+// สร้าง array ของ ISO dates ระหว่าง fromISO ถึง toISO
+function dateRange(fromISO, toISO) {
+  const dates = [];
+  const cur = new Date(fromISO);
+  const end = new Date(toISO);
+  while (cur <= end) { dates.push(fmtDate(new Date(cur))); cur.setDate(cur.getDate()+1); }
+  return dates;
+}
+
+function renderSummary(fromISO, toISO) {
+  const dates      = dateRange(fromISO, toISO);
+  const plansRange = planData.filter(t => dates.includes(normPlanDate(t.date)));
+  const logsRange  = logData.filter(r  => dates.includes(getRecordDateISO(r)));
 
   // Build per-staff breakdown
-  const staffSet = [...new Set(plansToday.map(t => t.staffName))].sort();
+  const staffSet = [...new Set(plansRange.map(t => t.staffName))].sort();
   sumData = staffSet.map(staff => {
-    const plans     = plansToday.filter(t => t.staffName === staff);
-    const logs      = logsToday.filter(r  => r.name === staff);
+    const plans = plansRange.filter(t => t.staffName === staff);
+    const logs  = logsRange.filter(r  => r.name === staff);
+
+    // จบงานแล้ว = มี checkoutTime
     const completed = logs.filter(r => (r.checkoutTime||'').trim());
-    const missing   = plans.filter(p => {
-      // A plan is "missing" if no log entry with matching round/time exists
-      const pStart = normTime(p.startTime);
-      return !logs.some(r => {
-        const rt = (r.roundTime||'');
-        return rt.startsWith(pStart) || (r.round||'').includes(p.branch||pStart);
-      });
+
+    // ไม่จบงาน = เช็กอินแล้ว ไม่มี checkout และเวลาสิ้นสุดผ่านไปแล้ว
+    const noCheckout = logs.filter(r => {
+      if ((r.checkoutTime||'').trim()) return false;
+      const dateOfLog = getRecordDateISO(r);
+      const endMatch  = (r.roundTime||'').match(/[-–]\s*(\d{1,2}:\d{2})/);
+      const endTime   = endMatch ? endMatch[1] : null;
+      return isEndPassed(endTime, dateOfLog);
     });
-    const noCheckout = logs.filter(r => !(r.checkoutTime||'').trim()); // เช็กอินแล้วไม่จบงาน
-    const extra      = Math.max(0, logs.length - plans.length);
-    const pct        = plans.length ? Math.min(100, Math.round(completed.length / plans.length * 100)) : 0;
+
+    // ขาด = แผนที่ไม่มี check-in เลย และเวลาสิ้นสุดผ่านไปแล้ว
+    const missing = plans.filter(p => {
+      const dateOfPlan = normPlanDate(p.date);
+      if (!isEndPassed(normTime(p.endTime), dateOfPlan)) return false; // ยังไม่ถึงเวลา
+      return !logs.some(r => getRecordDateISO(r) === dateOfPlan); // ไม่มี log วันนั้น
+    });
+
+    const extra = Math.max(0, logs.length - plans.length);
+    const pct   = plans.length ? Math.min(100, Math.round(completed.length / plans.length * 100)) : 0;
     return { staff, plans, logs, completed, missing, noCheckout, extra, pct };
   });
 
   // Summary totals
-  const totPlans = plansToday.length;
-  const totCin   = logsToday.length;
-  const totDone  = logsToday.filter(r=>(r.checkoutTime||'').trim()).length;
-  const totMiss  = Math.max(0, totPlans - totCin);
-  const totNoCo  = logsToday.filter(r=>!(r.checkoutTime||'').trim()).length;
+  const totPlans = plansRange.length;
+  const totCin   = logsRange.length;
+  const totDone  = logsRange.filter(r=>(r.checkoutTime||'').trim()).length;
+  const totNoCo  = sumData.reduce((s,r)=>s+r.noCheckout.length, 0);
+  const totMiss  = sumData.reduce((s,r)=>s+r.missing.length, 0);
   const totExtra = Math.max(0, totCin - totPlans);
   const totPct   = totPlans ? Math.min(100, Math.round(totDone / totPlans * 100)) : 0;
 
@@ -1219,17 +1300,17 @@ function renderSummary(dateISO) {
   // Table
   const wrap = document.getElementById('sum-table-wrap');
   if (!staffSet.length) {
-    wrap.innerHTML = `<div class="empty"><div class="ic">📭</div>ไม่มีแผนงานในวันที่นี้</div>`;
+    wrap.innerHTML = `<div class="empty"><div class="ic">📭</div>ไม่มีแผนงานในช่วงวันที่นี้</div>`;
     return;
   }
 
-  // Format date for display
-  const [y,mo,d] = dateISO.split('-');
-  const dateDisplay = `${parseInt(d)} ${['','ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'][parseInt(mo)]} ${parseInt(y)+543}`;
+  const rangeLabel = fromISO === toISO
+    ? `วันที่ ${isoToDisplay(fromISO)}`
+    : `${isoToDisplay(fromISO)} – ${isoToDisplay(toISO)}`;
 
   wrap.innerHTML = `
     <div style="font-size:13px;color:#57606a;margin-bottom:10px;font-weight:700">
-      📅 สรุปแผนงานวันที่ ${dateDisplay} — พนักงาน ${staffSet.length} คน
+      📅 สรุปแผนงาน ${rangeLabel} — พนักงาน ${staffSet.length} คน
     </div>
     <table class="sum-table">
       <thead>
@@ -1269,43 +1350,45 @@ function renderSummary(dateISO) {
 
 function escHtml(s) { return (s||'').replace(/'/g,"\\'"); }
 
+function getSumDateRange() {
+  const from = document.getElementById('sum-date-from').value;
+  const to   = sumMode === 'day' ? from : (document.getElementById('sum-date-to').value || from);
+  return dateRange(from, to);
+}
+
 function showSumDetail(type) {
-  // Summary-level detail: show across all staff
-  const dateISO = document.getElementById('sum-date').value;
+  const dates = getSumDateRange();
+  const logsRange  = logData.filter(r => dates.includes(getRecordDateISO(r)));
+  const plansRange = planData.filter(t => dates.includes(normPlanDate(t.date)));
   let title = '', rows = [];
+
   if (type === 'checkin') {
     title = '✅ เช็กอินแล้ว';
-    rows = logData.filter(r => getRecordDateISO(r) === dateISO);
+    rows = logsRange;
   } else if (type === 'completed') {
     title = '🏁 จบงานแล้ว';
-    rows = logData.filter(r => getRecordDateISO(r) === dateISO && (r.checkoutTime||'').trim());
+    rows = logsRange.filter(r => (r.checkoutTime||'').trim());
   } else if (type === 'nocheckout') {
-    title = '⚠️ ไม่จบงาน';
-    rows = logData.filter(r => getRecordDateISO(r) === dateISO && !(r.checkoutTime||'').trim());
+    title = '⚠️ ไม่จบงาน (เวลาผ่านไปแล้ว)';
+    rows = sumData.flatMap(s => s.noCheckout);
   } else if (type === 'missing') {
-    title = '❌ ยังไม่เช็กอิน';
-    const logsToday = logData.filter(r => getRecordDateISO(r) === dateISO);
-    const logNames  = new Set(logsToday.map(r=>r.name));
-    const plansToday= planData.filter(t => normPlanDate(t.date) === dateISO);
-    rows = plansToday.filter(t => !logNames.has(t.staffName));
+    title = '❌ ขาดงาน (ผ่านเวลาแล้ว ไม่เช็กอิน)';
+    rows = sumData.flatMap(s => s.missing);
   } else if (type === 'extra') {
     title = '⭐ งานพิเศษ';
-    const logsToday  = logData.filter(r => getRecordDateISO(r) === dateISO);
-    const plansToday = planData.filter(t => normPlanDate(t.date) === dateISO);
-    // logs that exceed plan count per staff
     const byStaff = {};
-    logsToday.forEach(r => { byStaff[r.name] = (byStaff[r.name]||[]).concat(r); });
+    logsRange.forEach(r => { byStaff[r.name] = (byStaff[r.name]||[]).concat(r); });
     rows = [];
     Object.entries(byStaff).forEach(([name, logs]) => {
-      const planCnt = plansToday.filter(t=>t.staffName===name).length;
-      const extras  = logs.slice(planCnt);
-      rows.push(...extras);
+      const planCnt = plansRange.filter(t=>t.staffName===name).length;
+      rows.push(...logs.slice(planCnt));
     });
   }
-  const [y,mo,d] = dateISO.split('-');
-  const dateDisplay = `${parseInt(d)}/${mo}/${y}`;
+  const from = document.getElementById('sum-date-from').value;
+  const to   = sumMode==='day' ? from : (document.getElementById('sum-date-to').value||from);
+  const rangeLabel = from===to ? isoToDisplay(from) : `${isoToDisplay(from)} – ${isoToDisplay(to)}`;
   document.getElementById('det-title').textContent = title;
-  document.getElementById('det-sub').textContent   = `วันที่ ${dateDisplay} — ${rows.length} รายการ`;
+  document.getElementById('det-sub').textContent   = `${rangeLabel} — ${rows.length} รายการ`;
 
   if (!rows.length) {
     document.getElementById('det-body').innerHTML = '<div style="text-align:center;padding:20px;color:#8c959f">ไม่มีข้อมูล</div>';
@@ -1334,11 +1417,11 @@ function showSumDetail(type) {
 function showStaffDetail(staff, type, idx) {
   const row = sumData[idx];
   if (!row) return;
-  const dateISO = document.getElementById('sum-date').value;
-  const [y,mo,d] = dateISO.split('-');
-  const dateDisplay = `${parseInt(d)}/${mo}/${y}`;
+  const from = document.getElementById('sum-date-from').value;
+  const to   = sumMode==='day' ? from : (document.getElementById('sum-date-to').value||from);
+  const rangeLabel = from===to ? isoToDisplay(from) : `${isoToDisplay(from)} – ${isoToDisplay(to)}`;
   document.getElementById('det-title').textContent = `👤 ${staff}`;
-  document.getElementById('det-sub').textContent   = `วันที่ ${dateDisplay}`;
+  document.getElementById('det-sub').textContent   = rangeLabel;
 
   let html = '';
 
@@ -1466,7 +1549,7 @@ function initTimeSelects(startVal='09:00',endVal='18:00') {
 }
 
 // ── Init ───────────────────────────────────────────
-document.getElementById('sum-date').value = todayStr();
+document.getElementById('sum-date-from').value = todayStr();
 document.getElementById('det-modal').addEventListener('click', function(e){ if(e.target===this) closeSumDetail(); });
 renderCal();
 if(getUrl()) { loadLog(); loadPlan(); loadUsers(); }
