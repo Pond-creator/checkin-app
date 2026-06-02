@@ -1177,7 +1177,7 @@ function setSumMode(mode) {
   if (mode === 'day') {
     lblEl.textContent = '📅';
     toEl.style.display = 'none'; sepEl.style.display = 'none';
-    fromEl.value = fromEl.value || today;
+    fromEl.value = today;
   } else if (mode === 'week') {
     lblEl.textContent = '📅 สัปดาห์:';
     toEl.style.display = ''; sepEl.style.display = '';
