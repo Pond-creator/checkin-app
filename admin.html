@@ -804,7 +804,7 @@ function renderLog(fromDropdown) {
     const ph   = phUrl ? `<img class="photo-th" src="${phUrl}" onclick="openLightbox('${phUrl}')" onerror="this.parentNode.innerHTML='<div class=\'no-ph\'>📷</div>'">` : '<div class="no-ph">📷</div>';
     const phCoUrl = fixPhotoUrl(r.checkoutPhoto);
     const phCo = phCoUrl ? `<img class="photo-th" src="${phCoUrl}" onclick="openLightbox('${phCoUrl}')" onerror="this.parentNode.innerHTML='<div class=\'no-ph\'>🏁</div>'">` : '<div class="no-ph" style="font-size:14px">🏁</div>';
-    const alertBadge = r.geofenceAlert ? `<span class="alert-badge">🚨 ${r.geofenceAlert}</span>` : '-';
+    const alertBadge = r.geofenceAlert ? `<span class="alert-badge">🚨 ${r.geofenceAlert}</span>` : `<span style="color:#1a7f37;font-size:16px">✅</span>`;
     const co   = (r.checkoutTime||'').trim();
     const coCell = co
       ? `<span style="color:#1a7f37;font-size:12px">✅ ${cleanTime(co)}</span>`
@@ -821,7 +821,7 @@ function renderLog(fromDropdown) {
       <td>${gps}</td>
       <td style="font-size:11px;color:#57606a">${r.accuracy?'±'+r.accuracy+'m':'-'}</td>
       <td>${alertBadge}</td>
-      <td>${r.checkoutGeofenceAlert ? `<span class="alert-badge">🚨 ${r.checkoutGeofenceAlert}</span>` : '-'}</td>
+      <td>${r.checkoutGeofenceAlert ? `<span class="alert-badge">🚨 ${r.checkoutGeofenceAlert}</span>` : `<span style="color:#1a7f37;font-size:16px">✅</span>`}</td>
     </tr>`;
   }).join('');
 }
