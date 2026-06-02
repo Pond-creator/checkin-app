@@ -461,7 +461,7 @@ body { font-family: 'Sarabun', sans-serif; background: #f0f2f5; min-height: 100v
       <div class="ex-time-row">
         <div>
           <label style="font-size:11px;color:#8c959f">เริ่ม</label>
-          <select id="ex-start"></select>
+          <select id="ex-start" onchange="updateExtraEndOpts()"></select>
         </div>
         <div>
           <label style="font-size:11px;color:#8c959f">สิ้นสุด</label>
@@ -1033,6 +1033,33 @@ function buildTimeOpts(disabledMins = new Set()) {
   return html;
 }
 
+// อัปเดต dropdown เวลาสิ้นสุด ให้แสดงเฉพาะเวลา > start และไม่ทับกับ round อื่น
+function updateExtraEndOpts() {
+  const startVal  = document.getElementById('ex-start').value;
+  const startMins = toMins(startVal);
+  const used      = getUsedMinutes();
+  const prevEnd   = document.getElementById('ex-end').value;
+
+  let html = '';
+  for (let h = 0; h <= 23; h++) {
+    for (const m of [0, 30]) {
+      const mins = h * 60 + m;
+      if (mins <= startMins) continue;          // ต้องหลัง start
+      if (used.has(mins - 30) && mins > startMins + 30) continue; // ข้ามช่วงที่ถูกจอง (ยกเว้น slot แรกหลัง start)
+      const hh  = String(h).padStart(2,'0');
+      const val = `${hh}:${m===0?'00':'30'}`;
+      html += `<option value="${val}">${val}</option>`;
+    }
+  }
+  // 24:00 — ถ้าไม่มี round ทับ
+  if (!used.has(23*60+30)) html += `<option value="24:00">24:00</option>`;
+
+  const sel = document.getElementById('ex-end');
+  sel.innerHTML = html;
+  // คืนค่าเดิมถ้ายังอยู่ใน options
+  if ([...sel.options].some(o => o.value === prevEnd)) sel.value = prevEnd;
+}
+
 // คืน Set ของนาทีที่ถูกใช้งานโดยรอบที่มีอยู่แล้ว (ทุก 30 นาทีในช่วง start-end)
 function getUsedMinutes() {
   const rounds = getAllRounds();
@@ -1052,9 +1079,12 @@ function openExtraModal() {
   const used = getUsedMinutes();
   const opts = buildTimeOpts(used);
   document.getElementById('ex-start').innerHTML = opts;
-  document.getElementById('ex-end').innerHTML   = buildTimeOpts(); // end ไม่ต้อง disable
   document.getElementById('ex-start').value = `${hh}:${mm}`;
-  document.getElementById('ex-end').value   = `${endH}:${mm}`;
+
+  // end time: อัปเดตให้ตรงกับ start ที่เลือก
+  updateExtraEndOpts();
+  const endH2 = String(now.getHours()+1 < 24 ? now.getHours()+1 : 23).padStart(2,'0');
+  document.getElementById('ex-end').value = `${endH2}:${mm}` || document.getElementById('ex-end').options[0]?.value;
 
   // สร้าง choices จากแผนงานของ Admin เท่านั้น (todayPlan + allPlanBranches)
   const choices = [];
