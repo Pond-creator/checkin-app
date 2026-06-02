@@ -331,9 +331,11 @@ tr:hover td { background:#f6f8fa; }
     <button class="btn btn-outline" onclick="openCfg()">⚙ ตั้งค่า</button>
   </div>
   <div class="stats">
+    <div class="stat" id="sc-plan"><div class="n" id="s-plan" style="color:#6e40c9">0</div><div class="l">แผนงาน 📋</div></div>
     <div class="stat stat-btn" id="sc-all"        onclick="statFilter('all')">        <div class="n" id="s-all">0</div>        <div class="l">Check-in ทั้งหมด</div></div>
     <div class="stat stat-btn" id="sc-total"      onclick="statFilter('total')">      <div class="n" id="s-total" style="color:#0969da">0</div>      <div class="l">งานปกติ 📋</div></div>
     <div class="stat stat-btn" id="sc-special"    onclick="statFilter('special')">    <div class="n" id="s-special" style="color:#d97706">0</div><div class="l">งานพิเศษ ⭐</div></div>
+    <div class="stat stat-btn" id="sc-missing"    onclick="statFilter('missing')">    <div class="n" id="s-missing" style="color:#cf222e">0</div><div class="l">ขาดงาน ❌</div></div>
     <div class="stat stat-btn" id="sc-nocheckout" onclick="statFilter('nocheckout')"> <div class="n" id="s-nocheckout" style="color:#9a3412">0</div><div class="l">ยังไม่จบงาน</div></div>
     <div class="stat stat-btn" id="sc-alert"      onclick="statFilter('alert')">      <div class="n" id="s-alert" style="color:#cf222e">0</div><div class="l">แจ้งเตือน GPS</div></div>
   </div>
@@ -629,9 +631,12 @@ async function loadLog() {
   if (!url) { openCfg(); return; }
   showLoad(true);
   try {
-    const r = await fetch(`${url}?action=getAll&t=${Date.now()}`);
-    const j = await r.json();
-    logData = j.data || [];
+    const [logRes, planRes] = await Promise.all([
+      fetch(`${url}?action=getAll&t=${Date.now()}`).then(r=>r.json()),
+      fetch(`${url}?action=getPlans&t=${Date.now()}`).then(r=>r.json())
+    ]);
+    logData  = logRes.data  || [];
+    planData = planRes.data || [];
     populateDateFilter();
     renderLog();
     updateStats();
@@ -822,9 +827,24 @@ function isSpecialRound(r) { return !STD_ROUNDS.includes(r.round||''); }
 
 function updateStats(rows) {
   if (!rows) rows = getFiltered();
+
+  // นับแผนตามวันที่ที่ filter อยู่
+  const dateISO   = document.getElementById('f-date').value; // yyyy-MM-dd หรือ ''
+  const userFilter = document.getElementById('f-user').value;
+  const plansFiltered = planData.filter(t => {
+    if (dateISO && normPlanDate(t.date) !== dateISO) return false;
+    if (userFilter && t.staffName !== userFilter) return false;
+    return true;
+  });
+  const planCount  = plansFiltered.length;
+  const normalCin  = rows.filter(r => !isSpecialRound(r)).length;
+  const missingCnt = Math.max(0, planCount - normalCin);
+
+  document.getElementById('s-plan').textContent       = planCount || (dateISO ? '0' : '-');
   document.getElementById('s-all').textContent        = rows.length;
-  document.getElementById('s-total').textContent      = rows.filter(r=>!isSpecialRound(r)).length;
+  document.getElementById('s-total').textContent      = normalCin;
   document.getElementById('s-special').textContent    = rows.filter(r=>isSpecialRound(r)).length;
+  document.getElementById('s-missing').textContent    = dateISO ? missingCnt : '-';
   document.getElementById('s-alert').textContent      = rows.filter(r=>r.geofenceAlert).length;
   document.getElementById('s-nocheckout').textContent = rows.filter(r=>!(r.checkoutTime||'').trim()).length;
 }
@@ -856,9 +876,20 @@ function statFilter(type) {
     document.getElementById('f-status').value = '';
     document.getElementById('f-round').value  = '';
   } else if (type === 'special') {
-    // งานพิเศษ — set dropdown รอบพิเศษ
     document.getElementById('f-round').value  = 'รอบพิเศษ';
     document.getElementById('f-status').value = '';
+  } else if (type === 'missing') {
+    // ขาดงาน — ไปดูที่หน้าสรุปแผนงาน
+    const dateISO = document.getElementById('f-date').value;
+    if (dateISO) {
+      document.getElementById('sum-date-from').value = dateISO;
+      setSumMode('day');
+      switchTab('summary');
+    } else {
+      alert('กรุณาเลือกวันที่ก่อน แล้วกดขาดงานอีกครั้ง');
+    }
+    activeStatCard = null;
+    return;
   } else if (type === 'nocheckout') {
     document.getElementById('f-status').value = 'ไม่จบงาน';
     document.getElementById('f-round').value  = '';
