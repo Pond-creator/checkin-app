@@ -307,10 +307,10 @@ tr:hover td { background:#f6f8fa; }
 <div class="tab-content active" id="tab-log">
   <div class="toolbar">
     <button class="btn btn-primary" onclick="loadLog()">🔄 โหลดข้อมูล</button>
+    <input type="date" id="f-date" onchange="renderLog(true)" style="padding:7px 12px;border:1px solid #d0d7de;border-radius:8px;font-size:13px;">
     <select id="f-user" onchange="renderLog(true)" style="padding:7px 12px;border:1px solid #d0d7de;border-radius:8px;font-size:13px;">
       <option value="">👤 ทุกคน</option>
     </select>
-    <input type="date" id="f-date" onchange="renderLog(true)" style="padding:7px 12px;border:1px solid #d0d7de;border-radius:8px;font-size:13px;">
     <select id="f-round" onchange="renderLog(true)" style="padding:7px 12px;border:1px solid #d0d7de;border-radius:8px;font-size:13px;">
       <option value="">🕐 ทุกรอบ</option>
       <option>รอบเช้า</option><option>รอบบ่าย</option>
