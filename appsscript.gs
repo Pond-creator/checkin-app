@@ -256,7 +256,7 @@ function readLog(sheetName) {
     date:r[0]+'', timestamp:r[1]+'', name:r[2]+'', branch:r[3]+'',
     round:r[4]+'', roundTime:r[5]+'', lat:r[6]+'', lng:r[7]+'',
     accuracy:r[8]+'', mapsLink:r[9]+'', photo:r[10]+'',
-    checkoutTime:r[11]+'', geofenceAlert:r[12]+''
+    checkoutTime:r[11]+'', geofenceAlert:r[12]+'', checkoutPhoto:r[13]+''
   })).reverse();
 }
 

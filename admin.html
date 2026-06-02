@@ -297,7 +297,7 @@ tr:hover td { background:#f6f8fa; }
     <table>
       <thead>
         <tr>
-          <th>#</th><th>📷 รูป</th><th>ชื่อ</th><th>สาขา</th>
+          <th>#</th><th>📷 รูปเช็กอิน</th><th>🏁 รูปจบงาน</th><th>ชื่อ</th><th>สาขา</th>
           <th>รอบ</th><th>เวลา Check-in</th><th>จบงาน ✅</th><th>GPS</th><th>±m</th><th>แจ้งเตือน</th>
         </tr>
       </thead>
@@ -695,6 +695,8 @@ function renderLog(fromDropdown) {
     const gps  = maps ? `<a class="gps-a" href="${maps}" target="_blank">📍 ${r.lat},${r.lng}</a>` : '-';
     const phUrl = fixPhotoUrl(r.photo);
     const ph   = phUrl ? `<img class="photo-th" src="${phUrl}" onclick="openLightbox('${phUrl}')" onerror="this.parentNode.innerHTML='<div class=\'no-ph\'>📷</div>'">` : '<div class="no-ph">📷</div>';
+    const phCoUrl = fixPhotoUrl(r.checkoutPhoto);
+    const phCo = phCoUrl ? `<img class="photo-th" src="${phCoUrl}" onclick="openLightbox('${phCoUrl}')" onerror="this.parentNode.innerHTML='<div class=\'no-ph\'>🏁</div>'">` : '<div class="no-ph" style="font-size:14px">🏁</div>';
     const alertBadge = r.geofenceAlert ? `<span class="alert-badge">🚨 ${r.geofenceAlert}</span>` : '-';
     const co   = (r.checkoutTime||'').trim();
     const coCell = co
@@ -703,6 +705,7 @@ function renderLog(fromDropdown) {
     return `<tr>
       <td style="color:#8c959f;font-size:11px">${i+1}</td>
       <td>${ph}</td>
+      <td>${phCo}</td>
       <td><b>${r.name||'-'}</b></td>
       <td>${r.branch||'-'}</td>
       <td><span class="badge ${bc}">${r.round||'-'}</span></td>
