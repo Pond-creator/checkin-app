@@ -331,7 +331,7 @@ tr:hover td { background:#f6f8fa; }
     <button class="btn btn-outline" onclick="openCfg()">⚙ ตั้งค่า</button>
   </div>
   <div class="stats">
-    <div class="stat" id="sc-plan"><div class="n" id="s-plan" style="color:#6e40c9">0</div><div class="l">แผนงาน 📋</div></div>
+    <div class="stat stat-btn" id="sc-plan" onclick="statFilter('plan')"><div class="n" id="s-plan" style="color:#6e40c9">0</div><div class="l">แผนงาน 📋</div></div>
     <div class="stat stat-btn" id="sc-all"        onclick="statFilter('all')">        <div class="n" id="s-all">0</div>        <div class="l">Check-in ทั้งหมด</div></div>
     <div class="stat stat-btn" id="sc-total"      onclick="statFilter('total')">      <div class="n" id="s-total" style="color:#0969da">0</div>      <div class="l">งานปกติ 📋</div></div>
     <div class="stat stat-btn" id="sc-special"    onclick="statFilter('special')">    <div class="n" id="s-special" style="color:#d97706">0</div><div class="l">งานพิเศษ ⭐</div></div>
@@ -867,7 +867,14 @@ function statFilter(type) {
   document.querySelectorAll('.stat-btn').forEach(el=>el.classList.remove('active'));
   document.getElementById('sc-'+type)?.classList.add('active');
 
-  if (type === 'all') {
+  if (type === 'plan') {
+    // reset กลับวันนี้ ล้างทุก filter
+    document.getElementById('f-date').value   = todayStr();
+    document.getElementById('f-user').value   = '';
+    document.getElementById('f-round').value  = '';
+    document.getElementById('f-branch').value = '';
+    document.getElementById('f-status').value = '';
+  } else if (type === 'all') {
     // ล้างเฉพาะ filter อื่น แต่คง date ไว้
     document.getElementById('f-user').value   = '';
     document.getElementById('f-round').value  = '';
@@ -881,17 +888,9 @@ function statFilter(type) {
     document.getElementById('f-round').value  = 'รอบพิเศษ';
     document.getElementById('f-status').value = '';
   } else if (type === 'missing') {
-    // ขาดงาน — ไปดูที่หน้าสรุปแผนงาน
-    const dateISO = document.getElementById('f-date').value;
-    if (dateISO) {
-      document.getElementById('sum-date-from').value = dateISO;
-      setSumMode('day');
-      switchTab('summary');
-    } else {
-      alert('กรุณาเลือกวันที่ก่อน แล้วกดขาดงานอีกครั้ง');
-    }
-    activeStatCard = null;
-    return;
+    // ขาดงาน — แสดงแค่ข้อความ ไม่ redirect (ขาดงานดูได้ในหน้าสรุปแผนงาน)
+    document.getElementById('f-status').value = '';
+    document.getElementById('f-round').value  = '';
   } else if (type === 'nocheckout') {
     document.getElementById('f-status').value = 'ไม่จบงาน';
     document.getElementById('f-round').value  = '';
@@ -1303,11 +1302,28 @@ function renderSummary(fromISO, toISO) {
     const plans = plansRange.filter(t => t.staffName === staff);
     const logs  = logsRange.filter(r  => r.name === staff);
 
-    // จบงานแล้ว = มี checkoutTime
-    const completed = logs.filter(r => (r.checkoutTime||'').trim());
+    const today = todayStr();
 
-    // ไม่จบงาน = เช็กอินแล้ว ไม่มี checkout และเวลาสิ้นสุดผ่านไปแล้ว
-    const noCheckout = logs.filter(r => {
+    // จับคู่ log กับ plan โดยเทียบ roundTime vs plan startTime-endTime
+    // log ที่จับคู่ได้ = งานตามแผน, ที่เกิน = งานพิเศษ
+    const planLogs = []; // logs ที่ตรงกับ plan
+    const extraLogs = [];
+    logs.forEach(r => {
+      const logDate  = getRecordDateISO(r);
+      const rtMatch  = (r.roundTime||'').match(/(\d{1,2}:\d{2})/);
+      const logStart = rtMatch ? rtMatch[1] : null;
+      const matched  = logStart && plans.some(p =>
+        normPlanDate(p.date) === logDate && normTime(p.startTime) === logStart
+      );
+      if (matched) planLogs.push(r);
+      else extraLogs.push(r);
+    });
+
+    // จบงานแล้ว = plan log ที่มี checkoutTime
+    const completed = planLogs.filter(r => (r.checkoutTime||'').trim());
+
+    // ไม่จบงาน = plan log ที่ไม่มี checkout และเวลาสิ้นสุดผ่านไปแล้ว
+    const noCheckout = planLogs.filter(r => {
       if ((r.checkoutTime||'').trim()) return false;
       const dateOfLog = getRecordDateISO(r);
       const endMatch  = (r.roundTime||'').match(/[-–]\s*(\d{1,2}:\d{2})/);
@@ -1315,16 +1331,17 @@ function renderSummary(fromISO, toISO) {
       return isEndPassed(endTime, dateOfLog);
     });
 
-    // ขาด = แผนที่ไม่มี check-in เลย และเวลาสิ้นสุดผ่านไปแล้ว
+    // ขาด = แผนที่ไม่มี log เลย และ วันนั้นผ่านไปแล้ว (ไม่ใช่วันนี้)
     const missing = plans.filter(p => {
       const dateOfPlan = normPlanDate(p.date);
-      if (!isEndPassed(normTime(p.endTime), dateOfPlan)) return false; // ยังไม่ถึงเวลา
-      return !logs.some(r => getRecordDateISO(r) === dateOfPlan); // ไม่มี log วันนั้น
+      if (dateOfPlan >= today) return false; // วันนี้หรืออนาคต → ยังไม่นับขาด
+      return !planLogs.some(r => getRecordDateISO(r) === dateOfPlan &&
+        normTime((r.roundTime||'').match(/(\d{1,2}:\d{2})/)?.[1]||'') === normTime(p.startTime));
     });
 
-    const extra = Math.max(0, logs.length - plans.length);
+    const extra = extraLogs.length;
     const pct   = plans.length ? Math.min(100, Math.round(completed.length / plans.length * 100)) : 0;
-    return { staff, plans, logs, completed, missing, noCheckout, extra, pct };
+    return { staff, plans, logs, planLogs, completed, missing, noCheckout, extra, extraLogs, pct };
   });
 
   // Summary totals
