@@ -12,7 +12,7 @@ const HDR_FG       = "#58a6ff";
 const LOG_HEADERS = [
   'วันที่','เวลา Check-in','ชื่อ','สาขา',
   'รอบ','ช่วงเวลา','Latitude','Longitude',
-  'ความแม่นยำ (m)','Google Maps','รูปภาพ URL','เวลาจบงาน','แจ้งเตือน GPS'
+  'ความแม่นยำ (m)','Google Maps','รูปภาพ URL','เวลาจบงาน','แจ้งเตือน GPS','รูปภาพจบงาน'
 ];
 const PLAN_HEADERS = [
   'ID','ชื่อพนักงาน','วันที่','เวลาเริ่ม','เวลาสิ้นสุด',
@@ -77,7 +77,22 @@ function saveCheckout(data) {
   const now      = new Date();
   const timeStr  = data.checkoutTime || Utilities.formatDate(now, 'Asia/Bangkok', 'dd/MM/yyyy HH:mm:ss');
   const dateStr  = data.date || Utilities.formatDate(now, 'Asia/Bangkok', 'dd/MM/yyyy');
-  const colIndex = 12; // คอลัมน์ "เวลาจบงาน"
+  const colCheckout = 12; // เวลาจบงาน
+  const colPhoto    = 14; // รูปภาพจบงาน (คอลัมน์ N)
+
+  // อัปโหลดรูปจบงาน (ถ้ามี)
+  let photoUrl = '';
+  if (data.photo && data.photo.startsWith('data:image')) {
+    try {
+      const blob = Utilities.newBlob(
+        Utilities.base64Decode(data.photo.split(',')[1]),
+        'image/jpeg', `${data.name}_checkout_${Date.now()}.jpg`
+      );
+      const file = getFolder().createFile(blob);
+      file.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
+      photoUrl = `https://drive.google.com/thumbnail?id=${file.getId()}&sz=w400`;
+    } catch(err) { photoUrl = 'error: '+err.message; }
+  }
 
   const sheets = [MASTER_SHEET];
   if (data.name) sheets.push('👤 ' + data.name.trim());
@@ -91,7 +106,8 @@ function saveCheckout(data) {
       if (rows[i][2] === data.name &&
           rows[i][4] === data.round &&
           rows[i][0].toString().includes(dateStr.split('/')[0])) {
-        sheet.getRange(i + 1, colIndex).setValue(timeStr);
+        sheet.getRange(i + 1, colCheckout).setValue(timeStr);
+        if (photoUrl) sheet.getRange(i + 1, colPhoto).setValue(photoUrl);
         break;
       }
     }

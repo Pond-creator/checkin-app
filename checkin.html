@@ -525,8 +525,8 @@ body { font-family: 'Sarabun', sans-serif; background: #f0f2f5; min-height: 100v
     <!-- Success -->
     <div class="pane" id="pane-success">
       <div class="center-pane">
-        <div class="success-icon">✅</div>
-        <div class="success-title">Check-In สำเร็จ!</div>
+        <div class="success-icon" id="m-success-icon">✅</div>
+        <div class="success-title" id="m-success-title">Check-In สำเร็จ!</div>
         <div class="success-sub" id="m-success-sub"></div>
       </div>
       <button class="btn btn-ghost" onclick="closeModal()" style="margin-top:20px">ปิด</button>
@@ -1236,9 +1236,11 @@ async function submit() {
         headers:{'Content-Type':'application/json'}, body:JSON.stringify(payload) });
     } catch(e) { console.warn('send failed:', e); }
   }
-  store.set(doneKey(curRound), ts);
+  store.set(doneKey(r.start), ts);
   renderRounds();
-  document.getElementById('m-success-sub').textContent = `${MY_NAME} | ${br} | ${r.name}`;
+  document.getElementById('m-success-icon').textContent  = '✅';
+  document.getElementById('m-success-title').textContent = 'Check-In สำเร็จ!';
+  document.getElementById('m-success-sub').textContent   = `${MY_NAME} | ${br} | ${r.name}`;
   showPane('success');
 }
 
@@ -1282,7 +1284,9 @@ async function submitCheckout() {
 
   store.set(checkoutKey(r.start), ts);
   renderRounds();
-  document.getElementById('m-success-sub').textContent = `จบงาน ${MY_NAME} | ${r.name}`;
+  document.getElementById('m-success-icon').textContent  = '🏁';
+  document.getElementById('m-success-title').textContent = 'จบงานสำเร็จ!';
+  document.getElementById('m-success-sub').textContent   = `${MY_NAME} | ${r.name} | ${ts.split(' ')[1]}`;
   showPane('success');
   checkoutIdx = null;
 }
