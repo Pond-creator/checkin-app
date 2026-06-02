@@ -776,9 +776,23 @@ function renderPlanCard() {
   card.style.display = 'block';
 }
 
-function checkBranchMismatch(enteredBranch) {
-  if (!todayPlan.length || !enteredBranch) return null;
-  const assigned = todayPlan[0].branch || '';
+function getPlanForRound(roundIdx) {
+  // หา plan ที่ตรงกับ round นี้โดยเปรียบ startTime
+  const allRounds = getAllRounds();
+  const r = allRounds[roundIdx];
+  if (!r) return null;
+  // รอบพิเศษ (extra) ไม่มี plan ของ admin
+  const planCount = getPlanRounds().length;
+  if (roundIdx >= planCount) return null;
+  // match โดย startTime
+  return todayPlan.find(t => normTimeCI(t.startTime) === r.start) || todayPlan[roundIdx] || null;
+}
+
+function checkBranchMismatch(enteredBranch, roundIdx) {
+  if (!enteredBranch) return null;
+  const plan = getPlanForRound(roundIdx != null ? roundIdx : curRound);
+  if (!plan) return null; // รอบพิเศษ — ไม่ต้อง match
+  const assigned = plan.branch || '';
   if (!assigned) return null;
   return enteredBranch.trim() !== assigned.trim() ? assigned : null;
 }
@@ -794,22 +808,21 @@ function haversine(lat1, lon1, lat2, lon2) {
 }
 
 function checkGeofence(userLat, userLng, roundIdx) {
-  // หา plan ที่ตรงกับรอบนี้ (ถ้ามีพิกัด)
-  const plan = todayPlan.find(t => t.lat && t.lng) || todayPlan[0];
+  const plan = getPlanForRound(roundIdx);
   if (!plan || !plan.lat || !plan.lng) return null;
   const dist = haversine(parseFloat(userLat), parseFloat(userLng), parseFloat(plan.lat), parseFloat(plan.lng));
-  return dist > 500 ? Math.round(dist) : null; // alert ถ้าเกิน 500m
+  return dist > 500 ? Math.round(dist) : null;
 }
 
 // ── Branch จากแผนงาน ──────────────────────────────
-// ดึง branch จาก plan หรือ extra round
 function getBranch(roundIdx) {
   const allRounds = getAllRounds();
   const r = allRounds[roundIdx];
   // extra round มี location เก็บไว้
   if (r && r.location) return r.location;
-  // ดึงจากแผนงานวันนี้
-  if (todayPlan.length) return todayPlan[0].branch || '';
+  // ดึงจาก plan ที่ตรงกับ round นี้
+  const plan = getPlanForRound(roundIdx);
+  if (plan) return plan.branch || '';
   return store.get('branch') || '';
 }
 
@@ -1004,15 +1017,31 @@ function renderRounds() {
 }
 
 // ── Extra round modal ──────────────────────────────
-function buildTimeOpts() {
+function buildTimeOpts(disabledMins = new Set()) {
+  // disabledMins = Set of minute-values (e.g. 570 = 09:30) that are inside existing rounds
   let html = '';
-  for (let h=0; h<=23; h++) {
+  for (let h = 0; h <= 23; h++) {
     const hh = String(h).padStart(2,'0');
-    html += `<option value="${hh}:00">${hh}:00</option>`;
-    html += `<option value="${hh}:30">${hh}:30</option>`;
+    for (const m of [0, 30]) {
+      const mins = h * 60 + m;
+      const val  = `${hh}:${m===0?'00':'30'}`;
+      const busy = disabledMins.has(mins);
+      html += `<option value="${val}" ${busy ? 'disabled style="color:#ccc;background:#f6f8fa"' : ''}>${val}${busy ? ' 🔒' : ''}</option>`;
+    }
   }
   html += `<option value="24:00">24:00</option>`;
   return html;
+}
+
+// คืน Set ของนาทีที่ถูกใช้งานโดยรอบที่มีอยู่แล้ว (ทุก 30 นาทีในช่วง start-end)
+function getUsedMinutes() {
+  const rounds = getAllRounds();
+  const used   = new Set();
+  rounds.forEach(r => {
+    const s = toMins(r.start), e = toMins(r.end);
+    for (let m = s; m < e; m += 30) used.add(m);
+  });
+  return used;
 }
 
 function openExtraModal() {
@@ -1020,9 +1049,10 @@ function openExtraModal() {
   const hh   = String(now.getHours()).padStart(2,'0');
   const mm   = now.getMinutes() < 30 ? '00' : '30';
   const endH = String(now.getHours()+1 < 24 ? now.getHours()+1 : 23).padStart(2,'0');
-  const opts = buildTimeOpts();
+  const used = getUsedMinutes();
+  const opts = buildTimeOpts(used);
   document.getElementById('ex-start').innerHTML = opts;
-  document.getElementById('ex-end').innerHTML   = opts;
+  document.getElementById('ex-end').innerHTML   = buildTimeOpts(); // end ไม่ต้อง disable
   document.getElementById('ex-start').value = `${hh}:${mm}`;
   document.getElementById('ex-end').value   = `${endH}:${mm}`;
 
@@ -1215,7 +1245,7 @@ function showConfirm() {
   const idx = checkoutIdx != null ? checkoutIdx : curRound;
   const r  = rounds[idx];
   const br = getBranch(idx);
-  const mismatch = checkBranchMismatch(br);
+  const mismatch = checkBranchMismatch(br, idx);
   const geoHtml  = geofenceWarning ? `
     <div class="warn-box">
       <div class="wi">🚨</div>
