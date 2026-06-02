@@ -857,8 +857,9 @@ function statFilter(type) {
   if (activeStatCard === type) {
     activeStatCard = null;
     document.querySelectorAll('.stat-btn').forEach(el=>el.classList.remove('active'));
-    // clear status filter
     document.getElementById('f-status').value = '';
+    document.getElementById('f-round').value  = '';
+    // ไม่ล้าง f-date
     renderLog();
     return;
   }
@@ -867,9 +868,8 @@ function statFilter(type) {
   document.getElementById('sc-'+type)?.classList.add('active');
 
   if (type === 'all') {
-    // clear all filters — แสดงทั้งหมด
+    // ล้างเฉพาะ filter อื่น แต่คง date ไว้
     document.getElementById('f-user').value   = '';
-    document.getElementById('f-date').value   = '';
     document.getElementById('f-round').value  = '';
     document.getElementById('f-branch').value = '';
     document.getElementById('f-status').value = '';
