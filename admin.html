@@ -638,6 +638,8 @@ async function loadLog() {
     logData  = logRes.data  || [];
     planData = planRes.data || [];
     populateDateFilter();
+    // default กรองวันนี้เสมอเมื่อโหลดครั้งแรก
+    document.getElementById('f-date').value = todayStr();
     renderLog();
     updateStats();
     document.getElementById('last-sync').textContent = 'อัปเดต ' + new Date().toLocaleTimeString('th-TH');
