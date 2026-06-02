@@ -1359,7 +1359,19 @@ async function submitCheckout() {
 
   showPane('loading');
 
-  // อัปโหลดรูป (ถ้ามี)
+  // ── GPS recheck ────────────────────────────────────
+  let checkoutGeofenceAlert = '';
+  try {
+    const pos = await new Promise((res, rej) =>
+      navigator.geolocation.getCurrentPosition(res, rej, { timeout: 8000, enableHighAccuracy: true })
+    );
+    const lat = pos.coords.latitude.toFixed(6);
+    const lng = pos.coords.longitude.toFixed(6);
+    const distOver = checkGeofence(lat, lng, checkoutIdx);
+    if (distOver) checkoutGeofenceAlert = `ห่าง ${distOver}m`;
+  } catch(e) { /* GPS ไม่ได้ ข้ามไป */ }
+
+  // อัปโหลดรูป + ส่งข้อมูล
   let checkoutPhoto = photo || '';
   const url = SCRIPT_URL || store.get('scriptUrl');
   if (url) {
@@ -1368,7 +1380,8 @@ async function submitCheckout() {
         method: 'POST', mode: 'no-cors',
         headers: {'Content-Type':'application/json'},
         body: JSON.stringify({ action:'checkout', name:MY_NAME, branch:br, round:r.name,
-          date, checkoutTime:ts, photo: checkoutPhoto })
+          date, checkoutTime:ts, photo: checkoutPhoto,
+          checkoutGeofenceAlert })
       });
     } catch(e) { console.warn('checkout send failed:', e); }
   }
@@ -1376,8 +1389,11 @@ async function submitCheckout() {
   store.set(checkoutKey(r.start), ts);
   renderRounds();
   document.getElementById('m-success-icon').textContent  = '🏁';
-  document.getElementById('m-success-title').textContent = 'จบงานสำเร็จ!';
-  document.getElementById('m-success-sub').textContent   = `${MY_NAME} | ${r.name} | ${ts.split(' ')[1]}`;
+  document.getElementById('m-success-title').textContent = checkoutGeofenceAlert
+    ? `จบงานสำเร็จ ⚠️` : 'จบงานสำเร็จ!';
+  document.getElementById('m-success-sub').textContent   = checkoutGeofenceAlert
+    ? `${MY_NAME} | ${r.name} | ${ts.split(' ')[1]}\nตำแหน่ง${checkoutGeofenceAlert}`
+    : `${MY_NAME} | ${r.name} | ${ts.split(' ')[1]}`;
   showPane('success');
   checkoutIdx = null;
 }

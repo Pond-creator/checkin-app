@@ -12,7 +12,8 @@ const HDR_FG       = "#58a6ff";
 const LOG_HEADERS = [
   'วันที่','เวลา Check-in','ชื่อ','สาขา',
   'รอบ','ช่วงเวลา','Latitude','Longitude',
-  'ความแม่นยำ (m)','Google Maps','รูปภาพ URL','เวลาจบงาน','แจ้งเตือน GPS','รูปภาพจบงาน'
+  'ความแม่นยำ (m)','Google Maps','รูปภาพ URL','เวลาจบงาน','แจ้งเตือน GPS','รูปภาพจบงาน',
+  'แจ้งเตือน GPS จบงาน'
 ];
 const PLAN_HEADERS = [
   'ID','ชื่อพนักงาน','วันที่','เวลาเริ่ม','เวลาสิ้นสุด',
@@ -79,6 +80,7 @@ function saveCheckout(data) {
   const dateStr  = data.date || Utilities.formatDate(now, 'Asia/Bangkok', 'dd/MM/yyyy');
   const colCheckout = 12; // เวลาจบงาน
   const colPhoto    = 14; // รูปภาพจบงาน (คอลัมน์ N)
+  const colGeoOut   = 15; // แจ้งเตือน GPS จบงาน (คอลัมน์ O)
 
   // อัปโหลดรูปจบงาน (ถ้ามี)
   let photoUrl = '';
@@ -108,6 +110,7 @@ function saveCheckout(data) {
           rows[i][0].toString().includes(dateStr.split('/')[0])) {
         sheet.getRange(i + 1, colCheckout).setValue(timeStr);
         if (photoUrl) sheet.getRange(i + 1, colPhoto).setValue(photoUrl);
+        if (data.checkoutGeofenceAlert) sheet.getRange(i + 1, colGeoOut).setValue(data.checkoutGeofenceAlert);
         break;
       }
     }
@@ -256,7 +259,8 @@ function readLog(sheetName) {
     date:r[0]+'', timestamp:r[1]+'', name:r[2]+'', branch:r[3]+'',
     round:r[4]+'', roundTime:r[5]+'', lat:r[6]+'', lng:r[7]+'',
     accuracy:r[8]+'', mapsLink:r[9]+'', photo:r[10]+'',
-    checkoutTime:r[11]+'', geofenceAlert:r[12]+'', checkoutPhoto:r[13]+''
+    checkoutTime:r[11]+'', geofenceAlert:r[12]+'', checkoutPhoto:r[13]+'',
+    checkoutGeofenceAlert:r[14]+''
   })).reverse();
 }
 
