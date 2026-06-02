@@ -392,8 +392,9 @@ tr:hover td { background:#f6f8fa; }
     <div class="sum-stat"><div class="ss-n" id="ss-plans" style="color:#0969da">0</div><div class="ss-l">แผนทั้งหมด</div></div>
     <div class="sum-stat clickable" onclick="showSumDetail('checkin')" title="คลิกดูรายละเอียด"><div class="ss-n" id="ss-cin" style="color:#1a7f37">0</div><div class="ss-l">เช็กอินแล้ว</div></div>
     <div class="sum-stat clickable" onclick="showSumDetail('completed')" title="คลิกดูรายละเอียด"><div class="ss-n" id="ss-done" style="color:#1a7f37">0</div><div class="ss-l">จบงานแล้ว</div></div>
-    <div class="sum-stat clickable" onclick="showSumDetail('nocheckout')" title="คลิกดูรายละเอียด"><div class="ss-n" id="ss-noco" style="color:#d97706">0</div><div class="ss-l">ไม่จบงาน ⚠️</div></div>
-    <div class="sum-stat clickable" onclick="showSumDetail('missing')" title="คลิกดูรายละเอียด"><div class="ss-n" id="ss-miss" style="color:#cf222e">0</div><div class="ss-l">ยังไม่เช็กอิน</div></div>
+    <div class="sum-stat clickable" onclick="showSumDetail('notyet')" title="คลิกดูรายละเอียด"><div class="ss-n" id="ss-notyet" style="color:#0969da">0</div><div class="ss-l">ยังไม่ถึงเวลา ⏳</div></div>
+    <div class="sum-stat clickable" onclick="showSumDetail('late')" title="คลิกดูรายละเอียด"><div class="ss-n" id="ss-noco" style="color:#d97706">0</div><div class="ss-l">ล่าช้า ⏰</div></div>
+    <div class="sum-stat clickable" onclick="showSumDetail('missing')" title="คลิกดูรายละเอียด"><div class="ss-n" id="ss-miss" style="color:#cf222e">0</div><div class="ss-l">ขาดงาน ❌</div></div>
     <div class="sum-stat clickable" onclick="showSumDetail('extra')" title="คลิกดูรายละเอียด"><div class="ss-n" id="ss-extra" style="color:#d97706">0</div><div class="ss-l">งานพิเศษ ⭐</div></div>
     <div class="sum-stat"><div class="ss-n" id="ss-pct" style="color:#6e40c9">0%</div><div class="ss-l">% สำเร็จ (จบงาน)</div></div>
   </div>
@@ -1302,11 +1303,19 @@ function renderSummary(fromISO, toISO) {
     const plans = plansRange.filter(t => t.staffName === staff);
     const logs  = logsRange.filter(r  => r.name === staff);
 
-    const today = todayStr();
+    const today  = todayStr();
+    const nowMs  = Date.now();
 
-    // จับคู่ log กับ plan โดยเทียบ roundTime vs plan startTime-endTime
-    // log ที่จับคู่ได้ = งานตามแผน, ที่เกิน = งานพิเศษ
-    const planLogs = []; // logs ที่ตรงกับ plan
+    // helper: แปลง plan เป็น timestamp ปลายกะ (ms)
+    function planEndMs(p) {
+      const dateISO = normPlanDate(p.date);
+      const t = (p.endTime || '').match(/(\d{1,2}):(\d{2})/);
+      if (!t) return null;
+      return new Date(dateISO + 'T' + t[1].padStart(2,'0') + ':' + t[2] + ':00').getTime();
+    }
+
+    // จับคู่ log กับ plan โดยเทียบ roundTime-startTime
+    const planLogs  = [];
     const extraLogs = [];
     logs.forEach(r => {
       const logDate  = getRecordDateISO(r);
@@ -1319,29 +1328,43 @@ function renderSummary(fromISO, toISO) {
       else extraLogs.push(r);
     });
 
-    // จบงานแล้ว = plan log ที่มี checkoutTime
-    const completed = planLogs.filter(r => (r.checkoutTime||'').trim());
-
-    // ไม่จบงาน = plan log ที่ไม่มี checkout และเวลาสิ้นสุดผ่านไปแล้ว
-    const noCheckout = planLogs.filter(r => {
-      if ((r.checkoutTime||'').trim()) return false;
-      const dateOfLog = getRecordDateISO(r);
-      const endMatch  = (r.roundTime||'').match(/[-–]\s*(\d{1,2}:\d{2})/);
-      const endTime   = endMatch ? endMatch[1] : null;
-      return isEndPassed(endTime, dateOfLog);
-    });
-
-    // ขาด = แผนที่ไม่มี log เลย และ วันนั้นผ่านไปแล้ว (ไม่ใช่วันนี้)
-    const missing = plans.filter(p => {
+    // จัดสถานะแต่ละแผน
+    const planDetails = plans.map(p => {
       const dateOfPlan = normPlanDate(p.date);
-      if (dateOfPlan >= today) return false; // วันนี้หรืออนาคต → ยังไม่นับขาด
-      return !planLogs.some(r => getRecordDateISO(r) === dateOfPlan &&
-        normTime((r.roundTime||'').match(/(\d{1,2}:\d{2})/)?.[1]||'') === normTime(p.startTime));
+      const endMs      = planEndMs(p);
+      const endPassed  = endMs ? nowMs > endMs : dateOfPlan < today;
+
+      const matchedLog = planLogs.find(r =>
+        getRecordDateISO(r) === dateOfPlan &&
+        normTime((r.roundTime||'').match(/(\d{1,2}:\d{2})/)?.[1]||'') === normTime(p.startTime)
+      );
+
+      let status;
+      if (matchedLog && (matchedLog.checkoutTime||'').trim()) {
+        status = 'completed';                                    // จบงานแล้ว ✅
+      } else if (!endPassed) {
+        status = 'notYet';                                       // ยังไม่ถึงเวลา ⏳
+      } else if (dateOfPlan < today && !matchedLog) {
+        status = 'missing';                                      // ขาดงาน ❌ (ข้ามวัน ไม่เช็กอินเลย)
+      } else {
+        status = 'late';                                         // ล่าช้า ⏰ (เลยเวลาแล้ว ยังไม่จบ)
+      }
+      return { plan: p, log: matchedLog || null, status };
     });
+
+    const completedDetails = planDetails.filter(d => d.status === 'completed');
+    const notYetDetails    = planDetails.filter(d => d.status === 'notYet');
+    const lateDetails      = planDetails.filter(d => d.status === 'late');
+    const missingDetails   = planDetails.filter(d => d.status === 'missing');
+
+    const completed  = completedDetails.map(d => d.log);
+    const notYet     = notYetDetails.map(d => d.plan);
+    const noCheckout = lateDetails;   // keep alias for modal compat
+    const missing    = missingDetails.map(d => d.plan);
 
     const extra = extraLogs.length;
     const pct   = plans.length ? Math.min(100, Math.round(completed.length / plans.length * 100)) : 0;
-    return { staff, plans, logs, planLogs, completed, missing, noCheckout, extra, extraLogs, pct };
+    return { staff, plans, logs, planLogs, completed, notYet, noCheckout, missing, extra, extraLogs, pct };
   });
 
   // Summary totals
@@ -1349,17 +1372,19 @@ function renderSummary(fromISO, toISO) {
   const totCin   = logsRange.length;
   const totDone  = logsRange.filter(r=>(r.checkoutTime||'').trim()).length;
   const totNoCo  = sumData.reduce((s,r)=>s+r.noCheckout.length, 0);
+  const totNotYet= sumData.reduce((s,r)=>s+r.notYet.length, 0);
   const totMiss  = sumData.reduce((s,r)=>s+r.missing.length, 0);
-  const totExtra = Math.max(0, totCin - totPlans);
+  const totExtra = sumData.reduce((s,r)=>s+r.extra, 0);
   const totPct   = totPlans ? Math.min(100, Math.round(totDone / totPlans * 100)) : 0;
 
-  document.getElementById('ss-plans').textContent = totPlans;
-  document.getElementById('ss-cin').textContent   = totCin;
-  document.getElementById('ss-done').textContent  = totDone;
-  document.getElementById('ss-noco').textContent  = totNoCo;
-  document.getElementById('ss-miss').textContent  = totMiss;
-  document.getElementById('ss-extra').textContent = totExtra;
-  document.getElementById('ss-pct').textContent   = totPct + '%';
+  document.getElementById('ss-plans').textContent  = totPlans;
+  document.getElementById('ss-cin').textContent    = totCin;
+  document.getElementById('ss-done').textContent   = totDone;
+  document.getElementById('ss-notyet').textContent = totNotYet;
+  document.getElementById('ss-noco').textContent   = totNoCo;
+  document.getElementById('ss-miss').textContent   = totMiss;
+  document.getElementById('ss-extra').textContent  = totExtra;
+  document.getElementById('ss-pct').textContent    = totPct + '%';
 
   // Table
   const wrap = document.getElementById('sum-table-wrap');
@@ -1383,7 +1408,8 @@ function renderSummary(fromISO, toISO) {
           <th>แผน</th>
           <th>เช็กอิน</th>
           <th>จบงาน ✅</th>
-          <th>ไม่จบงาน ⚠️</th>
+          <th>ยังไม่ถึงเวลา ⏳</th>
+          <th>ล่าช้า ⏰</th>
           <th>ขาด ❌</th>
           <th>⭐ งานพิเศษ</th>
           <th>% สำเร็จ</th>
@@ -1395,9 +1421,10 @@ function renderSummary(fromISO, toISO) {
           <td><b>${row.staff}</b></td>
           <td><span class="sum-num" onclick="showStaffDetail('${escHtml(row.staff)}','plans',${i})">${row.plans.length}</span></td>
           <td><span class="sum-num" onclick="showStaffDetail('${escHtml(row.staff)}','checkin',${i})" style="color:${row.logs.length?'#1a7f37':'#cf222e'}">${row.logs.length}</span></td>
-          <td><span class="sum-num" onclick="showStaffDetail('${escHtml(row.staff)}','completed',${i})" style="color:${row.completed.length?'#1a7f37':'#cf222e'}">${row.completed.length}</span></td>
-          <td><span class="sum-num" onclick="showStaffDetail('${escHtml(row.staff)}','nocheckout',${i})" style="color:${row.noCheckout.length?'#d97706':'#1a7f37'}">${row.noCheckout.length}</span></td>
-          <td><span class="sum-num" onclick="showStaffDetail('${escHtml(row.staff)}','missing',${i})" style="color:${row.missing.length?'#cf222e':'#1a7f37'}">${row.missing.length}</span></td>
+          <td><span class="sum-num" onclick="showStaffDetail('${escHtml(row.staff)}','completed',${i})" style="color:${row.completed.length?'#1a7f37':'#8c959f'}">${row.completed.length}</span></td>
+          <td><span class="sum-num" onclick="showStaffDetail('${escHtml(row.staff)}','notyet',${i})" style="color:${row.notYet.length?'#0969da':'#8c959f'}">${row.notYet.length||'-'}</span></td>
+          <td><span class="sum-num" onclick="showStaffDetail('${escHtml(row.staff)}','late',${i})" style="color:${row.noCheckout.length?'#d97706':'#8c959f'}">${row.noCheckout.length||'-'}</span></td>
+          <td><span class="sum-num" onclick="showStaffDetail('${escHtml(row.staff)}','missing',${i})" style="color:${row.missing.length?'#cf222e':'#8c959f'}">${row.missing.length||'-'}</span></td>
           <td>${row.extra > 0
             ? `<span class="sum-num" onclick="showStaffDetail('${escHtml(row.staff)}','extra',${i})" style="color:#d97706">+${row.extra}</span>`
             : `<span style="color:#8c959f">-</span>`
@@ -1432,8 +1459,11 @@ function showSumDetail(type) {
   } else if (type === 'completed') {
     title = '🏁 จบงานแล้ว';
     rows = logsRange.filter(r => (r.checkoutTime||'').trim());
-  } else if (type === 'nocheckout') {
-    title = '⚠️ ไม่จบงาน (เวลาผ่านไปแล้ว)';
+  } else if (type === 'notyet') {
+    title = '⏳ ยังไม่ถึงเวลา';
+    rows = sumData.flatMap(s => s.notYet);
+  } else if (type === 'late') {
+    title = '⏰ ล่าช้า (เลยเวลาแล้ว ยังไม่จบงาน)';
     rows = sumData.flatMap(s => s.noCheckout);
   } else if (type === 'missing') {
     title = '❌ ขาดงาน (ผ่านเวลาแล้ว ไม่เช็กอิน)';
@@ -1456,13 +1486,28 @@ function showSumDetail(type) {
 
   if (!rows.length) {
     document.getElementById('det-body').innerHTML = '<div style="text-align:center;padding:20px;color:#8c959f">ไม่มีข้อมูล</div>';
-  } else if (type === 'missing') {
+  } else if (type === 'missing' || type === 'notyet') {
+    // rows คือ plan objects
+    const bg = type === 'missing' ? '#ffebe9' : '#ddf4ff';
+    const fg = type === 'missing' ? '#cf222e'  : '#0969da';
     document.getElementById('det-body').innerHTML = `
-      <div class="det-section miss">
-        <h4>❌ ยังไม่ได้เช็กอิน (${rows.length} แผน)</h4>
+      <div class="det-section" style="border-left:3px solid ${fg};padding-left:12px">
+        <h4 style="background:${bg};color:${fg};padding:8px 12px;border-radius:6px;margin-bottom:8px">${title} (${rows.length} แผน)</h4>
         ${rows.map(t=>`<div class="det-row">
           <span><b>${t.staffName}</b> — ${t.branch||'-'}</span>
-          <span style="font-size:12px;color:#57606a">${normTime(t.startTime)}–${normTime(t.endTime)}</span>
+          <span style="font-size:12px;color:#57606a">${isoToDisplay(normPlanDate(t.date))} ${normTime(t.startTime)}–${normTime(t.endTime)}</span>
+        </div>`).join('')}
+      </div>`;
+  } else if (type === 'late') {
+    // rows คือ planDetail objects {plan, log, status}
+    document.getElementById('det-body').innerHTML = `
+      <div class="det-section" style="border-left:3px solid #d97706;padding-left:12px">
+        <h4 style="background:#fff7ed;color:#d97706;padding:8px 12px;border-radius:6px;margin-bottom:8px">⏰ ล่าช้า (${rows.length} รายการ)</h4>
+        ${rows.map(d=>`<div class="det-row">
+          <span><b>${d.plan.staffName}</b> — ${d.plan.branch||'-'}
+            ${d.log ? `<span style="font-size:10px;color:#1a7f37;margin-left:4px">✔ เช็กอินแล้ว</span>` : `<span style="font-size:10px;color:#cf222e;margin-left:4px">✘ ยังไม่เช็กอิน</span>`}
+          </span>
+          <span style="font-size:12px;color:#57606a">${isoToDisplay(normPlanDate(d.plan.date))} ${normTime(d.plan.startTime)}–${normTime(d.plan.endTime)}</span>
         </div>`).join('')}
       </div>`;
   } else {
@@ -1524,16 +1569,29 @@ function showStaffDetail(staff, type, idx) {
     }
   }
 
-  if (type === 'nocheckout') {
+  if (type === 'nocheckout' || type === 'late') {
     html += row.noCheckout.length
       ? `<div class="det-section" style="margin-bottom:16px">
-          <h4 style="background:#fff8c5;color:#9a6700">⚠️ เช็กอินแล้ว ยังไม่จบงาน (${row.noCheckout.length} รายการ)</h4>
-          ${row.noCheckout.map(r=>`<div class="det-row">
-            <span>${r.branch||'-'} <span class="badge b-special" style="font-size:10px">${r.round||''}</span></span>
-            <span style="font-size:12px;color:#57606a">เช็กอิน ${cleanTime(r.timestamp)||'-'}</span>
+          <h4 style="background:#fff7ed;color:#d97706">⏰ ล่าช้า — เลยเวลาแล้ว (${row.noCheckout.length} รายการ)</h4>
+          ${row.noCheckout.map(d=>`<div class="det-row">
+            <span>${d.plan.branch||'-'} <span style="font-size:10px;color:#57606a">${normTime(d.plan.startTime)}–${normTime(d.plan.endTime)}</span>
+              ${d.log ? `<span style="font-size:10px;color:#1a7f37;margin-left:4px">✔ เช็กอิน ${cleanTime(d.log.timestamp)||''}</span>` : `<span style="font-size:10px;color:#cf222e;margin-left:4px">✘ ยังไม่เช็กอิน</span>`}
+            </span>
           </div>`).join('')}
         </div>`
-      : '<div style="text-align:center;padding:20px;color:#8c959f">จบงานครบทุกรอบ ✅</div>';
+      : '<div style="text-align:center;padding:20px;color:#8c959f">ไม่มีรอบล่าช้า ✅</div>';
+  }
+
+  if (type === 'notyet') {
+    html += row.notYet.length
+      ? `<div class="det-section" style="margin-bottom:16px">
+          <h4 style="background:#ddf4ff;color:#0969da">⏳ ยังไม่ถึงเวลา (${row.notYet.length} แผน)</h4>
+          ${row.notYet.map(p=>`<div class="det-row">
+            <span>${p.branch||'-'}</span>
+            <span style="font-size:12px;color:#57606a">${isoToDisplay(normPlanDate(p.date))} ${normTime(p.startTime)}–${normTime(p.endTime)}</span>
+          </div>`).join('')}
+        </div>`
+      : '<div style="text-align:center;padding:20px;color:#8c959f">ไม่มีรอบที่รอดำเนินการ</div>';
   }
 
   if (type === 'extra') {
