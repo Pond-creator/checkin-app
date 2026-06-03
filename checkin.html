@@ -1327,6 +1327,10 @@ async function submit() {
         headers:{'Content-Type':'application/json'}, body:JSON.stringify(payload) });
     } catch(e) { console.warn('send failed:', e); }
   }
+  // บันทึกพิกัดเช็กอินไว้เปรียบเทียบตอนจบงาน
+  if (gps && gps.lat) {
+    store.set('gps_ci_' + todayKey() + '_' + r.start, JSON.stringify({ lat: gps.lat, lng: gps.lng }));
+  }
   store.set(doneKey(r.start), ts);
   renderRounds();
   document.getElementById('m-success-icon').textContent  = '✅';
@@ -1359,16 +1363,26 @@ async function submitCheckout() {
 
   showPane('loading');
 
-  // ── GPS recheck ────────────────────────────────────
+  // ── GPS recheck — เปรียบเทียบกับพิกัดตอนเช็กอิน ──────
   let checkoutGeofenceAlert = '';
+  let checkoutLat = '', checkoutLng = '';
   try {
     const pos = await new Promise((res, rej) =>
       navigator.geolocation.getCurrentPosition(res, rej, { timeout: 8000, enableHighAccuracy: true })
     );
-    const lat = pos.coords.latitude.toFixed(6);
-    const lng = pos.coords.longitude.toFixed(6);
-    const distOver = checkGeofence(lat, lng, checkoutIdx);
-    if (distOver) checkoutGeofenceAlert = `ห่าง ${distOver}m`;
+    checkoutLat = pos.coords.latitude.toFixed(6);
+    checkoutLng = pos.coords.longitude.toFixed(6);
+
+    // ดึงพิกัดตอนเช็กอินจาก localStorage
+    const ciGpsRaw = store.get('gps_ci_' + todayKey() + '_' + r.start);
+    if (ciGpsRaw) {
+      const ciGps = JSON.parse(ciGpsRaw);
+      const dist  = Math.round(haversine(
+        parseFloat(checkoutLat), parseFloat(checkoutLng),
+        parseFloat(ciGps.lat),   parseFloat(ciGps.lng)
+      ));
+      if (dist > 500) checkoutGeofenceAlert = `ห่างจุดเช็กอิน ${dist}m`;
+    }
   } catch(e) { /* GPS ไม่ได้ ข้ามไป */ }
 
   // อัปโหลดรูป + ส่งข้อมูล
@@ -1381,7 +1395,7 @@ async function submitCheckout() {
         headers: {'Content-Type':'application/json'},
         body: JSON.stringify({ action:'checkout', name:MY_NAME, branch:br, round:r.name,
           date, checkoutTime:ts, photo: checkoutPhoto,
-          checkoutGeofenceAlert })
+          checkoutLat, checkoutLng, checkoutGeofenceAlert })
       });
     } catch(e) { console.warn('checkout send failed:', e); }
   }

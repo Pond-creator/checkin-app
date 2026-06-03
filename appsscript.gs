@@ -13,7 +13,7 @@ const LOG_HEADERS = [
   'วันที่','เวลา Check-in','ชื่อ','สาขา',
   'รอบ','ช่วงเวลา','Latitude','Longitude',
   'ความแม่นยำ (m)','Google Maps','รูปภาพ URL','เวลาจบงาน','แจ้งเตือน GPS','รูปภาพจบงาน',
-  'แจ้งเตือน GPS จบงาน'
+  'แจ้งเตือน GPS จบงาน','Lat จบงาน','Lng จบงาน'
 ];
 const PLAN_HEADERS = [
   'ID','ชื่อพนักงาน','วันที่','เวลาเริ่ม','เวลาสิ้นสุด',
@@ -81,6 +81,8 @@ function saveCheckout(data) {
   const colCheckout = 12; // เวลาจบงาน
   const colPhoto    = 14; // รูปภาพจบงาน (คอลัมน์ N)
   const colGeoOut   = 15; // แจ้งเตือน GPS จบงาน (คอลัมน์ O)
+  const colLatOut   = 16; // Lat จบงาน (คอลัมน์ P)
+  const colLngOut   = 17; // Lng จบงาน (คอลัมน์ Q)
 
   // อัปโหลดรูปจบงาน (ถ้ามี)
   let photoUrl = '';
@@ -111,6 +113,8 @@ function saveCheckout(data) {
         sheet.getRange(i + 1, colCheckout).setValue(timeStr);
         if (photoUrl) sheet.getRange(i + 1, colPhoto).setValue(photoUrl);
         if (data.checkoutGeofenceAlert) sheet.getRange(i + 1, colGeoOut).setValue(data.checkoutGeofenceAlert);
+        if (data.checkoutLat) sheet.getRange(i + 1, colLatOut).setValue(data.checkoutLat);
+        if (data.checkoutLng) sheet.getRange(i + 1, colLngOut).setValue(data.checkoutLng);
         break;
       }
     }
