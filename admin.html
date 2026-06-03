@@ -788,6 +788,13 @@ function renderLog(fromDropdown) {
     activeStatCard = null;
     document.querySelectorAll('.stat-btn').forEach(el=>el.classList.remove('active'));
   }
+
+  // แผนงาน card → แสดง plan view แทน log
+  if (activeStatCard === 'plan') {
+    renderPlanView();
+    return;
+  }
+
   const rows  = getFiltered();
   const tbody = document.getElementById('log-body');
   const bmap  = {'รอบเช้า':'b-m','รอบบ่าย':'b-n','รอบเย็น':'b-e','รอบค่ำ':'b-k'};
@@ -828,6 +835,78 @@ function renderLog(fromDropdown) {
 
 const STD_ROUNDS = ['รอบเช้า','รอบบ่าย','รอบเย็น','รอบค่ำ'];
 function isSpecialRound(r) { return !STD_ROUNDS.includes(r.round||''); }
+
+function renderPlanView() {
+  const dateISO    = document.getElementById('f-date').value || todayStr();
+  const userFilter = document.getElementById('f-user').value;
+  const nowMs      = Date.now();
+  const todayISO   = todayStr();
+
+  const plans = planData.filter(t => {
+    if (normPlanDate(t.date) !== dateISO) return false;
+    if (userFilter && t.staffName !== userFilter) return false;
+    return true;
+  });
+
+  const tbody = document.getElementById('log-body');
+  updateStats(getFiltered());
+
+  if (!plans.length) {
+    tbody.innerHTML = `<tr><td colspan="13"><div class="empty"><div class="ic">📋</div>ไม่มีแผนงานวันนี้</div></td></tr>`;
+    return;
+  }
+
+  tbody.innerHTML = plans.map((p, i) => {
+    const dateOfPlan = normPlanDate(p.date);
+    // หา log ที่ตรงกับแผนนี้
+    const matchLog = logData.find(r =>
+      r.name === p.staffName &&
+      getRecordDateISO(r) === dateOfPlan &&
+      normTime((r.roundTime||'').match(/(\d{1,2}:\d{2})/)?.[1]||'') === normTime(p.startTime)
+    );
+
+    // คำนวณสถานะ
+    const endMs = (() => {
+      const t = (p.endTime||'').match(/(\d{1,2}):(\d{2})/);
+      if (!t) return null;
+      return new Date(dateOfPlan + 'T' + t[1].padStart(2,'0') + ':' + t[2] + ':00').getTime();
+    })();
+    const endPassed = endMs ? nowMs > endMs : dateOfPlan < todayISO;
+
+    let statusBadge;
+    if (matchLog && (matchLog.checkoutTime||'').trim()) {
+      statusBadge = `<span style="background:#dafbe1;color:#1a7f37;padding:3px 10px;border-radius:20px;font-size:12px;font-weight:700">✅ จบงานแล้ว</span>`;
+    } else if (matchLog) {
+      statusBadge = endPassed
+        ? `<span style="background:#fff7ed;color:#d97706;padding:3px 10px;border-radius:20px;font-size:12px;font-weight:700">⏰ ล่าช้า</span>`
+        : `<span style="background:#fff8c5;color:#9a6700;padding:3px 10px;border-radius:20px;font-size:12px;font-weight:700">🔄 กำลังทำงาน</span>`;
+    } else if (!endPassed) {
+      statusBadge = `<span style="background:#ddf4ff;color:#0969da;padding:3px 10px;border-radius:20px;font-size:12px;font-weight:700">⏳ ยังไม่ถึงเวลา</span>`;
+    } else {
+      statusBadge = `<span style="background:#ffebe9;color:#cf222e;padding:3px 10px;border-radius:20px;font-size:12px;font-weight:700">❌ ขาดงาน</span>`;
+    }
+
+    const ciTime = matchLog ? `<div style="font-size:11px;color:#1a7f37">▲ ${cleanTime(matchLog.timestamp)||'-'}</div>` : '';
+    const coTime = matchLog && matchLog.checkoutTime ? `<div style="font-size:11px;color:#0969da">▼ ${cleanTime(matchLog.checkoutTime)}</div>` : '';
+    const phUrl  = matchLog ? fixPhotoUrl(matchLog.photo) : '';
+    const ph     = phUrl ? `<img class="photo-th" src="${phUrl}" onclick="openLightbox('${phUrl}')">` : '<div class="no-ph">📷</div>';
+    const phCoUrl = matchLog ? fixPhotoUrl(matchLog.checkoutPhoto) : '';
+    const phCo    = phCoUrl ? `<img class="photo-th" src="${phCoUrl}" onclick="openLightbox('${phCoUrl}')">` : '<div class="no-ph" style="font-size:14px">🏁</div>';
+
+    return `<tr>
+      <td style="color:#8c959f;font-size:11px">${i+1}</td>
+      <td>${ph}</td>
+      <td>${phCo}</td>
+      <td><b>${p.staffName||'-'}</b></td>
+      <td>${p.branch||'-'}</td>
+      <td><span style="font-size:12px;color:#57606a">${normTime(p.startTime)}–${normTime(p.endTime)}</span></td>
+      <td>${statusBadge}</td>
+      <td style="font-size:12px">${ciTime}${coTime}</td>
+      <td style="font-size:12px;color:#57606a">${p.taskType||'-'}</td>
+      <td colspan="4" style="font-size:12px;color:#8c959f">${p.note||''}</td>
+    </tr>`;
+  }).join('');
+}
 
 function updateStats(rows) {
   if (!rows) rows = getFiltered();
