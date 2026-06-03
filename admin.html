@@ -639,8 +639,13 @@ async function loadLog() {
     logData  = logRes.data  || [];
     planData = planRes.data || [];
     populateDateFilter();
-    // default กรองวันนี้เสมอเมื่อโหลดครั้งแรก
+    // refresh → วันปัจจุบัน + คง plan mode ไว้ถ้าอยู่ในโหมดแผน
     document.getElementById('f-date').value = todayStr();
+    if (activeStatCard !== 'plan') {
+      activeStatCard = 'plan';
+      document.querySelectorAll('.stat-btn').forEach(el=>el.classList.remove('active'));
+      document.getElementById('sc-plan')?.classList.add('active');
+    }
     renderLog();
     updateStats();
     document.getElementById('last-sync').textContent = 'อัปเดต ' + new Date().toLocaleTimeString('th-TH');
