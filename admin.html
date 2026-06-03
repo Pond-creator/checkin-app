@@ -1117,13 +1117,27 @@ function renderMonth() {
     const shown=tasks.slice(0,3), more=tasks.length-3;
     const dayNum=isToday?`<div class="day-num today">${cur.getDate()}</div>`:`<div class="day-num" style="${isOther?'color:#ccc':''}">${cur.getDate()}</div>`;
     const chips=shown.map(t=>`<div class="month-chip" onclick="editTask('${t.id}')" title="${t.staffName} - ${t.branch}">${t.staffName}</div>`).join('');
-    const moreBtn=more>0?`<div class="more-chip">+${more} อื่น</div>`:'';
+    const moreBtn=more>0?`<div class="more-chip" onclick="event.stopPropagation();showAllDayPlans('${ds}')">+${more} อื่น</div>`:'';
     html+=`<td class="${isToday?'today-day':''} ${isOther?'other-month':''}" onclick="openTaskModalFor('',ds)">${dayNum}${chips}${moreBtn}</td>`;
     if(cur.getDay()===0) html+=`</tr>`;
     cur.setDate(cur.getDate()+1);
   }
   html+=`</tbody></table>`;
   document.getElementById('cal-grid').innerHTML=html;
+}
+
+function showAllDayPlans(ds) {
+  const tasks = planData.filter(t => normPlanDate(t.date) === ds);
+  const label = isoToDisplay ? isoToDisplay(ds) : ds;
+  const html = tasks.map(t => `
+    <div class="det-row" style="cursor:pointer" onclick="closeSumDetail();editTask('${t.id}')">
+      <span><b>${t.staffName}</b> — ${t.branch||'-'}${t.taskType?' ('+t.taskType+')':''}</span>
+      <span style="font-size:12px;color:#57606a">${normTime(t.startTime)}–${normTime(t.endTime)}</span>
+    </div>`).join('');
+  document.getElementById('det-title').textContent = `📋 แผนงาน ${label}`;
+  document.getElementById('det-sub').textContent   = `${tasks.length} รายการ`;
+  document.getElementById('det-body').innerHTML    = html || '<div style="text-align:center;padding:20px;color:#8c959f">ไม่มีข้อมูล</div>';
+  document.getElementById('det-modal').classList.add('open');
 }
 
 function getStaffList() {
