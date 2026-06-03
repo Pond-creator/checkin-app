@@ -784,7 +784,9 @@ function getFiltered() {
 }
 
 function renderLog(fromDropdown) {
-  if (fromDropdown) {
+  // fromDropdown = เปลี่ยน filter (วันที่/คน/สาขา/สถานะ)
+  // ถ้า active card เป็น plan ให้คงไว้ ไม่ reset
+  if (fromDropdown && activeStatCard !== 'plan') {
     activeStatCard = null;
     document.querySelectorAll('.stat-btn').forEach(el=>el.classList.remove('active'));
   }
