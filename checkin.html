@@ -1182,39 +1182,48 @@ function getGPS() {
   document.getElementById('btn-next-cam').disabled = true;
   const box = document.getElementById('gps-box');
   if (!navigator.geolocation) {
-    box.innerHTML = '<div class="gps-icon">⚠️</div><div class="gps-text">ไม่รองรับ GPS<br>จะบันทึกโดยไม่มีพิกัด</div>';
-    gps = {lat:'',lng:'',acc:0};
-    document.getElementById('btn-next-cam').disabled = false;
-    return;
+    box.innerHTML = `<div class="gps-icon">❌</div>
+      <div class="gps-text" style="color:#cf222e"><b>อุปกรณ์ไม่รองรับ GPS</b><br>ไม่สามารถเช็กอินได้</div>`;
+    return; // ปุ่มยังคง disabled
   }
-  navigator.geolocation.getCurrentPosition(
-    pos => {
-      gps = { lat: pos.coords.latitude.toFixed(6), lng: pos.coords.longitude.toFixed(6), acc: Math.round(pos.coords.accuracy) };
-      box.innerHTML = `
-        <div class="gps-icon">✅</div>
-        <div class="gps-text">ระบุตำแหน่งสำเร็จ (±${gps.acc}m)</div>
-        <div class="gps-coords">${gps.lat}, ${gps.lng}</div>`;
+  box.innerHTML = `<div class="gps-icon">📡</div><div class="gps-text">กำลังระบุตำแหน่ง…</div>`;
 
-      // Geofence check
-      if (gps.lat && todayPlan.length) {
-        const distOver = checkGeofence(gps.lat, gps.lng, curRound);
-        if (distOver) {
-          geofenceWarning = distOver;
-          const plan = todayPlan.find(t => t.lat && t.lng) || todayPlan[0];
-          const warnEl = document.getElementById('geo-warn');
-          warnEl.innerHTML = `⚠️ <b>คุณอยู่ห่างจากสาขาที่กำหนด ${distOver} เมตร</b><br>แผน: ${plan.branch||''} — กรุณาตรวจสอบตำแหน่ง`;
-          warnEl.classList.add('show');
+  function tryGps(attempt) {
+    navigator.geolocation.getCurrentPosition(
+      pos => {
+        gps = { lat: pos.coords.latitude.toFixed(6), lng: pos.coords.longitude.toFixed(6), acc: Math.round(pos.coords.accuracy) };
+        box.innerHTML = `
+          <div class="gps-icon">✅</div>
+          <div class="gps-text">ระบุตำแหน่งสำเร็จ (±${gps.acc}m)</div>
+          <div class="gps-coords">${gps.lat}, ${gps.lng}</div>`;
+        // Geofence check
+        if (gps.lat && todayPlan.length) {
+          const distOver = checkGeofence(gps.lat, gps.lng, curRound);
+          if (distOver) {
+            geofenceWarning = distOver;
+            const plan = todayPlan.find(t => t.lat && t.lng) || todayPlan[0];
+            const warnEl = document.getElementById('geo-warn');
+            warnEl.innerHTML = `⚠️ <b>คุณอยู่ห่างจากสาขาที่กำหนด ${distOver} เมตร</b><br>แผน: ${plan.branch||''} — กรุณาตรวจสอบตำแหน่ง`;
+            warnEl.classList.add('show');
+          }
         }
-      }
-      document.getElementById('btn-next-cam').disabled = false;
-    },
-    err => {
-      box.innerHTML = `<div class="gps-icon">⚠️</div><div class="gps-text">รับ GPS ไม่ได้ — บันทึกโดยไม่มีพิกัด</div>`;
-      gps = {lat:'',lng:'',acc:0};
-      document.getElementById('btn-next-cam').disabled = false;
-    },
-    { timeout: 15000, enableHighAccuracy: true }
-  );
+        document.getElementById('btn-next-cam').disabled = false;
+      },
+      err => {
+        if (attempt < 3) {
+          box.innerHTML = `<div class="gps-icon">📡</div><div class="gps-text">กำลังระบุตำแหน่ง… (ครั้งที่ ${attempt+1}/3)</div>`;
+          setTimeout(() => tryGps(attempt + 1), 1000);
+        } else {
+          box.innerHTML = `
+            <div class="gps-icon">❌</div>
+            <div class="gps-text" style="color:#cf222e"><b>รับ GPS ไม่ได้</b><br>กรุณาเปิด Location แล้วลองใหม่</div>
+            <button onclick="showGps()" style="margin-top:10px;padding:8px 20px;background:#0969da;color:#fff;border:none;border-radius:8px;font-size:13px;cursor:pointer">🔄 ลองใหม่</button>`;
+        }
+      },
+      { timeout: 15000, enableHighAccuracy: true }
+    );
+  }
+  tryGps(1);
 }
 
 // Camera
@@ -1363,17 +1372,28 @@ async function submitCheckout() {
 
   showPane('loading');
 
-  // ── GPS recheck — เปรียบเทียบกับพิกัดตอนเช็กอิน ──────
+  // ── GPS recheck — บังคับ ต้องได้พิกัดก่อนจบงาน ────────
   let checkoutGeofenceAlert = '';
   let checkoutLat = '', checkoutLng = '';
-  try {
-    const pos = await new Promise((res, rej) =>
-      navigator.geolocation.getCurrentPosition(res, rej, { timeout: 8000, enableHighAccuracy: true })
+
+  showPane('loading');
+  document.getElementById('loading-text') && (document.getElementById('loading-text').textContent = '📡 กำลังระบุตำแหน่ง…');
+
+  const getGpsWithRetry = (attempt = 1) => new Promise((res, rej) => {
+    navigator.geolocation.getCurrentPosition(res,
+      err => attempt < 3
+        ? setTimeout(() => getGpsWithRetry(attempt + 1).then(res).catch(rej), 1000)
+        : rej(err),
+      { timeout: 15000, enableHighAccuracy: true }
     );
+  });
+
+  try {
+    const pos = await getGpsWithRetry();
     checkoutLat = pos.coords.latitude.toFixed(6);
     checkoutLng = pos.coords.longitude.toFixed(6);
 
-    // ดึงพิกัดตอนเช็กอินจาก localStorage
+    // เปรียบเทียบกับพิกัดตอนเช็กอิน
     const ciGpsRaw = store.get('gps_ci_' + todayKey() + '_' + r.start);
     if (ciGpsRaw) {
       const ciGps = JSON.parse(ciGpsRaw);
@@ -1383,7 +1403,21 @@ async function submitCheckout() {
       ));
       if (dist > 100) checkoutGeofenceAlert = `ห่างจุดเช็กอิน ${dist}m`;
     }
-  } catch(e) { /* GPS ไม่ได้ ข้ามไป */ }
+  } catch(e) {
+    // GPS ไม่ได้หลังลอง 3 ครั้ง → บล็อก ไม่ให้จบงาน
+    document.getElementById('m-success-icon').textContent  = '❌';
+    document.getElementById('m-success-title').textContent = 'รับ GPS ไม่ได้';
+    document.getElementById('m-success-sub').textContent   = 'กรุณาเปิด Location แล้วลองใหม่';
+    document.getElementById('btn-success-close').textContent = '🔄 ลองใหม่';
+    document.getElementById('btn-success-close').onclick = () => {
+      document.getElementById('btn-success-close').textContent = 'ปิด';
+      document.getElementById('btn-success-close').onclick = closeModal;
+      checkoutIdx = null;
+      closeModal();
+    };
+    showPane('success');
+    return; // หยุด ไม่บันทึก
+  }
 
   // อัปโหลดรูป + ส่งข้อมูล
   let checkoutPhoto = photo || '';
