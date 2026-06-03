@@ -1381,7 +1381,7 @@ async function submitCheckout() {
         parseFloat(checkoutLat), parseFloat(checkoutLng),
         parseFloat(ciGps.lat),   parseFloat(ciGps.lng)
       ));
-      if (dist > 500) checkoutGeofenceAlert = `ห่างจุดเช็กอิน ${dist}m`;
+      if (dist > 100) checkoutGeofenceAlert = `ห่างจุดเช็กอิน ${dist}m`;
     }
   } catch(e) { /* GPS ไม่ได้ ข้ามไป */ }
 
