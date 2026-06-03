@@ -304,11 +304,12 @@ function getOrCreateSheet(name, headers) {
   let   sheet = ss.getSheetByName(name);
   if (!sheet) {
     sheet = ss.insertSheet(name);
-    const hr = sheet.getRange(1,1,1,headers.length);
-    hr.setValues([headers]).setBackground(HDR_BG).setFontColor(HDR_FG).setFontWeight('bold');
     sheet.setFrozenRows(1);
     sheet.setColumnWidth(2, 160);
   }
+  // อัปเดต header เสมอ (รองรับคอลัมน์ใหม่หลัง deploy)
+  const hr = sheet.getRange(1, 1, 1, headers.length);
+  hr.setValues([headers]).setBackground(HDR_BG).setFontColor(HDR_FG).setFontWeight('bold');
   return sheet;
 }
 
