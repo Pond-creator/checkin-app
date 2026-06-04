@@ -1046,7 +1046,7 @@ function updateStats(rows) {
     else missingCnt = 0;
   }
 
-  document.getElementById('s-plan').textContent       = planCount || (from ? '0' : '-');
+  const sPlan = document.getElementById('s-plan'); if(sPlan) sPlan.textContent = planCount || (from ? '0' : '-');
   document.getElementById('s-all').textContent        = rows.length;
   document.getElementById('s-total').textContent      = normalCin;
   document.getElementById('s-special').textContent    = rows.filter(r=>isSpecialRound(r)).length;
