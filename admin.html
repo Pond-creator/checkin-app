@@ -357,7 +357,7 @@ tr:hover td { background:#f6f8fa; }
       <thead>
         <tr>
           <th>#</th><th>📷 รูปเช็กอิน</th><th>🏁 รูปจบงาน</th><th>ชื่อ</th><th>สาขา</th>
-          <th>รอบ</th><th>เวลา Check-in</th><th>เข้า-ออก</th><th>GPS</th><th>±m</th><th>แจ้งเตือน</th><th>GPS จบงาน</th>
+          <th>รอบ</th><th>สถานะ</th><th>เวลาเข้า-ออก</th><th>GPS</th><th>±m</th><th>แจ้งเตือน</th><th>GPS จบงาน</th>
         </tr>
       </thead>
       <tbody id="log-body">
@@ -850,10 +850,17 @@ function renderLog(fromDropdown) {
     const coAlertBadge = r.checkoutGeofenceAlert
       ? `<span style="color:#cf222e;font-size:16px">🔴</span>`
       : `<span style="color:#1a7f37;font-size:16px">✅</span>`;
-    const co   = (r.checkoutTime||'').trim();
-    const coCell = co
-      ? `<span style="color:#1a7f37;font-size:12px">▼ ${cleanTime(co)}</span>`
-      : `<span style="color:#cf222e;font-size:13px">❌</span>`;
+    const co  = (r.checkoutTime||'').trim();
+    const st  = getStatus(r);
+    const statusCell = co
+      ? `<span style="background:#dafbe1;color:#1a7f37;padding:3px 10px;border-radius:20px;font-size:12px;font-weight:700">✅ จบงานแล้ว</span>`
+      : st === 'ยังไม่ถึงเวลา'
+        ? `<span style="background:#ddf4ff;color:#0969da;padding:3px 10px;border-radius:20px;font-size:12px;font-weight:700">⏳ ยังไม่ถึงเวลา</span>`
+        : `<span style="background:#fff7ed;color:#d97706;padding:3px 10px;border-radius:20px;font-size:12px;font-weight:700">⏰ ล่าช้า</span>`;
+    const timeInOut = `<div style="font-size:12px;line-height:1.8">
+      <span style="color:#1a7f37">▲ ${cleanTime(r.timestamp)||'-'}</span><br>
+      ${co ? `<span style="color:#0969da">▼ ${cleanTime(co)}</span>` : '<span style="color:#8c959f;font-size:11px">ยังไม่จบงาน</span>'}
+    </div>`;
     return `<tr>
       <td style="color:#8c959f;font-size:11px">${i+1}</td>
       <td>${ph}</td>
@@ -861,8 +868,8 @@ function renderLog(fromDropdown) {
       <td><b>${r.name||'-'}</b></td>
       <td>${r.branch||'-'}</td>
       <td><span class="badge ${bc}">${r.round||'-'}</span></td>
-      <td style="font-size:12px">${cleanTime(r.timestamp)||'-'}</td>
-      <td style="font-size:12px">${coCell}</td>
+      <td>${statusCell}</td>
+      <td>${timeInOut}</td>
       <td>${gps}</td>
       <td style="font-size:11px;color:#57606a">${r.accuracy?'±'+r.accuracy+'m':'-'}</td>
       <td>${alertBadge}</td>
