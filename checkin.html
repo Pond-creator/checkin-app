@@ -762,7 +762,7 @@ function renderPlanCard() {
   const list = document.getElementById('plan-list');
   if (!todayPlan.length) { card.style.display = 'none'; return; }
   // แสดงเฉพาะแผนที่ยังไม่ได้เช็กอิน
-  const pending = todayPlan.filter(p => !store.get(doneKey(normTimeCI(p.startTime) || '00:00')));
+  const pending = todayPlan.filter(p => !store.get(doneKey({ start: normTimeCI(p.startTime)||'00:00', name: p.round||p.staffName })));
   if (!pending.length) { card.style.display = 'none'; return; }
   list.innerHTML = pending.map(t => `
     <div class="plan-item">
@@ -904,12 +904,12 @@ function nowDateStr() {
 // ── Rounds ─────────────────────────────────────────
 function toMins(t)  { if(!t||!t.includes(':')) return -1; const [h,m]=(t+'').split(':').map(Number); return (h||0)*60+(m||0); }
 function nowMins()  { const n=new Date(); return n.getHours()*60+n.getMinutes(); }
-function doneKey(i)     { return 'done_'     + todayKey() + '_' + i; }
-function checkoutKey(i) { return 'checkout_' + todayKey() + '_' + i; }
+function doneKey(r)     { return 'done_'     + todayKey() + '_' + r.start + '_' + (r.name||r); }
+function checkoutKey(r) { return 'checkout_' + todayKey() + '_' + r.start + '_' + (r.name||r); }
 
 function countDone() {
   const all = getAllRounds();
-  return all.filter(r => store.get(doneKey(r.start))).length;
+  return all.filter(r => store.get(doneKey(r))).length;
 }
 
 function updateTaskCounter() {
@@ -943,11 +943,11 @@ function renderRounds() {
     return;
   }
   el.innerHTML = allRounds.map((r, i) => {
-    const done     = store.get(doneKey(r.start));
-    const checkout = store.get(checkoutKey(r.start));
+    const done     = store.get(doneKey(r));
+    const checkout = store.get(checkoutKey(r));
     const inTime   = nm >= toMins(r.start) && nm <= toMins(r.end);
-    const prevDone     = i > 0 ? store.get(doneKey(allRounds[i-1].start)) : null;
-    const prevCheckout = i > 0 ? store.get(checkoutKey(allRounds[i-1].start)) : null;
+    const prevDone     = i > 0 ? store.get(doneKey(allRounds[i-1])) : null;
+    const prevCheckout = i > 0 ? store.get(checkoutKey(allRounds[i-1])) : null;
     const prevFinished = prevDone && prevCheckout;
     const canOpen  = (test || inTime || prevFinished) && !done;
 
@@ -1123,6 +1123,17 @@ function confirmAddExtra() {
     ? document.getElementById('ex-location-other').value.trim()
     : sel;
   if (!location) { alert('กรุณาเลือกหรือพิมพ์สถานที่'); return; }
+
+  // ตรวจสอบเวลาชนกับรอบที่มีอยู่แล้ว
+  const startM = toMins(start), endM = toMins(end);
+  const conflict = getAllRounds().find(r => {
+    const s = toMins(r.start), e = toMins(r.end||r.start);
+    return startM < e && endM > s;
+  });
+  if (conflict) {
+    alert(`⚠️ เวลาชนกับ "${conflict.name}" (${conflict.start}–${conflict.end||'?'}) กรุณาเลือกช่วงเวลาอื่นครับ`);
+    return;
+  }
 
   const extra = getExtraRounds();
   const num   = extra.length + 1;  // รีเซ็ตทุกวัน: 1, 2, 3...
@@ -1340,7 +1351,7 @@ async function submit() {
   if (gps && gps.lat) {
     store.set('gps_ci_' + todayKey() + '_' + r.start, JSON.stringify({ lat: gps.lat, lng: gps.lng }));
   }
-  store.set(doneKey(r.start), ts);
+  store.set(doneKey(r), ts);
   renderRounds();
   document.getElementById('m-success-icon').textContent  = '✅';
   document.getElementById('m-success-title').textContent = 'Check-In สำเร็จ!';
@@ -1434,7 +1445,7 @@ async function submitCheckout() {
     } catch(e) { console.warn('checkout send failed:', e); }
   }
 
-  store.set(checkoutKey(r.start), ts);
+  store.set(checkoutKey(r), ts);
   renderRounds();
   document.getElementById('m-success-icon').textContent  = '🏁';
   document.getElementById('m-success-title').textContent = checkoutGeofenceAlert
