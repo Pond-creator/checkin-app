@@ -1008,7 +1008,8 @@ function renderRounds() {
 
 // ── Extra round modal ──────────────────────────────
 function buildTimeOpts(disabledMins = new Set()) {
-  // disabledMins = Set of minute-values (e.g. 570 = 09:30) that are inside existing rounds
+  // disabledMins = Set of minute-values that are inside existing rounds
+  const nowM = nowMins();
   let html = '';
   for (let h = 0; h <= 23; h++) {
     const hh = String(h).padStart(2,'0');
@@ -1016,7 +1017,10 @@ function buildTimeOpts(disabledMins = new Set()) {
       const mins = h * 60 + m;
       const val  = `${hh}:${m===0?'00':'30'}`;
       const busy = disabledMins.has(mins);
-      html += `<option value="${val}" ${busy ? 'disabled style="color:#ccc;background:#f6f8fa"' : ''}>${val}${busy ? ' 🔒' : ''}</option>`;
+      const past = mins < nowM;
+      const dis  = busy || past;
+      const label = busy ? ` 🔒` : past ? ` ผ่านแล้ว` : '';
+      html += `<option value="${val}" ${dis ? 'disabled style="color:#ccc;background:#f6f8fa"' : ''}>${val}${label}</option>`;
     }
   }
   html += `<option value="24:00">24:00</option>`;
