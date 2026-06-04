@@ -357,11 +357,11 @@ tr:hover td { background:#f6f8fa; }
       <thead>
         <tr>
           <th>#</th><th>📷 รูปเช็กอิน</th><th>🏁 รูปจบงาน</th><th>ชื่อ</th><th>สาขา</th>
-          <th>รอบ</th><th>สถานะ</th><th>เวลาเข้า-ออก</th><th>GPS</th><th>±m</th><th>แจ้งเตือน</th><th>GPS จบงาน</th>
+          <th>รอบ</th><th>สถานะ</th><th>เวลาเข้า-ออก</th><th>GPS เช็กอิน</th><th>±m</th><th>แจ้งเตือน</th><th>GPS จบงาน</th><th>Maps จบงาน</th>
         </tr>
       </thead>
       <tbody id="log-body">
-        <tr><td colspan="10"><div class="empty"><div class="ic">📋</div>กด "โหลดข้อมูล" หรือ <a href="#" onclick="openCfg();return false">ตั้งค่า URL</a></div></td></tr>
+        <tr><td colspan="13"><div class="empty"><div class="ic">📋</div>กด "โหลดข้อมูล" หรือ <a href="#" onclick="openCfg();return false">ตั้งค่า URL</a></div></td></tr>
       </tbody>
     </table>
   </div>
@@ -831,13 +831,15 @@ function renderLog(fromDropdown) {
   const bmap  = {'รอบเช้า':'b-m','รอบบ่าย':'b-n','รอบเย็น':'b-e','รอบค่ำ':'b-k'};
   updateStats(rows);
   if (!rows.length) {
-    tbody.innerHTML = `<tr><td colspan="10"><div class="empty"><div class="ic">🔍</div>ไม่พบข้อมูล</div></td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="13"><div class="empty"><div class="ic">🔍</div>ไม่พบข้อมูล</div></td></tr>`;
     return;
   }
   tbody.innerHTML = rows.map((r,i) => {
     const bc   = bmap[r.round] || 'b-special';
     const maps = r.mapsLink || (r.lat&&r.lng ? `https://maps.google.com/?q=${r.lat},${r.lng}` : '');
     const gps  = maps ? `<a class="gps-a" href="${maps}" target="_blank">📍 ${r.lat},${r.lng}</a>` : '-';
+    const mapsOut = r.checkoutMapsLink || (r.checkoutLat&&r.checkoutLng ? `https://maps.google.com/?q=${r.checkoutLat},${r.checkoutLng}` : '');
+    const gpsOut = mapsOut ? `<a class="gps-a" href="${mapsOut}" target="_blank" style="color:#0969da">🏁 ${parseFloat(r.checkoutLat||0).toFixed(4)},${parseFloat(r.checkoutLng||0).toFixed(4)}</a>` : '-';
     const phUrl = fixPhotoUrl(r.photo);
     const ph   = phUrl ? `<img class="photo-th" src="${phUrl}" onclick="openLightbox('${phUrl}')" onerror="this.parentNode.innerHTML='<div class=\'no-ph\'>📷</div>'">` : '<div class="no-ph">📷</div>';
     const phCoUrl = fixPhotoUrl(r.checkoutPhoto);
@@ -874,6 +876,7 @@ function renderLog(fromDropdown) {
       <td style="font-size:11px;color:#57606a">${r.accuracy?'±'+r.accuracy+'m':'-'}</td>
       <td>${alertBadge}</td>
       <td>${coAlertBadge}</td>
+      <td>${gpsOut}</td>
     </tr>`;
   }).join('');
 }
@@ -945,6 +948,12 @@ function renderPlanView() {
       ? `<span style="color:#cf222e;font-size:11px">🔴 ${matchLog.geofenceAlert}</span>` : '';
     const gpsOutAlert = matchLog && matchLog.checkoutGeofenceAlert
       ? `<span style="color:#cf222e;font-size:11px">🔴 ${matchLog.checkoutGeofenceAlert}</span>` : '';
+    const mapsOutPlan = matchLog
+      ? (matchLog.checkoutMapsLink || (matchLog.checkoutLat&&matchLog.checkoutLng ? `https://maps.google.com/?q=${matchLog.checkoutLat},${matchLog.checkoutLng}` : ''))
+      : '';
+    const gpsOutLink = mapsOutPlan
+      ? `<a class="gps-a" href="${mapsOutPlan}" target="_blank" style="color:#0969da;font-size:11px">🏁 Maps จบงาน</a>`
+      : '-';
 
     return `<tr${(gpsInAlert||gpsOutAlert)?' style="background:#fff5f5"':''}>
       <td style="color:#8c959f;font-size:11px">${i+1}</td>
@@ -957,6 +966,7 @@ function renderPlanView() {
       <td style="font-size:12px">${ciTime}${coTime}</td>
       <td style="font-size:12px;color:#57606a">${p.taskType||'-'}</td>
       <td style="font-size:11px">${gpsInAlert||'<span style="color:#1a7f37">✅</span>'}${gpsOutAlert?'<br>'+gpsOutAlert:''}</td>
+      <td>${gpsOutLink}</td>
     </tr>`;
   }).join('');
 }

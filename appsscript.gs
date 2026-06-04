@@ -13,7 +13,7 @@ const LOG_HEADERS = [
   'วันที่','เวลา Check-in','ชื่อ','สาขา',
   'รอบ','ช่วงเวลา','Latitude','Longitude',
   'ความแม่นยำ (m)','Google Maps','รูปภาพ URL','เวลาจบงาน','แจ้งเตือน GPS','รูปภาพจบงาน',
-  'แจ้งเตือน GPS จบงาน','Lat จบงาน','Lng จบงาน'
+  'แจ้งเตือน GPS จบงาน','Lat จบงาน','Lng จบงาน','Google Maps จบงาน'
 ];
 const PLAN_HEADERS = [
   'ID','ชื่อพนักงาน','วันที่','เวลาเริ่ม','เวลาสิ้นสุด',
@@ -83,6 +83,7 @@ function saveCheckout(data) {
   const colGeoOut   = 15; // แจ้งเตือน GPS จบงาน (คอลัมน์ O)
   const colLatOut   = 16; // Lat จบงาน (คอลัมน์ P)
   const colLngOut   = 17; // Lng จบงาน (คอลัมน์ Q)
+  const colMapsOut  = 18; // Google Maps จบงาน (คอลัมน์ R)
 
   // อัปโหลดรูปจบงาน (ถ้ามี)
   let photoUrl = '';
@@ -115,6 +116,10 @@ function saveCheckout(data) {
         if (data.checkoutGeofenceAlert) sheet.getRange(i + 1, colGeoOut).setValue(data.checkoutGeofenceAlert);
         if (data.checkoutLat) sheet.getRange(i + 1, colLatOut).setValue(data.checkoutLat);
         if (data.checkoutLng) sheet.getRange(i + 1, colLngOut).setValue(data.checkoutLng);
+        if (data.checkoutLat && data.checkoutLng) {
+          const mapsOut = `https://maps.google.com/?q=${data.checkoutLat},${data.checkoutLng}`;
+          sheet.getRange(i + 1, colMapsOut).setValue(mapsOut);
+        }
         break;
       }
     }
@@ -264,7 +269,8 @@ function readLog(sheetName) {
     round:r[4]+'', roundTime:r[5]+'', lat:r[6]+'', lng:r[7]+'',
     accuracy:r[8]+'', mapsLink:r[9]+'', photo:r[10]+'',
     checkoutTime:r[11]+'', geofenceAlert:r[12]+'', checkoutPhoto:r[13]+'',
-    checkoutGeofenceAlert:r[14]+''
+    checkoutGeofenceAlert:r[14]+'', checkoutLat:r[15]+'', checkoutLng:r[16]+'',
+    checkoutMapsLink:r[17]+''
   })).reverse();
 }
 
