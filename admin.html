@@ -307,7 +307,20 @@ tr:hover td { background:#f6f8fa; }
 <div class="tab-content active" id="tab-log">
   <div class="toolbar">
     <button class="btn btn-primary" onclick="loadLog()">🔄 โหลดข้อมูล</button>
-    <input type="date" id="f-date" onchange="renderLog(true)" style="padding:7px 12px;border:1px solid #d0d7de;border-radius:8px;font-size:13px;">
+    <div style="display:flex;gap:4px;align-items:center;flex-wrap:wrap">
+      <div class="view-toggle" style="border-radius:8px;margin-right:4px">
+        <button id="qf-today"  class="on" onclick="setLogRange('today')">วันนี้</button>
+        <button id="qf-week"   onclick="setLogRange('week')">สัปดาห์</button>
+        <button id="qf-month"  onclick="setLogRange('month')">เดือน</button>
+        <button id="qf-year"   onclick="setLogRange('year')">ปี</button>
+        <button id="qf-range"  onclick="setLogRange('range')">ช่วงวันที่</button>
+      </div>
+      <span style="font-size:12px;color:#57606a">📅 จาก</span>
+      <input type="date" id="f-date-from" onchange="renderLog(true)" style="padding:7px 10px;border:1px solid #d0d7de;border-radius:8px;font-size:13px;">
+      <span id="f-date-sep" style="font-size:12px;color:#57606a">ถึง</span>
+      <input type="date" id="f-date-to" onchange="renderLog(true)" style="padding:7px 10px;border:1px solid #d0d7de;border-radius:8px;font-size:13px;">
+      <input type="hidden" id="f-date">
+    </div>
     <select id="f-user" onchange="renderLog(true)" style="padding:7px 12px;border:1px solid #d0d7de;border-radius:8px;font-size:13px;">
       <option value="">👤 ทุกคน</option>
     </select>
@@ -639,8 +652,8 @@ async function loadLog() {
     logData  = logRes.data  || [];
     planData = planRes.data || [];
     populateDateFilter();
-    // refresh → วันปัจจุบัน + คง plan mode ไว้ถ้าอยู่ในโหมดแผน
-    document.getElementById('f-date').value = todayStr();
+    // refresh → วันปัจจุบัน + โหมดแผน
+    setLogRange('today', true);
     if (activeStatCard !== 'plan') {
       activeStatCard = 'plan';
       document.querySelectorAll('.stat-btn').forEach(el=>el.classList.remove('active'));
@@ -761,17 +774,28 @@ function getStatus(r) {
   return 'ไม่จบงาน';
 }
 
+function getLogDateRange() {
+  const from = document.getElementById('f-date-from').value;
+  const to   = document.getElementById('f-date-to').value || from;
+  return { from, to };
+}
+
 function getFiltered() {
-  const dateISO = document.getElementById('f-date').value;  // yyyy-MM-dd or ''
+  const { from, to } = getLogDateRange();
   const round   = document.getElementById('f-round').value;
   const user    = document.getElementById('f-user').value;
   const branch  = document.getElementById('f-branch').value;
   const status  = document.getElementById('f-status').value;
+  // sync hidden f-date (ใช้ from เป็น reference สำหรับ updateStats)
+  document.getElementById('f-date').value = from;
 
   return logData.filter(r => {
     if (user   && r.name   !== user)   return false;
     if (branch && r.branch !== branch) return false;
-    if (dateISO && getRecordDateISO(r) !== dateISO) return false;
+    if (from) {
+      const d = getRecordDateISO(r);
+      if (d < from || d > to) return false;
+    }
     if (round) {
       if (round === 'รอบพิเศษ') {
         if (['รอบเช้า','รอบบ่าย','รอบเย็น','รอบค่ำ'].includes(r.round)) return false;
@@ -819,6 +843,9 @@ function renderLog(fromDropdown) {
     const phCoUrl = fixPhotoUrl(r.checkoutPhoto);
     const phCo = phCoUrl ? `<img class="photo-th" src="${phCoUrl}" onclick="openLightbox('${phCoUrl}')" onerror="this.parentNode.innerHTML='<div class=\'no-ph\'>🏁</div>'">` : '<div class="no-ph" style="font-size:14px">🏁</div>';
     const alertBadge = r.geofenceAlert ? `<span class="alert-badge">🚨 ${r.geofenceAlert}</span>` : `<span style="color:#1a7f37;font-size:16px">✅</span>`;
+    const coAlertBadge = r.checkoutGeofenceAlert
+      ? `<span style="color:#cf222e;font-size:13px;font-weight:700">🔴 ${r.checkoutGeofenceAlert}</span>`
+      : `<span style="color:#1a7f37;font-size:16px">✅</span>`;
     const co   = (r.checkoutTime||'').trim();
     const coCell = co
       ? `<span style="color:#1a7f37;font-size:12px">✅ ${cleanTime(co)}</span>`
@@ -835,7 +862,7 @@ function renderLog(fromDropdown) {
       <td>${gps}</td>
       <td style="font-size:11px;color:#57606a">${r.accuracy?'±'+r.accuracy+'m':'-'}</td>
       <td>${alertBadge}</td>
-      <td>${r.checkoutGeofenceAlert ? `<span class="alert-badge">🚨 ${r.checkoutGeofenceAlert}</span>` : `<span style="color:#1a7f37;font-size:16px">✅</span>`}</td>
+      <td>${coAlertBadge}</td>
     </tr>`;
   }).join('');
 }
@@ -844,13 +871,16 @@ const STD_ROUNDS = ['รอบเช้า','รอบบ่าย','รอบ�
 function isSpecialRound(r) { return !STD_ROUNDS.includes(r.round||''); }
 
 function renderPlanView() {
-  const dateISO    = document.getElementById('f-date').value || todayStr();
+  const { from, to } = getLogDateRange();
+  const fromISO    = from || todayStr();
+  const toISO      = to   || fromISO;
   const userFilter = document.getElementById('f-user').value;
   const nowMs      = Date.now();
   const todayISO   = todayStr();
+  const dates      = dateRange(fromISO, toISO);
 
   const plans = planData.filter(t => {
-    if (normPlanDate(t.date) !== dateISO) return false;
+    if (!dates.includes(normPlanDate(t.date))) return false;
     if (userFilter && t.staffName !== userFilter) return false;
     return true;
   });
@@ -900,7 +930,12 @@ function renderPlanView() {
     const phCoUrl = matchLog ? fixPhotoUrl(matchLog.checkoutPhoto) : '';
     const phCo    = phCoUrl ? `<img class="photo-th" src="${phCoUrl}" onclick="openLightbox('${phCoUrl}')">` : '<div class="no-ph" style="font-size:14px">🏁</div>';
 
-    return `<tr>
+    const gpsInAlert  = matchLog && matchLog.geofenceAlert
+      ? `<span style="color:#cf222e;font-size:11px">🔴 ${matchLog.geofenceAlert}</span>` : '';
+    const gpsOutAlert = matchLog && matchLog.checkoutGeofenceAlert
+      ? `<span style="color:#cf222e;font-size:11px">🔴 ${matchLog.checkoutGeofenceAlert}</span>` : '';
+
+    return `<tr${(gpsInAlert||gpsOutAlert)?' style="background:#fff5f5"':''}>
       <td style="color:#8c959f;font-size:11px">${i+1}</td>
       <td>${ph}</td>
       <td>${phCo}</td>
@@ -910,7 +945,7 @@ function renderPlanView() {
       <td>${statusBadge}</td>
       <td style="font-size:12px">${ciTime}${coTime}</td>
       <td style="font-size:12px;color:#57606a">${p.taskType||'-'}</td>
-      <td colspan="4" style="font-size:12px;color:#8c959f">${p.note||''}</td>
+      <td style="font-size:11px">${gpsInAlert||'<span style="color:#1a7f37">✅</span>'}${gpsOutAlert?'<br>'+gpsOutAlert:''}</td>
     </tr>`;
   }).join('');
 }
@@ -918,11 +953,11 @@ function renderPlanView() {
 function updateStats(rows) {
   if (!rows) rows = getFiltered();
 
-  // นับแผนตามวันที่ที่ filter อยู่
-  const dateISO   = document.getElementById('f-date').value; // yyyy-MM-dd หรือ ''
-  const userFilter = document.getElementById('f-user').value;
+  const { from, to } = getLogDateRange();
+  const userFilter    = document.getElementById('f-user').value;
+  const rangeDates    = from ? dateRange(from, to||from) : null;
   const plansFiltered = planData.filter(t => {
-    if (dateISO && normPlanDate(t.date) !== dateISO) return false;
+    if (rangeDates && !rangeDates.includes(normPlanDate(t.date))) return false;
     if (userFilter && t.staffName !== userFilter) return false;
     return true;
   });
@@ -932,17 +967,12 @@ function updateStats(rows) {
   // ขาดงาน = นับเฉพาะแผนที่ผ่านมาแล้ว (ไม่ใช่วันนี้หรืออนาคต) และไม่มีเช็กอิน
   const todayISO = todayStr();
   let missingCnt = '-';
-  if (dateISO) {
-    if (dateISO < todayISO) {
-      // วันที่ผ่านมา → นับขาดได้
-      missingCnt = Math.max(0, planCount - normalCin);
-    } else {
-      // วันนี้หรืออนาคต → ยังไม่นับขาด
-      missingCnt = 0;
-    }
+  if (from) {
+    if (to < todayISO) missingCnt = Math.max(0, planCount - normalCin);
+    else missingCnt = 0;
   }
 
-  document.getElementById('s-plan').textContent       = planCount || (dateISO ? '0' : '-');
+  document.getElementById('s-plan').textContent       = planCount || (from ? '0' : '-');
   document.getElementById('s-all').textContent        = rows.length;
   document.getElementById('s-total').textContent      = normalCin;
   document.getElementById('s-special').textContent    = rows.filter(r=>isSpecialRound(r)).length;
@@ -952,6 +982,44 @@ function updateStats(rows) {
 }
 
 let activeStatCard = null;
+let logRangeMode = 'today';
+
+function setLogRange(mode, noRender) {
+  logRangeMode = mode;
+  const today = todayStr();
+  const now   = new Date();
+  let from = today, to = today;
+
+  if (mode === 'today') {
+    from = to = today;
+  } else if (mode === 'week') {
+    const d = new Date(now);
+    d.setDate(d.getDate() - d.getDay() + 1); // จันทร์
+    from = fmtDate(d);
+    const e = new Date(d); e.setDate(d.getDate() + 6);
+    to = fmtDate(e);
+  } else if (mode === 'month') {
+    from = `${today.slice(0,7)}-01`;
+    const lastDay = new Date(now.getFullYear(), now.getMonth()+1, 0);
+    to = fmtDate(lastDay);
+  } else if (mode === 'year') {
+    from = `${today.slice(0,4)}-01-01`;
+    to   = `${today.slice(0,4)}-12-31`;
+  } else if (mode === 'range') {
+    // ไม่เปลี่ยน date ให้ user กรอกเอง
+  }
+
+  // highlight active button
+  ['today','week','month','year','range'].forEach(m => {
+    document.getElementById('qf-'+m)?.classList.toggle('on', m === mode);
+  });
+
+  if (mode !== 'range') {
+    document.getElementById('f-date-from').value = from;
+    document.getElementById('f-date-to').value   = to;
+  }
+  if (!noRender) renderLog(true);
+}
 function statFilter(type) {
   // toggle off if same card clicked again
   if (activeStatCard === type) {
@@ -969,7 +1037,7 @@ function statFilter(type) {
 
   if (type === 'plan') {
     // reset กลับวันนี้ ล้างทุก filter
-    document.getElementById('f-date').value   = todayStr();
+    setLogRange('today', true);
     document.getElementById('f-user').value   = '';
     document.getElementById('f-round').value  = '';
     document.getElementById('f-branch').value = '';
