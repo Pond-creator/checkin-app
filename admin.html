@@ -344,7 +344,7 @@ tr:hover td { background:#f6f8fa; }
     <div class="stat stat-btn" id="sc-all"        onclick="statFilter('all')">        <div class="n" id="s-all">0</div>        <div class="l">Check-in ทั้งหมด</div></div>
     <div class="stat stat-btn" id="sc-total" style="display:none"><div class="n" id="s-total">0</div></div>
     <div class="stat stat-btn" id="sc-special" onclick="statFilter('special')"><div class="n" id="s-special" style="color:#0969da">0</div><div class="l">งาน</div></div>
-    <div class="stat stat-btn" id="sc-missing"    onclick="statFilter('missing')">    <div class="n" id="s-missing" style="color:#cf222e">0</div><div class="l">ขาดงาน ❌</div></div>
+
     <div class="stat stat-btn" id="sc-nocheckout" onclick="statFilter('nocheckout')"> <div class="n" id="s-nocheckout" style="color:#9a3412">0</div><div class="l">ยังไม่จบงาน</div></div>
     <div class="stat stat-btn" id="sc-alert"      onclick="statFilter('alert')">      <div class="n" id="s-alert" style="color:#cf222e">0</div><div class="l">แจ้งเตือน GPS</div></div>
   </div>
@@ -838,10 +838,12 @@ function getFiltered() {
         if (r.round !== round) return false;
       }
     }
-    if (status === 'gps') { if (!r.geofenceAlert && !r.checkoutGeofenceAlert) return false; }
+    if (status === 'gps')      { if (!r.geofenceAlert && !r.checkoutGeofenceAlert) return false; }
+    else if (status === 'ไม่จบงาน') { if ((r.checkoutTime||'').trim()) return false; }
     else if (status && getStatus(r) !== status) return false;
-    if (activeStatCard === 'alert'   && !r.geofenceAlert && !r.checkoutGeofenceAlert) return false;
-    if (activeStatCard === 'total'   && isSpecialRound(r)) return false;
+    if (activeStatCard === 'alert'      && !r.geofenceAlert && !r.checkoutGeofenceAlert) return false;
+    if (activeStatCard === 'nocheckout' && (r.checkoutTime||'').trim()) return false;
+    if (activeStatCard === 'total'      && isSpecialRound(r)) return false;
     // special = แสดงทุก record (ไม่ filter)
     return true;
   });
@@ -898,7 +900,11 @@ function renderLog(fromDropdown) {
           : coDistNum !== null
             ? `<a href="${coMapsUrl}" target="_blank" style="color:#1a7f37;font-size:12px;text-decoration:none">📍 ${coDistNum}m</a>`
             : `<a href="${coMapsUrl}" target="_blank" style="color:#0969da;font-size:11px;text-decoration:none">📍 Maps</a>`)
-      : (r.checkoutGeofenceAlert ? `<span style="color:#cf222e;font-size:16px">🔴</span>` : `<span style="color:#1a7f37;font-size:16px">✅</span>`);
+      : (r.checkoutGeofenceAlert
+          ? `<span style="color:#cf222e;font-size:16px">🔴</span>`
+          : co
+            ? `<span style="color:#1a7f37;font-size:16px">✅</span>`
+            : `<span style="color:#d97706;font-size:14px">🕐</span>`);
     const co  = (r.checkoutTime||'').trim();
     const st  = getStatus(r);
     const statusCell = co
