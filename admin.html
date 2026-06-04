@@ -342,8 +342,8 @@ tr:hover td { background:#f6f8fa; }
   </div>
   <div class="stats">
     <div class="stat stat-btn" id="sc-all"        onclick="statFilter('all')">        <div class="n" id="s-all">0</div>        <div class="l">Check-in ทั้งหมด</div></div>
-    <div class="stat stat-btn" id="sc-total"      onclick="statFilter('total')">      <div class="n" id="s-total" style="color:#0969da">0</div>      <div class="l">งานปกติ 📋</div></div>
-    <div class="stat stat-btn" id="sc-special"    onclick="statFilter('special')">    <div class="n" id="s-special" style="color:#d97706">0</div><div class="l">งานพิเศษ ⭐</div></div>
+    <div class="stat stat-btn" id="sc-total" style="display:none"><div class="n" id="s-total">0</div></div>
+    <div class="stat stat-btn" id="sc-special" onclick="statFilter('special')"><div class="n" id="s-special" style="color:#0969da">0</div><div class="l">งาน</div></div>
     <div class="stat stat-btn" id="sc-missing"    onclick="statFilter('missing')">    <div class="n" id="s-missing" style="color:#cf222e">0</div><div class="l">ขาดงาน ❌</div></div>
     <div class="stat stat-btn" id="sc-nocheckout" onclick="statFilter('nocheckout')"> <div class="n" id="s-nocheckout" style="color:#9a3412">0</div><div class="l">ยังไม่จบงาน</div></div>
     <div class="stat stat-btn" id="sc-alert"      onclick="statFilter('alert')">      <div class="n" id="s-alert" style="color:#cf222e">0</div><div class="l">แจ้งเตือน GPS</div></div>
@@ -843,7 +843,7 @@ function getFiltered() {
     else if (status && getStatus(r) !== status) return false;
     if (activeStatCard === 'alert'   && !r.geofenceAlert && !r.checkoutGeofenceAlert) return false;
     if (activeStatCard === 'total'   && isSpecialRound(r)) return false;
-    if (activeStatCard === 'special' && !isSpecialRound(r)) return false;
+    // special = แสดงทุก record (ไม่ filter)
     return true;
   });
 }
@@ -1047,7 +1047,7 @@ function updateStats(rows) {
   const sPlan = document.getElementById('s-plan'); if(sPlan) sPlan.textContent = planCount || (from ? '0' : '-');
   document.getElementById('s-all').textContent        = rows.length;
   document.getElementById('s-total').textContent      = normalCin;
-  document.getElementById('s-special').textContent    = rows.filter(r=>isSpecialRound(r)).length;
+  document.getElementById('s-special').textContent    = rows.length;
   document.getElementById('s-missing').textContent    = missingCnt;
   document.getElementById('s-alert').textContent      = rows.filter(r=>r.geofenceAlert||r.checkoutGeofenceAlert).length;
   document.getElementById('s-nocheckout').textContent = rows.filter(r=>!(r.checkoutTime||'').trim()).length;
