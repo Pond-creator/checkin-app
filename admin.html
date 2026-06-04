@@ -855,7 +855,9 @@ function renderLog(fromDropdown) {
     const co  = (r.checkoutTime||'').trim();
     const st  = getStatus(r);
     const statusCell = co
-      ? `<span style="background:#dafbe1;color:#1a7f37;padding:3px 10px;border-radius:20px;font-size:12px;font-weight:700">✅ จบงานแล้ว</span>`
+      ? (r.checkoutGeofenceAlert
+          ? `<span style="background:#ffebe9;color:#cf222e;padding:3px 10px;border-radius:20px;font-size:12px;font-weight:700">⚠️ จบงานผิดปกติ</span>`
+          : `<span style="background:#dafbe1;color:#1a7f37;padding:3px 10px;border-radius:20px;font-size:12px;font-weight:700">✅ จบงานแล้ว</span>`)
       : st === 'ยังไม่ถึงเวลา'
         ? `<span style="background:#ddf4ff;color:#0969da;padding:3px 10px;border-radius:20px;font-size:12px;font-weight:700">⏳ ยังไม่ถึงเวลา</span>`
         : `<span style="background:#fff7ed;color:#d97706;padding:3px 10px;border-radius:20px;font-size:12px;font-weight:700">⏰ ล่าช้า</span>`;
@@ -926,7 +928,9 @@ function renderPlanView() {
 
     let statusBadge;
     if (matchLog && (matchLog.checkoutTime||'').trim()) {
-      statusBadge = `<span style="background:#dafbe1;color:#1a7f37;padding:3px 10px;border-radius:20px;font-size:12px;font-weight:700">✅ จบงานแล้ว</span>`;
+      statusBadge = matchLog.checkoutGeofenceAlert
+        ? `<span style="background:#ffebe9;color:#cf222e;padding:3px 10px;border-radius:20px;font-size:12px;font-weight:700">⚠️ จบงานผิดปกติ</span>`
+        : `<span style="background:#dafbe1;color:#1a7f37;padding:3px 10px;border-radius:20px;font-size:12px;font-weight:700">✅ จบงานแล้ว</span>`;
     } else if (matchLog) {
       statusBadge = endPassed
         ? `<span style="background:#fff7ed;color:#d97706;padding:3px 10px;border-radius:20px;font-size:12px;font-weight:700">⏰ ล่าช้า</span>`
