@@ -688,13 +688,12 @@ async function loadLog() {
     logData  = logRes.data  || [];
     planData = planRes.data || [];
     populateDateFilter();
-    // refresh → วันปัจจุบัน + โหมดแผน
+    // refresh → วันปัจจุบัน + Check-in ทั้งหมด
     setLogRange('today', true);
-    if (activeStatCard !== 'plan') {
-      activeStatCard = 'plan';
-      document.querySelectorAll('.stat-btn').forEach(el=>el.classList.remove('active'));
-      document.getElementById('sc-plan')?.classList.add('active');
-    }
+    activeStatCard = 'all';
+    document.querySelectorAll('.stat-btn').forEach(el=>el.classList.remove('active'));
+    document.getElementById('sc-all')?.classList.add('active');
+    document.getElementById('f-status').value = '';
     renderLog();
     updateStats();
     document.getElementById('last-sync').textContent = 'อัปเดต ' + new Date().toLocaleTimeString('th-TH');
@@ -1125,17 +1124,16 @@ function statFilter(type) {
     document.getElementById('f-status').value = '';
     document.getElementById('f-round').value  = '';
   } else if (type === 'special') {
-    document.getElementById('f-round').value  = 'รอบพิเศษ';
+    document.getElementById('f-round').value  = '';
     document.getElementById('f-status').value = '';
   } else if (type === 'missing') {
-    // ขาดงาน — แสดงแค่ข้อความ ไม่ redirect (ขาดงานดูได้ในหน้าสรุปแผนงาน)
     document.getElementById('f-status').value = '';
     document.getElementById('f-round').value  = '';
   } else if (type === 'nocheckout') {
     document.getElementById('f-status').value = 'ไม่จบงาน';
     document.getElementById('f-round').value  = '';
   } else if (type === 'alert') {
-    document.getElementById('f-status').value = '';
+    document.getElementById('f-status').value = 'gps';
     document.getElementById('f-round').value  = '';
   }
   renderLog();
