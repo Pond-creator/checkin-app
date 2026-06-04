@@ -845,13 +845,21 @@ function renderLog(fromDropdown) {
     const phCoUrl = fixPhotoUrl(r.checkoutPhoto);
     const phCo = phCoUrl ? `<img class="photo-th" src="${phCoUrl}" onclick="openLightbox('${phCoUrl}')" onerror="this.parentNode.innerHTML='<div class=\'no-ph\'>🏁</div>'">` : '<div class="no-ph" style="font-size:14px">🏁</div>';
     const hasAnyAlert = r.geofenceAlert || r.checkoutGeofenceAlert;
+    const coMapsUrl = r.checkoutMapsLink || (r.checkoutLat&&r.checkoutLng ? `https://maps.google.com/?q=${r.checkoutLat},${r.checkoutLng}` : '');
     const alertBadge = hasAnyAlert
       ? `<div>${r.geofenceAlert ? `<span class="alert-badge">🚨 ${r.geofenceAlert}</span>` : ''}</div>
-         <div>${r.checkoutGeofenceAlert ? `<span style="color:#cf222e;font-size:12px;font-weight:700">🔴 จบงาน: ${r.checkoutGeofenceAlert}</span>` : ''}</div>`
+         <div>${r.checkoutGeofenceAlert ? `<span style="color:#cf222e;font-size:12px;font-weight:700">🔴 จบงาน: ${r.checkoutGeofenceAlert}</span>${coMapsUrl?` <a href="${coMapsUrl}" target="_blank" style="color:#cf222e;font-size:11px;font-weight:700">🗺️ ดูพิกัด</a>`:''}` : ''}</div>`
       : `<span style="color:#1a7f37;font-size:16px">✅</span>`;
-    const coAlertBadge = r.checkoutGeofenceAlert
-      ? `<span style="color:#cf222e;font-size:16px">🔴</span>`
-      : `<span style="color:#1a7f37;font-size:16px">✅</span>`;
+    // GPS จบงาน column: แสดงระยะห่าง
+    const coDistMatch = (r.checkoutGeofenceAlert||'').match(/(\d+)\s*m/);
+    const coDistNum = coDistMatch ? parseInt(coDistMatch[1]) : null;
+    const coAlertBadge = coMapsUrl
+      ? (coDistNum && coDistNum > 100
+          ? `<a href="${coMapsUrl}" target="_blank" style="color:#cf222e;font-size:12px;font-weight:700;text-decoration:none">📍 ${coDistNum}m</a>`
+          : coDistNum !== null
+            ? `<a href="${coMapsUrl}" target="_blank" style="color:#1a7f37;font-size:12px;text-decoration:none">📍 ${coDistNum}m</a>`
+            : `<a href="${coMapsUrl}" target="_blank" style="color:#0969da;font-size:11px;text-decoration:none">📍 Maps</a>`)
+      : (r.checkoutGeofenceAlert ? `<span style="color:#cf222e;font-size:16px">🔴</span>` : `<span style="color:#1a7f37;font-size:16px">✅</span>`);
     const co  = (r.checkoutTime||'').trim();
     const st  = getStatus(r);
     const statusCell = co
@@ -950,16 +958,29 @@ function renderPlanView() {
 
     const gpsInAlert  = matchLog && matchLog.geofenceAlert
       ? `<span style="color:#cf222e;font-size:11px">🔴 ${matchLog.geofenceAlert}</span>` : '';
-    const gpsOutAlert = matchLog && matchLog.checkoutGeofenceAlert
-      ? `<span style="color:#cf222e;font-size:11px">🔴 ${matchLog.checkoutGeofenceAlert}</span>` : '';
+    // Maps จบงาน
     const mapsOutPlan = matchLog
       ? (matchLog.checkoutMapsLink || (matchLog.checkoutLat&&matchLog.checkoutLng ? `https://maps.google.com/?q=${matchLog.checkoutLat},${matchLog.checkoutLng}` : ''))
       : '';
+    // แยก distance จาก checkoutGeofenceAlert เช่น "ห่างจุดเช็กอิน 21213m"
+    const coAlert = matchLog ? (matchLog.checkoutGeofenceAlert||'') : '';
+    const distMatch = coAlert.match(/(\d+)\s*m/);
+    const distNum = distMatch ? parseInt(distMatch[1]) : null;
+    const isAbnormal = distNum !== null && distNum > 100;
+    // ช่อง Maps จบงาน: แสดงระยะห่าง (คลิกได้)
     const gpsOutLink = mapsOutPlan
-      ? `<a class="gps-a" href="${mapsOutPlan}" target="_blank" style="color:#0969da;font-size:11px">🏁 Maps จบงาน</a>`
+      ? (isAbnormal
+          ? `<a href="${mapsOutPlan}" target="_blank" style="color:#cf222e;font-size:12px;font-weight:700;text-decoration:none">📍 ${distNum}m</a>`
+          : distNum !== null
+            ? `<a href="${mapsOutPlan}" target="_blank" style="color:#1a7f37;font-size:12px;text-decoration:none">📍 ${distNum}m</a>`
+            : `<a href="${mapsOutPlan}" target="_blank" style="color:#0969da;font-size:11px;text-decoration:none">📍 Maps</a>`)
       : '-';
+    // ช่อง แจ้งเตือน: เพิ่ม link Maps จบงาน เมื่อมี alert
+    const gpsOutAlertCell = coAlert
+      ? `<span style="color:#cf222e;font-size:11px">🔴 ${coAlert}</span>${mapsOutPlan ? `<br><a href="${mapsOutPlan}" target="_blank" style="color:#cf222e;font-size:11px;font-weight:700">🗺️ ดูพิกัดจบงาน</a>` : ''}`
+      : '';
 
-    return `<tr${(gpsInAlert||gpsOutAlert)?' style="background:#fff5f5"':''}>
+    return `<tr${(gpsInAlert||gpsOutAlertCell)?' style="background:#fff5f5"':''}>
       <td style="color:#8c959f;font-size:11px">${i+1}</td>
       <td>${ph}</td>
       <td>${phCo}</td>
@@ -969,7 +990,7 @@ function renderPlanView() {
       <td>${statusBadge}</td>
       <td style="font-size:12px">${ciTime}${coTime}</td>
       <td style="font-size:12px;color:#57606a">${p.taskType||'-'}</td>
-      <td style="font-size:11px">${gpsInAlert||'<span style="color:#1a7f37">✅</span>'}${gpsOutAlert?'<br>'+gpsOutAlert:''}</td>
+      <td style="font-size:11px">${gpsInAlert||'<span style="color:#1a7f37">✅</span>'}${gpsOutAlertCell?'<br>'+gpsOutAlertCell:''}</td>
       <td>${gpsOutLink}</td>
     </tr>`;
   }).join('');
