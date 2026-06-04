@@ -667,19 +667,9 @@ function clearTodayData() {
 // ── Rounds config ──────────────────────────────────
 // ไม่มี BASE_ROUNDS แล้ว — รอบมาจาก admin plan เท่านั้น
 
-function getRoundName(startTime) {
-  if (!startTime) return 'รอบงาน';
-  const h = parseInt((startTime+'').split(':')[0]);
-  if (h >= 9  && h < 12) return 'รอบเช้า';
-  if (h >= 12 && h < 16) return 'รอบบ่าย';
-  if (h >= 16 && h < 19) return 'รอบเย็น';
-  if (h >= 19 && h <= 21) return 'รอบค่ำ';
-  return 'รอบงาน';
-}
-
 function getPlanRounds() {
-  return todayPlan.map(p => ({
-    name:     getRoundName(normTimeCI(p.startTime)),
+  return todayPlan.map((p, i) => ({
+    name:     p.round || `งาน ${i+1}`,
     start:    normTimeCI(p.startTime) || '00:00',
     end:      normTimeCI(p.endTime)   || '23:59',
     location: p.branch   || '',
@@ -1137,12 +1127,12 @@ function confirmAddExtra() {
 
   const extra = getExtraRounds();
   const num   = extra.length + 1;  // รีเซ็ตทุกวัน: 1, 2, 3...
-  extra.push({ name: `รอบพิเศษ ${num}`, start, end, location });
+  extra.push({ name: `งาน ${num}`, start, end, location });
   store.set('extraRounds_'+todayKey(), JSON.stringify(extra));
   closeExtraModal();
   renderRounds();
   // เปิด check-in flow ทันที
-  const newIdx = BASE_ROUNDS.length + extra.length - 1;
+  const newIdx = getPlanRounds().length + extra.length - 1;
   openRound(newIdx);
 }
 
