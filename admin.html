@@ -300,8 +300,6 @@ tr:hover td { background:#f6f8fa; }
   <div class="tab active" onclick="switchTab('log')">📋 Check-in Log</div>
   <div class="tab" onclick="switchTab('users')">👥 ผู้ใช้งาน</div>
   <div class="tab" onclick="switchTab('hr')">🕐 เวลาทำงาน</div>
-  <div class="tab" style="color:#8c959f;cursor:not-allowed;opacity:.45" title="ปิดใช้งานชั่วคราว">📅 แผนงาน</div>
-  <div class="tab" style="color:#8c959f;cursor:not-allowed;opacity:.45" title="ปิดใช้งานชั่วคราว">📊 สรุปแผนงาน</div>
 </div>
 
 <!-- ══════════ TAB: LOG ══════════ -->
@@ -327,8 +325,6 @@ tr:hover td { background:#f6f8fa; }
     </select>
     <select id="f-round" onchange="renderLog(true)" style="padding:7px 12px;border:1px solid #d0d7de;border-radius:8px;font-size:13px;">
       <option value="">🕐 ทุกรอบ</option>
-      <option>รอบเช้า</option><option>รอบบ่าย</option>
-      <option>รอบเย็น</option><option>รอบค่ำ</option>
       <option>รอบพิเศษ</option>
     </select>
     <select id="f-branch" onchange="renderLog(true)" style="padding:7px 12px;border:1px solid #d0d7de;border-radius:8px;font-size:13px;">

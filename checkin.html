@@ -449,13 +449,13 @@ body { font-family: 'Sarabun', sans-serif; background: #f0f2f5; min-height: 100v
 <div class="section-title">รอบเช็กอินวันนี้</div>
 <div class="rounds" id="rounds"></div>
 <div class="extra-round-wrap">
-  <button class="btn-extra" onclick="openExtraModal()">＋ เพิ่มรอบพิเศษ</button>
+  <button class="btn-extra" onclick="openExtraModal()">＋ เช็คเวลาเข้า/ออกงาน</button>
 </div>
 
 <!-- Extra Round Modal -->
 <div class="extra-modal-bg" id="extra-modal-bg">
   <div class="extra-modal-box">
-    <h3>➕ เพิ่มรอบพิเศษ</h3>
+    <h3>➕ เช็คเวลาเข้า/ออกงาน</h3>
     <div class="ex-form-row">
       <label>⏰ เวลา</label>
       <div class="ex-time-row">
@@ -937,7 +937,7 @@ function renderRounds() {
     el.innerHTML = `<div style="text-align:center;padding:32px 16px;color:#8c959f;">
       <div style="font-size:36px;margin-bottom:8px;">📋</div>
       <div style="font-size:14px;font-weight:700;">ไม่มีงานวันนี้</div>
-      <div style="font-size:12px;margin-top:4px;">สามารถเพิ่มรอบพิเศษได้ด้านล่าง</div>
+      <div style="font-size:12px;margin-top:4px;">กด เช็คเวลาเข้า/ออกงาน ด้านล่างได้เลย</div>
     </div>`;
     updateTaskCounter();
     return;
