@@ -325,9 +325,8 @@ tr:hover td { background:#f6f8fa; }
     <select id="f-user" onchange="renderLog(true)" style="padding:7px 12px;border:1px solid #d0d7de;border-radius:8px;font-size:13px;">
       <option value="">👤 ทุกคน</option>
     </select>
-    <select id="f-round" onchange="renderLog(true)" style="padding:7px 12px;border:1px solid #d0d7de;border-radius:8px;font-size:13px;">
-      <option value="">🕐 ทุกรอบ</option>
-      <option>รอบพิเศษ</option>
+    <select id="f-round" onchange="renderLog(true)" style="display:none">
+      <option value=""></option>
     </select>
     <select id="f-branch" onchange="renderLog(true)" style="padding:7px 12px;border:1px solid #d0d7de;border-radius:8px;font-size:13px;">
       <option value="">📍 ทุกสาขา</option>
@@ -336,7 +335,6 @@ tr:hover td { background:#f6f8fa; }
       <option value="">🔖 ทุกสถานะ</option>
       <option value="จบงาน">✅ จบงาน</option>
       <option value="ไม่จบงาน">❌ ไม่จบงาน</option>
-      <option value="ยังไม่ถึงเวลา">⏳ ยังไม่ถึงเวลา</option>
       <option value="gps">🚨 แจ้งเตือน GPS</option>
     </select>
     <button class="btn btn-success" onclick="exportCSV()">📊 Export CSV</button>
@@ -841,7 +839,7 @@ function getFiltered() {
         if (r.round !== round) return false;
       }
     }
-    if (status === 'gps') { if (!r.geofenceAlert) return false; }
+    if (status === 'gps') { if (!r.geofenceAlert && !r.checkoutGeofenceAlert) return false; }
     else if (status && getStatus(r) !== status) return false;
     if (activeStatCard === 'alert'   && !r.geofenceAlert && !r.checkoutGeofenceAlert) return false;
     if (activeStatCard === 'total'   && isSpecialRound(r)) return false;
