@@ -842,9 +842,13 @@ function renderLog(fromDropdown) {
     const ph   = phUrl ? `<img class="photo-th" src="${phUrl}" onclick="openLightbox('${phUrl}')" onerror="this.parentNode.innerHTML='<div class=\'no-ph\'>📷</div>'">` : '<div class="no-ph">📷</div>';
     const phCoUrl = fixPhotoUrl(r.checkoutPhoto);
     const phCo = phCoUrl ? `<img class="photo-th" src="${phCoUrl}" onclick="openLightbox('${phCoUrl}')" onerror="this.parentNode.innerHTML='<div class=\'no-ph\'>🏁</div>'">` : '<div class="no-ph" style="font-size:14px">🏁</div>';
-    const alertBadge = r.geofenceAlert ? `<span class="alert-badge">🚨 ${r.geofenceAlert}</span>` : `<span style="color:#1a7f37;font-size:16px">✅</span>`;
+    const hasAnyAlert = r.geofenceAlert || r.checkoutGeofenceAlert;
+    const alertBadge = hasAnyAlert
+      ? `<div>${r.geofenceAlert ? `<span class="alert-badge">🚨 ${r.geofenceAlert}</span>` : ''}</div>
+         <div>${r.checkoutGeofenceAlert ? `<span style="color:#cf222e;font-size:12px;font-weight:700">🔴 จบงาน: ${r.checkoutGeofenceAlert}</span>` : ''}</div>`
+      : `<span style="color:#1a7f37;font-size:16px">✅</span>`;
     const coAlertBadge = r.checkoutGeofenceAlert
-      ? `<span style="color:#cf222e;font-size:13px;font-weight:700">🔴 ${r.checkoutGeofenceAlert}</span>`
+      ? `<span style="color:#cf222e;font-size:16px">🔴</span>`
       : `<span style="color:#1a7f37;font-size:16px">✅</span>`;
     const co   = (r.checkoutTime||'').trim();
     const coCell = co
