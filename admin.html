@@ -1993,19 +1993,35 @@ function loadHR() {
 
   // กรอง log ของพนักงานคนนี้ในเดือนที่เลือก
   const [yr, mo] = month.split('-').map(Number);
+
+  // แปลง record เป็น iso date (รองรับทั้ง dd/MM/yyyy และ timestamp)
+  function recToISO(r) {
+    // ลอง parse จาก r.date (dd/MM/yyyy)
+    const dp = (r.date||'').split('/');
+    if (dp.length === 3 && dp[2].length === 4) {
+      return `${dp[2]}-${dp[1].padStart(2,'0')}-${dp[0].padStart(2,'0')}`;
+    }
+    // fallback: parse จาก timestamp เช่น "03/06/2026 09:32:00"
+    const tp = (r.timestamp||'').split(' ')[0].split('/');
+    if (tp.length === 3 && tp[2].length === 4) {
+      return `${tp[2]}-${tp[1].padStart(2,'0')}-${tp[0].padStart(2,'0')}`;
+    }
+    return null;
+  }
+
   const rows = logData.filter(r => {
     if (r.name !== emp) return false;
-    // r.date = dd/MM/yyyy
-    const parts = (r.date||'').split('/');
-    if (parts.length < 3) return false;
-    return parseInt(parts[1]) === mo && parseInt(parts[2]) === yr;
+    const iso = recToISO(r);
+    if (!iso) return false;
+    const [ry, rm] = iso.split('-').map(Number);
+    return rm === mo && ry === yr;
   });
 
   // รวมตาม date (เอา check-in แรกสุดของวัน)
   const byDate = {};
   rows.forEach(r => {
-    const parts = (r.date||'').split('/');
-    const iso = `${parts[2]}-${parts[1].padStart(2,'0')}-${parts[0].padStart(2,'0')}`;
+    const iso = recToISO(r);
+    if (!iso) return;
     if (!byDate[iso] || r.timestamp < byDate[iso].timestamp) {
       byDate[iso] = r;
     }
