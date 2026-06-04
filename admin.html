@@ -475,6 +475,7 @@ tr:hover td { background:#f6f8fa; }
             <th style="padding:10px 14px;text-align:left;font-size:12px;font-weight:700;color:#57606a;border-bottom:2px solid #e1e4e8">เวลาเข้า</th>
             <th style="padding:10px 14px;text-align:left;font-size:12px;font-weight:700;color:#57606a;border-bottom:2px solid #e1e4e8">เวลาออก</th>
             <th style="padding:10px 14px;text-align:left;font-size:12px;font-weight:700;color:#57606a;border-bottom:2px solid #e1e4e8">สาย</th>
+            <th style="padding:10px 14px;text-align:left;font-size:12px;font-weight:700;color:#57606a;border-bottom:2px solid #e1e4e8">ออกก่อนเวลา</th>
             <th style="padding:10px 14px;text-align:left;font-size:12px;font-weight:700;color:#57606a;border-bottom:2px solid #e1e4e8">OT</th>
             <th style="padding:10px 14px;text-align:left;font-size:12px;font-weight:700;color:#57606a;border-bottom:2px solid #e1e4e8">หมายเหตุ</th>
           </tr>
@@ -2029,7 +2030,7 @@ function loadHR() {
 
   // สร้าง list ทุกวันในเดือน
   const daysInMonth = new Date(yr, mo, 0).getDate();
-  let totalLate = 0, totalOT = 0, totalDays = 0, noCheckout = 0;
+  let totalLate = 0, totalEarly = 0, totalOT = 0, totalDays = 0, noCheckout = 0;
   const tbody = document.getElementById('hr-body');
   tbody.innerHTML = '';
 
@@ -2048,7 +2049,7 @@ function loadHR() {
         <td style="padding:9px 14px;font-size:12px;color:#8c959f;border-bottom:1px solid #f0f2f5">${d}</td>
         <td style="padding:9px 14px;font-size:13px;border-bottom:1px solid #f0f2f5">${iso.split('-').reverse().join('/')}</td>
         <td style="padding:9px 14px;font-size:12px;border-bottom:1px solid #f0f2f5"><span style="color:${weekend?'#d97706':'#8c959f'}">${dayName}</span></td>
-        <td colspan="5" style="padding:9px 14px;font-size:12px;color:#8c959f;border-bottom:1px solid #f0f2f5">—</td>`;
+        <td colspan="6" style="padding:9px 14px;font-size:12px;color:#8c959f;border-bottom:1px solid #f0f2f5">—</td>`;
       tbody.appendChild(tr);
       continue;
     }
@@ -2066,6 +2067,13 @@ function loadHR() {
     if (!weekend && inMin !== null && inMin > stdIn) {
       lateMin = inMin - stdIn;
       totalLate += lateMin;
+    }
+
+    // คำนวณออกก่อนเวลา (เฉพาะวันธรรมดา มีเวลาออก และออกก่อน 19:00)
+    let earlyMin = 0;
+    if (!weekend && outMin !== null && outMin < stdOut) {
+      earlyMin = stdOut - outMin;
+      totalEarly += earlyMin;
     }
 
     // คำนวณ OT
@@ -2092,6 +2100,9 @@ function loadHR() {
     const lateCell = lateMin > 0
       ? `<span style="color:#cf222e;font-weight:700">+${minToHHMM(lateMin)}</span>`
       : `<span style="color:#1a7f37">✅</span>`;
+    const earlyCell = earlyMin > 0
+      ? `<span style="color:#d97706;font-weight:700">-${minToHHMM(earlyMin)}</span>`
+      : `<span style="color:#1a7f37">✅</span>`;
     const otCell = otMin > 0
       ? `<span style="color:#0969da;font-weight:700">${minToHHMM(otMin)}</span>`
       : `<span style="color:#8c959f">-</span>`;
@@ -2105,6 +2116,7 @@ function loadHR() {
       <td style="padding:9px 14px;font-size:13px;border-bottom:1px solid #f0f2f5">${inTime||'-'}</td>
       <td style="padding:9px 14px;font-size:13px;border-bottom:1px solid #f0f2f5">${outTime||'<span style="color:#cf222e">ไม่มีเวลาออก</span>'}</td>
       <td style="padding:9px 14px;border-bottom:1px solid #f0f2f5">${lateCell}</td>
+      <td style="padding:9px 14px;border-bottom:1px solid #f0f2f5">${earlyCell}</td>
       <td style="padding:9px 14px;border-bottom:1px solid #f0f2f5">${otCell}</td>
       <td style="padding:9px 14px;font-size:12px;border-bottom:1px solid #f0f2f5">${note}</td>`;
     tbody.appendChild(tr);
@@ -2121,6 +2133,10 @@ function loadHR() {
     <div style="background:#fff;border:1px solid #e1e4e8;border-radius:10px;padding:16px 24px;min-width:120px;text-align:center">
       <div style="font-size:28px;font-weight:700;color:${totalLate>0?'#cf222e':'#1a7f37'}">${totalLate>0?minToHHMM(totalLate):'✅'}</div>
       <div style="font-size:12px;color:#57606a;margin-top:4px">สายรวม</div>
+    </div>
+    <div style="background:#fff;border:1px solid #e1e4e8;border-radius:10px;padding:16px 24px;min-width:120px;text-align:center">
+      <div style="font-size:28px;font-weight:700;color:${totalEarly>0?'#d97706':'#1a7f37'}">${totalEarly>0?minToHHMM(totalEarly):'✅'}</div>
+      <div style="font-size:12px;color:#57606a;margin-top:4px">ออกก่อนรวม</div>
     </div>
     <div style="background:#fff;border:1px solid #e1e4e8;border-radius:10px;padding:16px 24px;min-width:120px;text-align:center">
       <div style="font-size:28px;font-weight:700;color:${totalOT>0?'#0969da':'#8c959f'}">${totalOT>0?minToHHMM(totalOT):'-'}</div>
@@ -2140,7 +2156,7 @@ function exportHRCSV() {
   const month = document.getElementById('hr-month').value;
   if (!emp || !month) { alert('กรุณาโหลดรายงานก่อน'); return; }
 
-  const rows = [['วันที่','วัน','เวลาเข้า','เวลาออก','สาย','OT','หมายเหตุ']];
+  const rows = [['วันที่','วัน','เวลาเข้า','เวลาออก','สาย','ออกก่อนเวลา','OT','หมายเหตุ']];
   document.querySelectorAll('#hr-body tr').forEach(tr => {
     const tds = tr.querySelectorAll('td');
     if (tds.length < 7) return;
@@ -2151,7 +2167,8 @@ function exportHRCSV() {
       tds[4].textContent.trim(),
       tds[5].textContent.trim(),
       tds[6].textContent.trim(),
-      tds[7] ? tds[7].textContent.trim() : ''
+      tds[7] ? tds[7].textContent.trim() : '',
+      tds[8] ? tds[8].textContent.trim() : ''
     ]);
   });
 
