@@ -301,6 +301,7 @@ tr:hover td { background:#f6f8fa; }
   <div class="tab" onclick="switchTab('plan')">📅 แผนงาน</div>
   <div class="tab" onclick="switchTab('summary')">📊 สรุปแผนงาน</div>
   <div class="tab" onclick="switchTab('users')">👥 ผู้ใช้งาน</div>
+  <div class="tab" onclick="switchTab('hr')">🕐 เวลาทำงาน</div>
 </div>
 
 <!-- ══════════ TAB: LOG ══════════ -->
@@ -446,6 +447,44 @@ tr:hover td { background:#f6f8fa; }
           <tr><td colspan="4" style="text-align:center;padding:30px;color:#8c959f;">กด รีเฟรช เพื่อโหลดรายชื่อ</td></tr>
         </tbody>
       </table>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════ TAB: HR ══════════ -->
+<div class="tab-content" id="tab-hr">
+  <div style="padding:20px">
+    <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:16px">
+      <select id="hr-emp" style="padding:7px 12px;border:1px solid #d0d7de;border-radius:8px;font-size:14px">
+        <option value="">-- เลือกพนักงาน --</option>
+      </select>
+      <input type="month" id="hr-month" style="padding:7px 12px;border:1px solid #d0d7de;border-radius:8px;font-size:14px">
+      <button class="btn btn-primary" onclick="loadHR()">📊 ดูรายงาน</button>
+      <button class="btn btn-outline" onclick="exportHRCSV()">📥 Export CSV</button>
+    </div>
+    <!-- Summary cards -->
+    <div id="hr-cards" style="display:none;gap:12px;flex-wrap:wrap;margin-bottom:20px"></div>
+    <!-- Table -->
+    <div style="overflow-x:auto">
+      <table id="hr-table" style="width:100%;border-collapse:collapse;background:#fff;border-radius:10px;overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,.08);display:none">
+        <thead>
+          <tr style="background:#f6f8fa">
+            <th style="padding:10px 14px;text-align:left;font-size:12px;font-weight:700;color:#57606a;border-bottom:2px solid #e1e4e8">#</th>
+            <th style="padding:10px 14px;text-align:left;font-size:12px;font-weight:700;color:#57606a;border-bottom:2px solid #e1e4e8">วันที่</th>
+            <th style="padding:10px 14px;text-align:left;font-size:12px;font-weight:700;color:#57606a;border-bottom:2px solid #e1e4e8">วัน</th>
+            <th style="padding:10px 14px;text-align:left;font-size:12px;font-weight:700;color:#57606a;border-bottom:2px solid #e1e4e8">เวลาเข้า</th>
+            <th style="padding:10px 14px;text-align:left;font-size:12px;font-weight:700;color:#57606a;border-bottom:2px solid #e1e4e8">เวลาออก</th>
+            <th style="padding:10px 14px;text-align:left;font-size:12px;font-weight:700;color:#57606a;border-bottom:2px solid #e1e4e8">สาย</th>
+            <th style="padding:10px 14px;text-align:left;font-size:12px;font-weight:700;color:#57606a;border-bottom:2px solid #e1e4e8">OT</th>
+            <th style="padding:10px 14px;text-align:left;font-size:12px;font-weight:700;color:#57606a;border-bottom:2px solid #e1e4e8">หมายเหตุ</th>
+          </tr>
+        </thead>
+        <tbody id="hr-body"></tbody>
+      </table>
+    </div>
+    <div id="hr-empty" style="display:none;text-align:center;padding:60px;color:#8c959f">
+      <div style="font-size:48px">🕐</div>
+      <div style="margin-top:8px">เลือกพนักงานและเดือน แล้วกด ดูรายงาน</div>
     </div>
   </div>
 </div>
@@ -622,12 +661,13 @@ function todayStr()  { return fmtDate(new Date()); }
 
 // ── Tab switch ─────────────────────────────────────
 function switchTab(name) {
-  const tabNames = ['log','plan','summary','users'];
+  const tabNames = ['log','plan','summary','users','hr'];
   document.querySelectorAll('.tab').forEach((t,i)=>t.classList.toggle('active', tabNames[i]===name));
   document.querySelectorAll('.tab-content').forEach(c=>c.classList.remove('active'));
   document.getElementById('tab-'+name).classList.add('active');
   if (name==='plan')    renderCal();
   if (name==='users')   loadUsers();
+  if (name==='hr')      initHR();
   if (name==='summary') {
     if (!document.getElementById('sum-date-from').value) {
       setSumMode('day');
@@ -1879,6 +1919,232 @@ function initTimeSelects(startVal='09:00',endVal='18:00') {
   const s=document.getElementById('t-start'), e=document.getElementById('t-end');
   s.innerHTML=html; e.innerHTML=html;
   s.value=startVal; e.value=endVal;
+}
+
+// ── Init ───────────────────────────────────────────
+document.getElementById('sum-date-from').value = todayStr();
+document.getElementById('det-modal').addEventListener('click', function(e){ if(e.target===this) closeSumDetail(); });
+renderCal();
+if(getUrl()) { loadLog(); loadPlan(); loadUsers(); }
+
+// ══════════════════
+//  HR TAB
+// ══════════════════
+const HR_IN  = '10:30';   // เวลาเข้างานมาตรฐาน
+const HR_OUT = '19:00';   // เวลาออกงานมาตรฐาน
+
+function initHR() {
+  // populate employee dropdown
+  const sel = document.getElementById('hr-emp');
+  const cur = sel.value;
+  sel.innerHTML = '<option value="">-- เลือกพนักงาน --</option>';
+  const names = [...new Set(logData.map(r=>r.name).filter(Boolean))].sort();
+  names.forEach(n => {
+    const o = document.createElement('option');
+    o.value = o.textContent = n;
+    sel.appendChild(o);
+  });
+  if (cur) sel.value = cur;
+  // default month = current month
+  if (!document.getElementById('hr-month').value) {
+    document.getElementById('hr-month').value = todayStr().slice(0,7);
+  }
+  document.getElementById('hr-empty').style.display = 'block';
+  document.getElementById('hr-table').style.display = 'none';
+  document.getElementById('hr-cards').style.display = 'none';
+}
+
+function parseTimeToMin(hhmm) {
+  if (!hhmm) return null;
+  const [h,m] = hhmm.split(':').map(Number);
+  return h*60 + m;
+}
+
+function minToHHMM(min) {
+  if (min <= 0) return '-';
+  const h = Math.floor(min/60), m = min%60;
+  return h > 0 ? `${h}ชม.${m>0?m+'น.':''}` : `${m}น.`;
+}
+
+function getDayName(isoDate) {
+  const days = ['อา','จ','อ','พ','พฤ','ศ','ส'];
+  return days[new Date(isoDate).getDay()];
+}
+
+function isWeekend(isoDate) {
+  const d = new Date(isoDate).getDay();
+  return d === 0 || d === 6;
+}
+
+// แปลง timestamp string → HH:MM
+function extractTime(ts) {
+  if (!ts) return null;
+  // รูปแบบ dd/MM/yyyy HH:mm:ss หรือ HH:mm:ss หรือ HH:mm
+  const m = ts.match(/(\d{2}):(\d{2})/g);
+  if (!m) return null;
+  // ถ้ามี date part ด้วย ให้เอาตัวสุดท้าย (time)
+  return m[m.length-1];
+}
+
+function loadHR() {
+  const emp   = document.getElementById('hr-emp').value;
+  const month = document.getElementById('hr-month').value; // yyyy-MM
+  if (!emp || !month) { alert('กรุณาเลือกพนักงานและเดือน'); return; }
+
+  // กรอง log ของพนักงานคนนี้ในเดือนที่เลือก
+  const [yr, mo] = month.split('-').map(Number);
+  const rows = logData.filter(r => {
+    if (r.name !== emp) return false;
+    // r.date = dd/MM/yyyy
+    const parts = (r.date||'').split('/');
+    if (parts.length < 3) return false;
+    return parseInt(parts[1]) === mo && parseInt(parts[2]) === yr;
+  });
+
+  // รวมตาม date (เอา check-in แรกสุดของวัน)
+  const byDate = {};
+  rows.forEach(r => {
+    const parts = (r.date||'').split('/');
+    const iso = `${parts[2]}-${parts[1].padStart(2,'0')}-${parts[0].padStart(2,'0')}`;
+    if (!byDate[iso] || r.timestamp < byDate[iso].timestamp) {
+      byDate[iso] = r;
+    }
+  });
+
+  // สร้าง list ทุกวันในเดือน
+  const daysInMonth = new Date(yr, mo, 0).getDate();
+  let totalLate = 0, totalOT = 0, totalDays = 0, noCheckout = 0;
+  const tbody = document.getElementById('hr-body');
+  tbody.innerHTML = '';
+
+  for (let d = 1; d <= daysInMonth; d++) {
+    const iso = `${yr}-${String(mo).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+    const rec = byDate[iso];
+    const dayName = getDayName(iso);
+    const weekend = isWeekend(iso);
+    const isToday = iso === todayStr();
+
+    if (!rec) {
+      // ไม่มีการเช็กอินวันนี้
+      const tr = document.createElement('tr');
+      tr.style.cssText = `background:${weekend?'#fff8f0':isToday?'#f0f7ff':''}`;
+      tr.innerHTML = `
+        <td style="padding:9px 14px;font-size:12px;color:#8c959f;border-bottom:1px solid #f0f2f5">${d}</td>
+        <td style="padding:9px 14px;font-size:13px;border-bottom:1px solid #f0f2f5">${iso.split('-').reverse().join('/')}</td>
+        <td style="padding:9px 14px;font-size:12px;border-bottom:1px solid #f0f2f5"><span style="color:${weekend?'#d97706':'#8c959f'}">${dayName}</span></td>
+        <td colspan="5" style="padding:9px 14px;font-size:12px;color:#8c959f;border-bottom:1px solid #f0f2f5">—</td>`;
+      tbody.appendChild(tr);
+      continue;
+    }
+
+    totalDays++;
+    const inTime  = extractTime(rec.timestamp);
+    const outTime = rec.checkoutTime ? extractTime(rec.checkoutTime) : null;
+    const inMin   = parseTimeToMin(inTime);
+    const outMin  = outTime ? parseTimeToMin(outTime) : null;
+    const stdIn   = parseTimeToMin(HR_IN);
+    const stdOut  = parseTimeToMin(HR_OUT);
+
+    // คำนวณสาย (เฉพาะวันธรรมดา)
+    let lateMin = 0;
+    if (!weekend && inMin !== null && inMin > stdIn) {
+      lateMin = inMin - stdIn;
+      totalLate += lateMin;
+    }
+
+    // คำนวณ OT
+    let otMin = 0;
+    if (weekend) {
+      // วันหยุด OT ทั้งวัน
+      if (inMin !== null && outMin !== null) {
+        otMin = outMin - inMin;
+        totalOT += otMin;
+      }
+    } else {
+      // วันธรรมดา OT หลัง 19:00
+      if (outMin !== null && outMin > stdOut) {
+        otMin = outMin - stdOut;
+        totalOT += otMin;
+      }
+    }
+
+    // หมายเหตุ
+    let note = '';
+    if (!outTime) { note = `<span style="color:#cf222e;font-weight:700">⚠️ ไม่มีเวลาออก แจ้งหัวหน้า</span>`; noCheckout++; }
+    else if (weekend) { note = `<span style="color:#8250df">🌟 วันหยุด</span>`; }
+
+    const lateCell = lateMin > 0
+      ? `<span style="color:#cf222e;font-weight:700">+${minToHHMM(lateMin)}</span>`
+      : `<span style="color:#1a7f37">✅</span>`;
+    const otCell = otMin > 0
+      ? `<span style="color:#0969da;font-weight:700">${minToHHMM(otMin)}</span>`
+      : `<span style="color:#8c959f">-</span>`;
+
+    const tr = document.createElement('tr');
+    tr.style.cssText = `background:${weekend?'#fff8f0':isToday?'#f0f7ff':''}`;
+    tr.innerHTML = `
+      <td style="padding:9px 14px;font-size:12px;color:#8c959f;border-bottom:1px solid #f0f2f5">${d}</td>
+      <td style="padding:9px 14px;font-size:13px;border-bottom:1px solid #f0f2f5">${iso.split('-').reverse().join('/')}</td>
+      <td style="padding:9px 14px;font-size:12px;border-bottom:1px solid #f0f2f5"><span style="color:${weekend?'#d97706':'#24292f'}">${dayName}</span></td>
+      <td style="padding:9px 14px;font-size:13px;border-bottom:1px solid #f0f2f5">${inTime||'-'}</td>
+      <td style="padding:9px 14px;font-size:13px;border-bottom:1px solid #f0f2f5">${outTime||'<span style="color:#cf222e">ไม่มีเวลาออก</span>'}</td>
+      <td style="padding:9px 14px;border-bottom:1px solid #f0f2f5">${lateCell}</td>
+      <td style="padding:9px 14px;border-bottom:1px solid #f0f2f5">${otCell}</td>
+      <td style="padding:9px 14px;font-size:12px;border-bottom:1px solid #f0f2f5">${note}</td>`;
+    tbody.appendChild(tr);
+  }
+
+  // Summary cards
+  const cards = document.getElementById('hr-cards');
+  cards.style.display = 'flex';
+  cards.innerHTML = `
+    <div style="background:#fff;border:1px solid #e1e4e8;border-radius:10px;padding:16px 24px;min-width:120px;text-align:center">
+      <div style="font-size:28px;font-weight:700;color:#1a7f37">${totalDays}</div>
+      <div style="font-size:12px;color:#57606a;margin-top:4px">วันทำงาน</div>
+    </div>
+    <div style="background:#fff;border:1px solid #e1e4e8;border-radius:10px;padding:16px 24px;min-width:120px;text-align:center">
+      <div style="font-size:28px;font-weight:700;color:${totalLate>0?'#cf222e':'#1a7f37'}">${totalLate>0?minToHHMM(totalLate):'✅'}</div>
+      <div style="font-size:12px;color:#57606a;margin-top:4px">สายรวม</div>
+    </div>
+    <div style="background:#fff;border:1px solid #e1e4e8;border-radius:10px;padding:16px 24px;min-width:120px;text-align:center">
+      <div style="font-size:28px;font-weight:700;color:${totalOT>0?'#0969da':'#8c959f'}">${totalOT>0?minToHHMM(totalOT):'-'}</div>
+      <div style="font-size:12px;color:#57606a;margin-top:4px">OT รวม</div>
+    </div>
+    ${noCheckout>0?`<div style="background:#fff;border:1px solid #ffcdd2;border-radius:10px;padding:16px 24px;min-width:120px;text-align:center">
+      <div style="font-size:28px;font-weight:700;color:#cf222e">${noCheckout}</div>
+      <div style="font-size:12px;color:#57606a;margin-top:4px">ไม่มีเวลาออก</div>
+    </div>`:''}`;
+
+  document.getElementById('hr-table').style.display = 'table';
+  document.getElementById('hr-empty').style.display = 'none';
+}
+
+function exportHRCSV() {
+  const emp   = document.getElementById('hr-emp').value;
+  const month = document.getElementById('hr-month').value;
+  if (!emp || !month) { alert('กรุณาโหลดรายงานก่อน'); return; }
+
+  const rows = [['วันที่','วัน','เวลาเข้า','เวลาออก','สาย','OT','หมายเหตุ']];
+  document.querySelectorAll('#hr-body tr').forEach(tr => {
+    const tds = tr.querySelectorAll('td');
+    if (tds.length < 7) return;
+    rows.push([
+      tds[1].textContent.trim(),
+      tds[2].textContent.trim(),
+      tds[3].textContent.trim(),
+      tds[4].textContent.trim(),
+      tds[5].textContent.trim(),
+      tds[6].textContent.trim(),
+      tds[7] ? tds[7].textContent.trim() : ''
+    ]);
+  });
+
+  const csv = rows.map(r => r.map(c => `"${c}"`).join(',')).join('\n');
+  const blob = new Blob(['﻿'+csv], {type:'text/csv;charset=utf-8'});
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement('a');
+  a.href = url; a.download = `HR_${emp}_${month}.csv`;
+  a.click(); URL.revokeObjectURL(url);
 }
 
 // ── Init ───────────────────────────────────────────
