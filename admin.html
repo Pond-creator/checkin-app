@@ -805,7 +805,7 @@ function getFiltered() {
     }
     if (status === 'gps') { if (!r.geofenceAlert) return false; }
     else if (status && getStatus(r) !== status) return false;
-    if (activeStatCard === 'alert'   && !r.geofenceAlert)  return false;
+    if (activeStatCard === 'alert'   && !r.geofenceAlert && !r.checkoutGeofenceAlert) return false;
     if (activeStatCard === 'total'   && isSpecialRound(r)) return false;
     if (activeStatCard === 'special' && !isSpecialRound(r)) return false;
     return true;
@@ -848,7 +848,7 @@ function renderLog(fromDropdown) {
       : `<span style="color:#1a7f37;font-size:16px">✅</span>`;
     const co   = (r.checkoutTime||'').trim();
     const coCell = co
-      ? `<span style="color:#1a7f37;font-size:12px">✅ ${cleanTime(co)}</span>`
+      ? `<span style="color:#1a7f37;font-size:12px">▼ ${cleanTime(co)}</span>`
       : `<span style="color:#cf222e;font-size:13px">❌</span>`;
     return `<tr>
       <td style="color:#8c959f;font-size:11px">${i+1}</td>
@@ -977,7 +977,7 @@ function updateStats(rows) {
   document.getElementById('s-total').textContent      = normalCin;
   document.getElementById('s-special').textContent    = rows.filter(r=>isSpecialRound(r)).length;
   document.getElementById('s-missing').textContent    = missingCnt;
-  document.getElementById('s-alert').textContent      = rows.filter(r=>r.geofenceAlert).length;
+  document.getElementById('s-alert').textContent      = rows.filter(r=>r.geofenceAlert||r.checkoutGeofenceAlert).length;
   document.getElementById('s-nocheckout').textContent = rows.filter(r=>!(r.checkoutTime||'').trim()).length;
 }
 
