@@ -354,7 +354,7 @@ tr:hover td { background:#f6f8fa; }
   </div>
   <div class="tbl-wrap">
     <table>
-      <thead>
+      <thead id="log-thead">
         <tr>
           <th>#</th><th>📷 รูปเช็กอิน</th><th>🏁 รูปจบงาน</th><th>ชื่อ</th><th>สาขา</th>
           <th>รอบ</th><th>สถานะ</th><th>เวลาเข้า-ออก</th><th>GPS เช็กอิน</th><th>±m</th><th>แจ้งเตือน</th><th>GPS จบงาน</th><th>Maps จบงาน</th>
@@ -829,6 +829,10 @@ function renderLog(fromDropdown) {
   const rows  = getFiltered();
   const tbody = document.getElementById('log-body');
   const bmap  = {'รอบเช้า':'b-m','รอบบ่าย':'b-n','รอบเย็น':'b-e','รอบค่ำ':'b-k'};
+  document.getElementById('log-thead').innerHTML = `<tr>
+    <th>#</th><th>📷 รูปเช็กอิน</th><th>🏁 รูปจบงาน</th><th>ชื่อ</th><th>สาขา</th>
+    <th>รอบ</th><th>สถานะ</th><th>เวลาเข้า-ออก</th><th>GPS เช็กอิน</th><th>±m</th><th>แจ้งเตือน</th><th>GPS จบงาน</th><th>Maps จบงาน</th>
+  </tr>`;
   updateStats(rows);
   if (!rows.length) {
     tbody.innerHTML = `<tr><td colspan="13"><div class="empty"><div class="ic">🔍</div>ไม่พบข้อมูล</div></td></tr>`;
@@ -910,10 +914,14 @@ function renderPlanView() {
   });
 
   const tbody = document.getElementById('log-body');
+  document.getElementById('log-thead').innerHTML = `<tr>
+    <th>#</th><th>📷 รูปเช็กอิน</th><th>🏁 รูปจบงาน</th><th>ชื่อ</th><th>สาขา</th>
+    <th>เวลางาน</th><th>สถานะ</th><th>เวลาเข้า-ออก</th><th>ประเภทงาน</th><th>แจ้งเตือน</th>
+  </tr>`;
   updateStats(getFiltered());
 
   if (!plans.length) {
-    tbody.innerHTML = `<tr><td colspan="13"><div class="empty"><div class="ic">📋</div>ไม่มีแผนงานวันนี้</div></td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="10"><div class="empty"><div class="ic">📋</div>ไม่มีแผนงานวันนี้</div></td></tr>`;
     return;
   }
 
@@ -958,26 +966,9 @@ function renderPlanView() {
 
     const gpsInAlert  = matchLog && matchLog.geofenceAlert
       ? `<span style="color:#cf222e;font-size:11px">🔴 ${matchLog.geofenceAlert}</span>` : '';
-    // Maps จบงาน
-    const mapsOutPlan = matchLog
-      ? (matchLog.checkoutMapsLink || (matchLog.checkoutLat&&matchLog.checkoutLng ? `https://maps.google.com/?q=${matchLog.checkoutLat},${matchLog.checkoutLng}` : ''))
-      : '';
-    // แยก distance จาก checkoutGeofenceAlert เช่น "ห่างจุดเช็กอิน 21213m"
     const coAlert = matchLog ? (matchLog.checkoutGeofenceAlert||'') : '';
-    const distMatch = coAlert.match(/(\d+)\s*m/);
-    const distNum = distMatch ? parseInt(distMatch[1]) : null;
-    const isAbnormal = distNum !== null && distNum > 100;
-    // ช่อง Maps จบงาน: แสดงระยะห่าง (คลิกได้)
-    const gpsOutLink = mapsOutPlan
-      ? (isAbnormal
-          ? `<a href="${mapsOutPlan}" target="_blank" style="color:#cf222e;font-size:12px;font-weight:700;text-decoration:none">📍 ${distNum}m</a>`
-          : distNum !== null
-            ? `<a href="${mapsOutPlan}" target="_blank" style="color:#1a7f37;font-size:12px;text-decoration:none">📍 ${distNum}m</a>`
-            : `<a href="${mapsOutPlan}" target="_blank" style="color:#0969da;font-size:11px;text-decoration:none">📍 Maps</a>`)
-      : '-';
-    // ช่อง แจ้งเตือน: เพิ่ม link Maps จบงาน เมื่อมี alert
     const gpsOutAlertCell = coAlert
-      ? `<span style="color:#cf222e;font-size:11px">🔴 ${coAlert}</span>${mapsOutPlan ? `<br><a href="${mapsOutPlan}" target="_blank" style="color:#cf222e;font-size:11px;font-weight:700">🗺️ ดูพิกัดจบงาน</a>` : ''}`
+      ? `<span style="color:#cf222e;font-size:11px">🔴 ${coAlert}</span>`
       : '';
 
     return `<tr${(gpsInAlert||gpsOutAlertCell)?' style="background:#fff5f5"':''}>
@@ -991,7 +982,6 @@ function renderPlanView() {
       <td style="font-size:12px">${ciTime}${coTime}</td>
       <td style="font-size:12px;color:#57606a">${p.taskType||'-'}</td>
       <td style="font-size:11px">${gpsInAlert||'<span style="color:#1a7f37">✅</span>'}${gpsOutAlertCell?'<br>'+gpsOutAlertCell:''}</td>
-      <td>${gpsOutLink}</td>
     </tr>`;
   }).join('');
 }
