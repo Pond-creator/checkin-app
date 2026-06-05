@@ -44,6 +44,8 @@ body { font-family: 'Sarabun', sans-serif; background: #f6f8fa; min-height: 100v
 .btn-primary { background:#0969da; color:#fff; }
 .btn-success { background:#1a7f37; color:#fff; }
 .btn-outline { background:#fff; color:#57606a; border:1px solid #d0d7de; }
+.btn-danger  { background:#cf222e; color:#fff; }
+.chk-row { accent-color:#cf222e; width:16px; height:16px; cursor:pointer; }
 .toolbar input, .toolbar select { padding:7px 12px; border:1px solid #d0d7de; border-radius:8px; font-size:13px; font-family:inherit; }
 .view-toggle { display:flex; border:1px solid #d0d7de; border-radius:8px; overflow:hidden; }
 .view-toggle button { padding:6px 12px; border:none; background:#fff; cursor:pointer; font-size:12px; color:#57606a; font-weight:600; font-family:inherit; }
@@ -150,10 +152,11 @@ tr:hover td { background:#f6f8fa; }
   <div class="nav-logout" onclick="logout()"><span class="ni">🚪</span> ออกจากระบบ</div>
 </div>
 
-<div class="tabs">
+<div class="tabs" id="main-tabs">
   <div class="tab active" onclick="switchTab('log')">📋 Check-in Log</div>
   <div class="tab" onclick="switchTab('users')">👥 ผู้ใช้งาน</div>
   <div class="tab" onclick="switchTab('hr')">🕐 เวลาทำงาน</div>
+  <div class="tab" id="tab-deleted-btn" style="display:none" onclick="switchTab('deleted')">🗑️ Deleted Log</div>
 </div>
 
 <!-- ══ TAB: LOG ══ -->
@@ -183,6 +186,8 @@ tr:hover td { background:#f6f8fa; }
     </select>
     <button class="btn btn-success" onclick="exportCSV()">📊 Export CSV</button>
     <button class="btn btn-outline" onclick="openCfg()">⚙ ตั้งค่า</button>
+    <button class="btn" id="btn-edit-mode" style="display:none;background:#6e40c9;color:#fff" onclick="toggleEditMode()">✏️ แก้ไข</button>
+    <button class="btn btn-danger"  id="btn-delete-sel" style="display:none" onclick="deleteSelected()">🗑️ ลบที่เลือก (<span id="sel-count">0</span>)</button>
   </div>
   <div class="stats">
     <div class="stat stat-btn" id="sc-all"       onclick="statFilter('all')">      <div class="n" id="s-all">0</div><div class="l">Check-in ทั้งหมด</div></div>
@@ -191,13 +196,31 @@ tr:hover td { background:#f6f8fa; }
   </div>
   <div class="tbl-wrap">
     <table>
-      <thead><tr>
+      <thead id="log-thead"><tr>
         <th>#</th><th>📷 รูปเช็กอิน</th><th>🏁 รูปจบงาน</th><th>ชื่อ</th><th>สาขา</th>
         <th>รอบ</th><th>สถานะ</th><th>เวลาเข้า-ออก</th><th>GPS เช็กอิน</th><th>±m</th>
         <th>แจ้งเตือน</th><th>GPS จบงาน</th><th>Maps จบงาน</th>
       </tr></thead>
       <tbody id="log-body">
         <tr><td colspan="13"><div class="empty"><div class="ic">📋</div>กด "โหลดข้อมูล" หรือ <a href="#" onclick="openCfg();return false">ตั้งค่า URL</a></div></td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- ══ TAB: DELETED LOG ══ -->
+<div class="tab-content" id="tab-deleted">
+  <div class="toolbar">
+    <button class="btn btn-primary" onclick="loadDeleted()">🔄 โหลด Deleted Log</button>
+  </div>
+  <div class="tbl-wrap">
+    <table>
+      <thead><tr>
+        <th>#</th><th>📷</th><th>ชื่อ</th><th>สาขา</th><th>รอบ</th>
+        <th>เวลาเข้า-ออก</th><th>ลบเมื่อ</th><th>ลบโดย</th>
+      </tr></thead>
+      <tbody id="deleted-body">
+        <tr><td colspan="8"><div class="empty"><div class="ic">🗑️</div>กด "โหลด Deleted Log"</div></td></tr>
       </tbody>
     </table>
   </div>
@@ -269,6 +292,7 @@ tr:hover td { background:#f6f8fa; }
       <label>Role *</label>
       <select id="u-role">
         <option value="staff">Staff — พนักงาน</option>
+        <option value="support">Support — ดูข้อมูล</option>
         <option value="admin">Admin — ผู้ดูแลระบบ</option>
       </select>
     </div>
@@ -312,8 +336,9 @@ const store = {
   set: (k,v) => { try { localStorage.setItem(k,v); } catch(e) { mem[k]=v; } }
 };
 const session = (() => { try { return JSON.parse(store.get('session')||'null'); } catch { return null; } })();
-if (!session || session.role !== 'admin') { alert('ต้องล็อกอินด้วยบัญชี Admin'); location.href = 'index.html'; }
+if (!session || (session.role !== 'admin' && session.role !== 'support')) { alert('ต้องล็อกอินด้วยบัญชี Admin หรือ Support'); location.href = 'index.html'; }
 document.getElementById('nav-name').textContent = session ? session.name : '—';
+const IS_ADMIN = session && session.role === 'admin';
 
 function openNav()  { document.getElementById('nav-overlay').classList.add('open'); document.getElementById('nav-drawer').classList.add('open'); }
 function closeNav() { document.getElementById('nav-overlay').classList.remove('open'); document.getElementById('nav-drawer').classList.remove('open'); }
@@ -331,13 +356,23 @@ function showLoad(v) { document.getElementById('loading').classList.toggle('show
 function fmtDate(d)  { return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
 function todayStr()  { return fmtDate(new Date()); }
 
+// ── Init role-based UI ─────────────────────────────
+if (IS_ADMIN) {
+  document.getElementById('tab-deleted-btn').style.display = '';
+  document.getElementById('btn-edit-mode').style.display   = '';
+}
+
 // ── Tab ────────────────────────────────────────────
 function switchTab(name) {
-  document.querySelectorAll('.tab').forEach((t,i) => t.classList.toggle('active', ['log','users','hr'][i]===name));
+  if (name === 'deleted' && !IS_ADMIN) return;
+  const tabs = ['log','users','hr','deleted'];
+  document.querySelectorAll('.tab').forEach((t,i) => t.classList.toggle('active', tabs[i]===name));
   document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
   document.getElementById('tab-'+name).classList.add('active');
-  if (name === 'users') loadUsers();
-  if (name === 'hr')    initHR();
+  if (name === 'users')   loadUsers();
+  if (name === 'hr')      initHR();
+  if (name === 'deleted') loadDeleted();
+  if (name === 'log')     exitEditMode();
 }
 
 // ── Helpers ────────────────────────────────────────
@@ -443,6 +478,11 @@ function getFiltered() {
   });
 }
 
+function toggleAllChk(el) {
+  document.querySelectorAll('.row-chk').forEach(c => c.checked = el.checked);
+  updateSelCount();
+}
+
 function renderLog(fromFilter) {
   if (fromFilter) {
     activeStatCard = null;
@@ -450,9 +490,17 @@ function renderLog(fromFilter) {
   }
   const rows  = getFiltered();
   const tbody = document.getElementById('log-body');
+  const thead = document.getElementById('log-thead');
+  // update thead checkbox column
+  const chkTh = editMode ? '<th><input type="checkbox" onclick="toggleAllChk(this)" title="เลือกทั้งหมด"></th>' : '';
+  thead.querySelector('tr').innerHTML = chkTh +
+    '<th>#</th><th>📷 รูปเช็กอิน</th><th>🏁 รูปจบงาน</th><th>ชื่อ</th><th>สาขา</th>' +
+    '<th>รอบ</th><th>สถานะ</th><th>เวลาเข้า-ออก</th><th>GPS เช็กอิน</th><th>±m</th>' +
+    '<th>แจ้งเตือน</th><th>GPS จบงาน</th><th>Maps จบงาน</th>';
+  const cols = editMode ? 14 : 13;
   updateStats(rows);
   if (!rows.length) {
-    tbody.innerHTML = `<tr><td colspan="13"><div class="empty"><div class="ic">🔍</div>ไม่พบข้อมูล</div></td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="${cols}"><div class="empty"><div class="ic">🔍</div>ไม่พบข้อมูล</div></td></tr>`;
     return;
   }
   tbody.innerHTML = rows.map((r, i) => {
@@ -496,8 +544,9 @@ function renderLog(fromFilter) {
       ${co ? `<span style="color:#0969da">▼ ${cleanTime(co)}</span>` : '<span style="color:#8c959f;font-size:11px">ยังไม่จบงาน</span>'}
     </div>`;
 
+    const chkTd = editMode ? `<td><input type="checkbox" class="row-chk chk-row" data-key="${(r.timestamp||'').replace(/"/g,'')+'|'+(r.name||'').replace(/"/g,'')}" onchange="updateSelCount()"></td>` : '';
     return `<tr${hasAlert?' style="background:#fff5f5"':''}>
-      <td style="color:#8c959f;font-size:11px">${i+1}</td>
+      ${chkTd}<td style="color:#8c959f;font-size:11px">${i+1}</td>
       <td>${ph}</td><td>${phCo}</td>
       <td><b>${r.name||'-'}</b></td>
       <td>${r.branch||'-'}</td>
@@ -566,6 +615,94 @@ function exportCSV() {
   const a = document.createElement('a');
   a.href = URL.createObjectURL(new Blob(['﻿'+csv],{type:'text/csv;charset=utf-8'}));
   a.download = `checkin_${todayStr()}.csv`; a.click();
+}
+
+// ── Edit Mode & Delete ─────────────────────────────
+let editMode = false;
+
+function toggleEditMode() {
+  editMode = !editMode;
+  const btn = document.getElementById('btn-edit-mode');
+  const delBtn = document.getElementById('btn-delete-sel');
+  btn.textContent   = editMode ? '✕ ยกเลิก' : '✏️ แก้ไข';
+  btn.style.background = editMode ? '#57606a' : '#6e40c9';
+  delBtn.style.display = editMode ? '' : 'none';
+  document.getElementById('sel-count').textContent = '0';
+  renderLog();
+}
+
+function exitEditMode() {
+  if (!editMode) return;
+  editMode = false;
+  document.getElementById('btn-edit-mode').textContent = '✏️ แก้ไข';
+  document.getElementById('btn-edit-mode').style.background = '#6e40c9';
+  document.getElementById('btn-delete-sel').style.display = 'none';
+}
+
+function updateSelCount() {
+  const n = document.querySelectorAll('.row-chk:checked').length;
+  document.getElementById('sel-count').textContent = n;
+}
+
+async function deleteSelected() {
+  const checked = [...document.querySelectorAll('.row-chk:checked')];
+  if (!checked.length) { alert('กรุณาเลือกรายการที่ต้องการลบ'); return; }
+  if (!confirm(`ยืนยันลบ ${checked.length} รายการ?\nข้อมูลจะย้ายไป Deleted Log`)) return;
+  const keys = checked.map(el => el.dataset.key);
+  const url  = getUrl();
+  showLoad(true);
+  try {
+    await fetch(url, {
+      method: 'POST', mode: 'no-cors',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ action:'deleteRows', keys, deletedBy: session.name })
+    });
+    // รอสักครู่แล้ว reload
+    await new Promise(r => setTimeout(r, 1500));
+    await loadLog();
+    exitEditMode();
+  } catch(e) { alert('ลบไม่สำเร็จ: '+e.message); }
+  showLoad(false);
+}
+
+// ── Deleted Log Tab ────────────────────────────────
+let deletedData = [];
+async function loadDeleted() {
+  const url = getUrl(); if (!url) return;
+  showLoad(true);
+  try {
+    const res  = await fetch(`${url}?action=getDeleted&t=${Date.now()}`);
+    const json = await res.json();
+    deletedData = json.data || [];
+    renderDeleted();
+  } catch(e) { alert('โหลดไม่สำเร็จ'); }
+  showLoad(false);
+}
+
+function renderDeleted() {
+  const tbody = document.getElementById('deleted-body');
+  if (!deletedData.length) {
+    tbody.innerHTML = `<tr><td colspan="8"><div class="empty"><div class="ic">✅</div>ไม่มีข้อมูลที่ถูกลบ</div></td></tr>`;
+    return;
+  }
+  tbody.innerHTML = deletedData.map((r,i) => {
+    const phUrl = fixPhotoUrl(r.photo);
+    const ph    = phUrl ? `<img class="photo-th" src="${phUrl}" onclick="openLightbox('${phUrl}')">` : '<div class="no-ph">📷</div>';
+    const co    = (r.checkoutTime||'').trim();
+    return `<tr style="background:${i%2===0?'#fff5f5':'#fff8f8'}">
+      <td style="color:#8c959f;font-size:11px">${i+1}</td>
+      <td>${ph}</td>
+      <td><b>${r.name||'-'}</b></td>
+      <td>${r.branch||'-'}</td>
+      <td><span class="badge b-special">${r.round||'-'}</span></td>
+      <td style="font-size:12px">
+        <span style="color:#1a7f37">▲ ${cleanTime(r.timestamp)||'-'}</span><br>
+        ${co?`<span style="color:#0969da">▼ ${cleanTime(co)}</span>`:'<span style="color:#8c959f;font-size:11px">ไม่มีเวลาออก</span>'}
+      </td>
+      <td style="font-size:12px;color:#cf222e">${r.deletedAt||'-'}</td>
+      <td style="font-size:12px;color:#57606a">${r.deletedBy||'-'}</td>
+    </tr>`;
+  }).join('');
 }
 
 // ── Users Tab ──────────────────────────────────────

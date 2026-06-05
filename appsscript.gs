@@ -19,7 +19,15 @@ const PLAN_HEADERS = [
   'ID','ชื่อพนักงาน','วันที่','เวลาเริ่ม','เวลาสิ้นสุด',
   'สาขา','ประเภทงาน','หมายเหตุ','สร้างเมื่อ','Latitude','Longitude'
 ];
-const USER_HEADERS = ['ID','Password','ชื่อ','Role'];
+const USER_HEADERS    = ['ID','Password','ชื่อ','Role'];
+const DELETED_SHEET   = "🗑️ Deleted Log";
+const DELETED_HEADERS = [
+  'วันที่','เวลา Check-in','ชื่อ','สาขา',
+  'รอบ','ช่วงเวลา','Latitude','Longitude',
+  'ความแม่นยำ (m)','Google Maps','รูปภาพ URL','เวลาจบงาน','แจ้งเตือน GPS','รูปภาพจบงาน',
+  'แจ้งเตือน GPS จบงาน','Lat จบงาน','Lng จบงาน','Google Maps จบงาน',
+  'ลบเมื่อ','ลบโดย'
+];
 
 // ──────────────────────────────────────────────────
 // POST
@@ -34,6 +42,7 @@ function doPost(e) {
     if (action === 'checkout')   return saveCheckout(data);
     if (action === 'saveUser')   return saveUser(data);
     if (action === 'deleteUser') return deleteUser(data);
+    if (action === 'deleteRows') return deleteRows(data);
     return saveCheckin(data);   // default
 
   } catch(err) {
@@ -128,6 +137,52 @@ function saveCheckout(data) {
   return jsonOK({ success: true });
 }
 
+// ── Delete Rows (ย้ายไป Deleted Log) ──────────────
+function deleteRows(data) {
+  // data.keys = array of "timestamp|name" เพื่อ identify แต่ละ row
+  // data.deletedBy = ชื่อ admin ที่ลบ
+  const keys      = data.keys || [];
+  const deletedBy = data.deletedBy || '';
+  const deletedAt = Utilities.formatDate(new Date(), 'Asia/Bangkok', 'dd/MM/yyyy HH:mm:ss');
+  const ss        = SpreadsheetApp.getActiveSpreadsheet();
+  const master    = ss.getSheetByName(MASTER_SHEET);
+  if (!master) return jsonOK({ success: false, error: 'no master sheet' });
+
+  const delSheet = getOrCreateSheet(DELETED_SHEET, DELETED_HEADERS);
+  const rows     = master.getDataRange().getValues();
+  const toDelete = []; // row indices (1-based) in master to delete
+
+  // หา rows ที่ตรงกับ keys
+  for (let i = rows.length - 1; i >= 1; i--) {
+    const ts   = rows[i][1] + '';
+    const name = rows[i][2] + '';
+    const key  = ts + '|' + name;
+    if (keys.includes(key)) {
+      // copy ไป Deleted Log
+      const newRow = [...rows[i], deletedAt, deletedBy];
+      delSheet.appendRow(newRow);
+      toDelete.push(i + 1); // 1-based
+    }
+  }
+
+  // ลบจาก master (จากล่างขึ้นบน ป้องกัน index เลื่อน)
+  toDelete.sort((a,b) => b - a).forEach(r => master.deleteRow(r));
+
+  // ลบจากชีทพนักงานด้วย
+  ss.getSheets().filter(s => s.getName().startsWith('👤 ')).forEach(empSheet => {
+    const empRows = empSheet.getDataRange().getValues();
+    const empDel  = [];
+    for (let i = empRows.length - 1; i >= 1; i--) {
+      const ts   = empRows[i][1] + '';
+      const name = empRows[i][2] + '';
+      if (keys.includes(ts + '|' + name)) empDel.push(i + 1);
+    }
+    empDel.sort((a,b) => b - a).forEach(r => empSheet.deleteRow(r));
+  });
+
+  return jsonOK({ success: true, deleted: toDelete.length });
+}
+
 // ── Plan CRUD ──────────────────────────────────────
 function savePlan(data) {
   const sheet  = getOrCreateSheet(PLAN_SHEET, PLAN_HEADERS);
@@ -216,8 +271,9 @@ function doGet(e) {
     return jsonOK({ success: false, error: 'invalid' });
   }
 
-  if (action === 'getAll')   return jsonOK({ data: readLog(MASTER_SHEET) });
-  if (action === 'getEmp')   return jsonOK({ data: readLog('👤 '+(p.name||'').trim()) });
+  if (action === 'getAll')     return jsonOK({ data: readLog(MASTER_SHEET) });
+  if (action === 'getEmp')     return jsonOK({ data: readLog('👤 '+(p.name||'').trim()) });
+  if (action === 'getDeleted') return jsonOK({ data: readDeleted() });
   if (action === 'getPlans') return jsonOK({ data: readPlans() });
   if (action === 'getUsers') return jsonOK({ data: readUsers() });
 
@@ -292,6 +348,23 @@ function readPlans() {
     branch:r[5]+'', taskType:r[6]+'', note:r[7]+'',
     lat:r[9]+'', lng:r[10]+''
   }));
+}
+
+function readDeleted() {
+  const ss    = SpreadsheetApp.getActiveSpreadsheet();
+  const sheet = ss.getSheetByName(DELETED_SHEET);
+  if (!sheet) return [];
+  const rows = sheet.getDataRange().getValues();
+  if (rows.length <= 1) return [];
+  return rows.slice(1).map(r => ({
+    date: r[0] instanceof Date ? Utilities.formatDate(r[0],'Asia/Bangkok','dd/MM/yyyy') : r[0]+'',
+    timestamp:r[1]+'', name:r[2]+'', branch:r[3]+'',
+    round:r[4]+'', roundTime:r[5]+'', lat:r[6]+'', lng:r[7]+'',
+    accuracy:r[8]+'', mapsLink:r[9]+'', photo:r[10]+'',
+    checkoutTime:r[11]+'', geofenceAlert:r[12]+'', checkoutPhoto:r[13]+'',
+    checkoutGeofenceAlert:r[14]+'', checkoutLat:r[15]+'', checkoutLng:r[16]+'',
+    checkoutMapsLink:r[17]+'', deletedAt:r[18]+'', deletedBy:r[19]+''
+  })).reverse();
 }
 
 function readUsers() {
