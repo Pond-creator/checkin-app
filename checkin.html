@@ -318,7 +318,7 @@ body { font-family: 'Sarabun', sans-serif; background: #f0f2f5; min-height: 100v
     </div>
     <div class="ex-form-row">
       <label>📋 ประเภทงาน</label>
-      <select id="ex-task-type">
+      <select id="ex-task-type" onchange="onTaskTypeChange()">
         <option value="เข้าปฏิบัติงานปกติ">เข้าปฏิบัติงานปกติ</option>
         <option value="เติมสินค้า">เติมสินค้า</option>
         <option value="เช็คสินค้า">เช็คสินค้า</option>
@@ -327,6 +327,8 @@ body { font-family: 'Sarabun', sans-serif; background: #f0f2f5; min-height: 100v
         <option value="ติดต่องานสาขา">ติดต่องานสาขา</option>
         <option value="อื่นๆ">อื่นๆ</option>
       </select>
+      <input id="ex-task-other" type="text" placeholder="ระบุประเภทงาน..." maxlength="60"
+        style="display:none;margin-top:8px;">
     </div>
     <div class="ex-actions">
       <button onclick="closeExtraModal()" style="background:#f6f8fa;color:#57606a;">ยกเลิก</button>
@@ -388,7 +390,7 @@ body { font-family: 'Sarabun', sans-serif; background: #f0f2f5; min-height: 100v
       <div class="summary" id="m-summary"></div>
       <div id="task-type-row" style="margin-bottom:12px">
         <div style="font-size:12px;font-weight:700;color:#57606a;margin-bottom:5px">📋 ประเภทงาน</div>
-        <select id="task-type-sel" style="width:100%;padding:10px 12px;border:1.5px solid #d0d7de;border-radius:8px;font-size:14px;font-family:inherit;outline:none">
+        <select id="task-type-sel" style="width:100%;padding:10px 12px;border:1.5px solid #d0d7de;border-radius:8px;font-size:14px;font-family:inherit;outline:none" onchange="document.getElementById('task-type-other').style.display=this.value==='อื่นๆ'?'':'none'">
           <option value="เข้าปฏิบัติงานปกติ">เข้าปฏิบัติงานปกติ</option>
           <option value="เติมสินค้า">เติมสินค้า</option>
           <option value="เช็คสินค้า">เช็คสินค้า</option>
@@ -397,6 +399,8 @@ body { font-family: 'Sarabun', sans-serif; background: #f0f2f5; min-height: 100v
           <option value="ติดต่องานสาขา">ติดต่องานสาขา</option>
           <option value="อื่นๆ">อื่นๆ</option>
         </select>
+        <input id="task-type-other" type="text" placeholder="ระบุประเภทงาน..." maxlength="60"
+          style="display:none;margin-top:8px;width:100%;padding:10px 12px;border:1.5px solid #d0d7de;border-radius:8px;font-size:14px;font-family:inherit;outline:none">
       </div>
       <button class="btn btn-green" id="btn-confirm-submit" onclick="checkoutIdx!=null?submitCheckout():submit()">✅ ยืนยัน Check-In</button>
       <button class="btn btn-ghost" onclick="backToCam()">← ถ่ายรูปใหม่</button>
@@ -704,6 +708,12 @@ function onLocationSelChange() {
   if (isOther) document.getElementById('ex-location-other').focus();
 }
 
+function onTaskTypeChange() {
+  const isOther = document.getElementById('ex-task-type').value === 'อื่นๆ';
+  document.getElementById('ex-task-other').style.display = isOther ? '' : 'none';
+  if (isOther) document.getElementById('ex-task-other').focus();
+}
+
 function closeExtraModal() { document.getElementById('extra-modal-bg').classList.remove('open'); }
 
 function confirmAddExtra() {
@@ -725,7 +735,10 @@ function confirmAddExtra() {
 
   const extra = getExtraRounds();
   const num   = extra.length + 1;
-  const taskType = document.getElementById('ex-task-type').value || '';
+  const taskTypeSel = document.getElementById('ex-task-type').value || '';
+  const taskType = taskTypeSel === 'อื่นๆ'
+    ? (document.getElementById('ex-task-other').value.trim() || 'อื่นๆ')
+    : taskTypeSel;
   extra.push({ name: `งาน ${num}`, start, end, location, taskType });
   store.set('extraRounds_'+todayKey(), JSON.stringify(extra));
   closeExtraModal();
@@ -891,7 +904,9 @@ async function submit() {
     timestamp: ts, lat: gps.lat, lng: gps.lng, accuracy: gps.acc,
     mapsLink: `https://maps.google.com/?q=${gps.lat},${gps.lng}`,
     photo: photo || '',
-    taskType: r.taskType || document.getElementById('task-type-sel').value || ''
+    taskType: r.taskType || (document.getElementById('task-type-sel').value === 'อื่นๆ'
+      ? (document.getElementById('task-type-other').value.trim() || 'อื่นๆ')
+      : document.getElementById('task-type-sel').value) || ''
   };
   if (gps) store.set('gps_ci_' + todayKey() + '_' + r.start, JSON.stringify({ lat: gps.lat, lng: gps.lng }));
   try { await fetch(SCRIPT_URL, { method:'POST', mode:'no-cors', headers:{'Content-Type':'application/json'}, body:JSON.stringify(payload) }); } catch(e) {}
