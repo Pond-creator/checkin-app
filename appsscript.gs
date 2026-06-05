@@ -178,7 +178,8 @@ function saveCheckout(data) {
   const mapsOutLine = (data.checkoutLat && data.checkoutLng)
     ? `\n📍 GPS จบงาน: https://maps.google.com/?q=${data.checkoutLat},${data.checkoutLng}` : '';
   const alertOutLine = data.checkoutGeofenceAlert ? `\n🚨 ${data.checkoutGeofenceAlert}` : '';
-  sendLineNotify(`✅ จบงาน\n👤 ${data.name||''}\n📍 ${data.branch||''} (${data.round||''})\n🕐 ${timeStr}${mapsOutLine}${alertOutLine}`);
+  const checkoutStatus = data.checkoutGeofenceAlert ? '⚠️ จบงานผิดปกติ' : '✅ จบงานแล้ว';
+  sendLineNotify(`${checkoutStatus}\n👤 ${data.name||''}\n📍 ${data.branch||''} (${data.round||''})\n🕐 ${timeStr}${mapsOutLine}${alertOutLine}`);
 
   return jsonOK({ success: true });
 }
