@@ -564,19 +564,29 @@ function getUsedMinutes() {
 
 function buildTimeOpts(disabledMins = new Set()) {
   const nowM = nowMins();
-  let html = '';
+  // รวบรวม slots ทั้งหมดก่อน
+  const slots = [];
   for (let h = 0; h <= 23; h++) {
-    const hh = String(h).padStart(2,'0');
     for (const m of [0, 30]) {
-      const mins = h * 60 + m;
-      const val  = `${hh}:${m===0?'00':'30'}`;
-      const busy = disabledMins.has(mins);
-      const past = mins < nowM;
-      const dis  = busy || past;
-      const label = busy ? ' 🔒' : past ? ' ผ่านแล้ว' : '';
-      html += `<option value="${val}" ${dis?'disabled style="color:#ccc;background:#f6f8fa"':''}>${val}${label}</option>`;
+      slots.push(h * 60 + m);
     }
   }
+  // หา past slots ทั้งหมด แล้วเก็บแค่ 3 ล่าสุด
+  const pastSlots = slots.filter(mins => mins < nowM);
+  const showPast  = new Set(pastSlots.slice(-3));
+
+  let html = '';
+  slots.forEach(mins => {
+    const h   = Math.floor(mins / 60);
+    const m   = mins % 60;
+    const val = `${String(h).padStart(2,'0')}:${m===0?'00':'30'}`;
+    const busy = disabledMins.has(mins);
+    const past = mins < nowM;
+    if (past && !showPast.has(mins)) return; // ซ่อน past ที่เกิน 3
+    const dis   = busy || past;
+    const label = busy ? ' 🔒' : past ? ' ผ่านแล้ว' : '';
+    html += `<option value="${val}" ${dis?'disabled style="color:#ccc;background:#f6f8fa"':''}>${val}${label}</option>`;
+  });
   html += `<option value="24:00">24:00</option>`;
   return html;
 }
