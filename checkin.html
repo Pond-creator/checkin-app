@@ -316,6 +316,18 @@ body { font-family: 'Sarabun', sans-serif; background: #f0f2f5; min-height: 100v
       <input id="ex-location-other" type="text" placeholder="พิมพ์สถานที่..." maxlength="60"
         style="display:none;margin-top:8px;">
     </div>
+    <div class="ex-form-row">
+      <label>📋 ประเภทงาน</label>
+      <select id="ex-task-type">
+        <option value="เข้าปฏิบัติงานปกติ">เข้าปฏิบัติงานปกติ</option>
+        <option value="เติมสินค้า">เติมสินค้า</option>
+        <option value="เช็คสินค้า">เช็คสินค้า</option>
+        <option value="จัดหน้าร้าน">จัดหน้าร้าน</option>
+        <option value="ตรวจสอบสินค้า">ตรวจสอบสินค้า</option>
+        <option value="ติดต่องานสาขา">ติดต่องานสาขา</option>
+        <option value="อื่นๆ">อื่นๆ</option>
+      </select>
+    </div>
     <div class="ex-actions">
       <button onclick="closeExtraModal()" style="background:#f6f8fa;color:#57606a;">ยกเลิก</button>
       <button onclick="confirmAddExtra()" style="background:#0969da;color:#fff;">➕ เพิ่มรอบ</button>
@@ -713,7 +725,8 @@ function confirmAddExtra() {
 
   const extra = getExtraRounds();
   const num   = extra.length + 1;
-  extra.push({ name: `งาน ${num}`, start, end, location });
+  const taskType = document.getElementById('ex-task-type').value || '';
+  extra.push({ name: `งาน ${num}`, start, end, location, taskType });
   store.set('extraRounds_'+todayKey(), JSON.stringify(extra));
   closeExtraModal();
   renderRounds();
@@ -878,7 +891,7 @@ async function submit() {
     timestamp: ts, lat: gps.lat, lng: gps.lng, accuracy: gps.acc,
     mapsLink: `https://maps.google.com/?q=${gps.lat},${gps.lng}`,
     photo: photo || '',
-    taskType: document.getElementById('task-type-sel').value || ''
+    taskType: r.taskType || document.getElementById('task-type-sel').value || ''
   };
   if (gps) store.set('gps_ci_' + todayKey() + '_' + r.start, JSON.stringify({ lat: gps.lat, lng: gps.lng }));
   try { await fetch(SCRIPT_URL, { method:'POST', mode:'no-cors', headers:{'Content-Type':'application/json'}, body:JSON.stringify(payload) }); } catch(e) {}
