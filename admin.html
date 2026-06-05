@@ -781,6 +781,7 @@ const HR_IN  = '10:30';
 const HR_OUT = '19:00';
 const DAYS_TH = ['อา','จ','อ','พ','พฤ','ศ','ส'];
 let hrData = [];
+let hrSummary = {};
 
 function initHR() {
   const sel = document.getElementById('hr-month');
@@ -931,6 +932,9 @@ async function loadHR() {
 
   document.getElementById('hr-table').style.display = rowIdx ? '' : 'none';
   document.getElementById('hr-empty').style.display = rowIdx ? 'none' : 'block';
+
+  // เก็บ summary ไว้ใช้ตอน export
+  hrSummary = { emp, month, workDays, totalWork, totalLate, totalEarly, totalOT, noOut };
 }
 
 function exportHRCSV() {
@@ -939,9 +943,25 @@ function exportHRCSV() {
   if (!emp || !month) { alert('กรุณาโหลดรายงานก่อน'); return; }
   const rows = [...document.querySelectorAll('#hr-body tr')];
   if (!rows.length) { alert('ไม่มีข้อมูล'); return; }
-  const headers = ['#','วันที่','วัน','เวลาเข้า','เวลาออก','สาย','ออกก่อนเวลา','OT','หมายเหตุ'];
+
+  const s = hrSummary;
+  const summaryRows = [
+    [`รายงานเวลาทำงาน — ${s.emp||emp} — ${s.month||month}`],
+    [],
+    ['📊 สรุปรายเดือน'],
+    ['วันทำงาน', `${s.workDays} วัน`],
+    ['ชั่วโมงรวม', minsToHM(s.totalWork)],
+    ['สาย (รวม)', minsToHM(s.totalLate)],
+    ['ออกก่อนเวลา (รวม)', minsToHM(s.totalEarly)],
+    ['OT (รวม)', minsToHM(s.totalOT)],
+    ['ไม่มีเวลาออก', `${s.noOut} วัน`],
+    [],
+    ['#','วันที่','วัน','เวลาเข้า','เวลาออก','สาย','ออกก่อนเวลา','OT','หมายเหตุ'],
+  ];
+
   const data = rows.map(tr => [...tr.querySelectorAll('td')].map(td => td.innerText.replace(/\n/g,' ').trim()));
-  const csv = [headers, ...data].map(r=>r.map(v=>`"${v.replace(/"/g,'""')}"`).join(',')).join('\n');
+  const allRows = [...summaryRows, ...data];
+  const csv = allRows.map(r => r.map(v=>`"${(v||'').replace(/"/g,'""')}"`).join(',')).join('\n');
   const a = document.createElement('a');
   a.href = URL.createObjectURL(new Blob(['﻿'+csv],{type:'text/csv;charset=utf-8'}));
   a.download = `hr_${emp}_${month}.csv`; a.click();
