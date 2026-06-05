@@ -798,6 +798,7 @@ function saveCfg()  { const v=document.getElementById('cfg-url').value.trim(); i
 
 // ── Init ───────────────────────────────────────────
 setLogRange('today', true);
+if (getUrl()) loadLog();
 </script>
 </body>
 </html>
