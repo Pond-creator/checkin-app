@@ -154,8 +154,8 @@ tr:hover td { background:#f6f8fa; }
 
 <div class="tabs" id="main-tabs">
   <div class="tab active" onclick="switchTab('log')">📋 Check-in Log</div>
-  <div class="tab" onclick="switchTab('users')">👥 ผู้ใช้งาน</div>
   <div class="tab" onclick="switchTab('hr')">🕐 เวลาทำงาน</div>
+  <div class="tab" id="tab-users-btn" style="display:none" onclick="switchTab('users')">👥 ผู้ใช้งาน</div>
   <div class="tab" id="tab-deleted-btn" style="display:none" onclick="switchTab('deleted')">🗑️ Deleted Log</div>
 </div>
 
@@ -359,13 +359,14 @@ function todayStr()  { return fmtDate(new Date()); }
 // ── Init role-based UI ─────────────────────────────
 if (IS_ADMIN) {
   document.getElementById('tab-deleted-btn').style.display = '';
+  document.getElementById('tab-users-btn').style.display   = '';
   document.getElementById('btn-edit-mode').style.display   = '';
 }
 
 // ── Tab ────────────────────────────────────────────
 function switchTab(name) {
   if (name === 'deleted' && !IS_ADMIN) return;
-  const tabs = ['log','users','hr','deleted'];
+  const tabs = ['log','hr','users','deleted'];
   document.querySelectorAll('.tab').forEach((t,i) => t.classList.toggle('active', tabs[i]===name));
   document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
   document.getElementById('tab-'+name).classList.add('active');
