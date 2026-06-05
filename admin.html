@@ -611,9 +611,30 @@ function setLogRange(mode, noRender) {
 function exportCSV() {
   const rows = getFiltered();
   if (!rows.length) { alert('ไม่มีข้อมูล'); return; }
-  const h = ['ชื่อ','สาขา','รอบ','เวลา','จบงาน','Latitude','Longitude','ความแม่นยำ','Google Maps','แจ้งเตือน GPS'];
-  const csv = [h, ...rows.map(r=>[r.name,r.branch,r.round,r.timestamp,r.checkoutTime||'',r.lat,r.lng,r.accuracy?`±${r.accuracy}m`:'',r.mapsLink||'',r.geofenceAlert||''])
-    .map(row=>row.map(v=>`"${(v||'').replace(/"/g,'""')}"`).join(','))].join('\n');
+  const h = [
+    'ชื่อ','สาขา','รอบ',
+    'เวลาเช็กอิน','เวลาจบงาน','สถานะ',
+    'Lat เช็กอิน','Lng เช็กอิน','ความแม่นยำ','Maps เช็กอิน',
+    'แจ้งเตือน GPS เช็กอิน',
+    'Lat จบงาน','Lng จบงาน','Maps จบงาน',
+    'แจ้งเตือน GPS จบงาน'
+  ];
+  const csv = [h, ...rows.map(r => {
+    const co = (r.checkoutTime||'').trim();
+    const status = co
+      ? (r.checkoutGeofenceAlert ? 'จบงานผิดปกติ' : 'จบงานปกติ')
+      : 'ยังไม่จบงาน';
+    const mapsIn  = r.mapsLink || (r.lat&&r.lng ? `https://maps.google.com/?q=${r.lat},${r.lng}` : '');
+    const mapsOut = r.checkoutMapsLink || (r.checkoutLat&&r.checkoutLng ? `https://maps.google.com/?q=${r.checkoutLat},${r.checkoutLng}` : '');
+    return [
+      r.name, r.branch, r.round,
+      cleanTime(r.timestamp), cleanTime(co), status,
+      r.lat||'', r.lng||'', r.accuracy?`±${r.accuracy}m`:'', mapsIn,
+      r.geofenceAlert||'',
+      r.checkoutLat||'', r.checkoutLng||'', mapsOut,
+      r.checkoutGeofenceAlert||''
+    ];
+  }).map(row => row.map(v=>`"${(v||'').replace(/"/g,'""')}"`).join(','))].join('\n');
   const a = document.createElement('a');
   a.href = URL.createObjectURL(new Blob(['﻿'+csv],{type:'text/csv;charset=utf-8'}));
   a.download = `checkin_${todayStr()}.csv`; a.click();
