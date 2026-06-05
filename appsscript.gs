@@ -13,7 +13,7 @@ const LOG_HEADERS = [
   'วันที่','เวลา Check-in','ชื่อ','สาขา',
   'รอบ','ช่วงเวลา','Latitude','Longitude',
   'ความแม่นยำ (m)','Google Maps','รูปภาพ URL','เวลาจบงาน','แจ้งเตือน GPS','รูปภาพจบงาน',
-  'แจ้งเตือน GPS จบงาน','Lat จบงาน','Lng จบงาน','Google Maps จบงาน'
+  'แจ้งเตือน GPS จบงาน','Lat จบงาน','Lng จบงาน','Google Maps จบงาน','ประเภทงาน'
 ];
 const PLAN_HEADERS = [
   'ID','ชื่อพนักงาน','วันที่','เวลาเริ่ม','เวลาสิ้นสุด',
@@ -25,7 +25,7 @@ const DELETED_HEADERS = [
   'วันที่','เวลา Check-in','ชื่อ','สาขา',
   'รอบ','ช่วงเวลา','Latitude','Longitude',
   'ความแม่นยำ (m)','Google Maps','รูปภาพ URL','เวลาจบงาน','แจ้งเตือน GPS','รูปภาพจบงาน',
-  'แจ้งเตือน GPS จบงาน','Lat จบงาน','Lng จบงาน','Google Maps จบงาน',
+  'แจ้งเตือน GPS จบงาน','Lat จบงาน','Lng จบงาน','Google Maps จบงาน','ประเภทงาน',
   'ลบเมื่อ','ลบโดย'
 ];
 
@@ -108,16 +108,19 @@ function saveCheckin(data) {
   const row = [
     dateStr, timeStr, data.name||'', data.branch||'',
     data.round||'', data.roundTime||'', data.lat||'', data.lng||'',
-    data.accuracy||'', mapsUrl, photoUrl, '', data.geofenceAlert||''
+    data.accuracy||'', mapsUrl, photoUrl, '', data.geofenceAlert||'',
+    '', '', '', '', '',   // placeholder cols 14-18 (checkout fields)
+    data.taskType||''     // col 19 = ประเภทงาน
   ];
 
   appendRow(MASTER_SHEET, LOG_HEADERS, row);
   if (data.name) appendRow('👤 '+data.name.trim(), LOG_HEADERS, row);
 
   // แจ้งเตือน LINE
-  const mapsLine = mapsUrl ? `\n📍 GPS: ${mapsUrl}` : '';
-  const alertLine = data.geofenceAlert ? `\n🚨 ${data.geofenceAlert}` : '';
-  sendLineNotify(`🏁 เช็กอิน\n👤 ${data.name||''}\n📍 ${data.branch||''} (${data.round||''})\n🕐 ${timeStr}${mapsLine}${alertLine}`);
+  const mapsLine   = mapsUrl ? `\n📍 GPS: ${mapsUrl}` : '';
+  const alertLine  = data.geofenceAlert ? `\n🚨 ${data.geofenceAlert}` : '';
+  const taskLine   = data.taskType ? `\n📋 ${data.taskType}` : '';
+  sendLineNotify(`🏁 เช็กอิน\n👤 ${data.name||''}\n📍 ${data.branch||''} (${data.round||''})\n🕐 ${timeStr}${taskLine}${mapsLine}${alertLine}`);
 
   return jsonOK({ success: true });
 }
@@ -376,7 +379,7 @@ function readLog(sheetName) {
     accuracy:r[8]+'', mapsLink:r[9]+'', photo:r[10]+'',
     checkoutTime:r[11]+'', geofenceAlert:r[12]+'', checkoutPhoto:r[13]+'',
     checkoutGeofenceAlert:r[14]+'', checkoutLat:r[15]+'', checkoutLng:r[16]+'',
-    checkoutMapsLink:r[17]+''
+    checkoutMapsLink:r[17]+'', taskType:r[18]+''
   })).reverse();
 }
 

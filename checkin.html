@@ -374,6 +374,18 @@ body { font-family: 'Sarabun', sans-serif; background: #f0f2f5; min-height: 100v
     <!-- Confirm -->
     <div class="pane" id="pane-confirm">
       <div class="summary" id="m-summary"></div>
+      <div id="task-type-row" style="margin-bottom:12px">
+        <div style="font-size:12px;font-weight:700;color:#57606a;margin-bottom:5px">📋 ประเภทงาน</div>
+        <select id="task-type-sel" style="width:100%;padding:10px 12px;border:1.5px solid #d0d7de;border-radius:8px;font-size:14px;font-family:inherit;outline:none">
+          <option value="เข้าปฏิบัติงานปกติ">เข้าปฏิบัติงานปกติ</option>
+          <option value="เติมสินค้า">เติมสินค้า</option>
+          <option value="เช็คสินค้า">เช็คสินค้า</option>
+          <option value="จัดหน้าร้าน">จัดหน้าร้าน</option>
+          <option value="ตรวจสอบสินค้า">ตรวจสอบสินค้า</option>
+          <option value="ติดต่องานสาขา">ติดต่องานสาขา</option>
+          <option value="อื่นๆ">อื่นๆ</option>
+        </select>
+      </div>
       <button class="btn btn-green" id="btn-confirm-submit" onclick="checkoutIdx!=null?submitCheckout():submit()">✅ ยืนยัน Check-In</button>
       <button class="btn btn-ghost" onclick="backToCam()">← ถ่ายรูปใหม่</button>
     </div>
@@ -841,13 +853,15 @@ function showConfirm() {
   const idx = checkoutIdx != null ? checkoutIdx : curRound;
   const r   = getAllRounds()[idx];
   const br  = r ? r.location : '';
+  const isCheckout = checkoutIdx != null;
   document.getElementById('m-summary').innerHTML = `
     <div class="summary-row"><span class="lbl">ชื่อ</span><span class="val">${MY_NAME}</span></div>
     <div class="summary-row"><span class="lbl">สาขา</span><span class="val">${br||'-'}</span></div>
     <div class="summary-row"><span class="lbl">รอบ</span><span class="val">${r?r.name:'-'}</span></div>
     <div class="summary-row"><span class="lbl">เวลา</span><span class="val">${nowTS().split(' ')[1]}</span></div>
     <div class="summary-row"><span class="lbl">GPS</span><span class="val" style="font-size:11px">${gps?gps.lat:'ไม่มี'}</span></div>`;
-  document.getElementById('btn-confirm-submit').textContent = checkoutIdx != null ? '🏁 ยืนยันจบงาน' : '✅ ยืนยัน Check-In';
+  document.getElementById('task-type-row').style.display = isCheckout ? 'none' : '';
+  document.getElementById('btn-confirm-submit').textContent = isCheckout ? '🏁 ยืนยันจบงาน' : '✅ ยืนยัน Check-In';
 }
 
 function backToGps() { stopStream(); clearInterval(ovTimer); setStep(0); showPane('gps'); }
@@ -863,7 +877,8 @@ async function submit() {
     name: MY_NAME, branch: br, round: r.name, roundTime: `${r.start}-${r.end}`,
     timestamp: ts, lat: gps.lat, lng: gps.lng, accuracy: gps.acc,
     mapsLink: `https://maps.google.com/?q=${gps.lat},${gps.lng}`,
-    photo: photo || ''
+    photo: photo || '',
+    taskType: document.getElementById('task-type-sel').value || ''
   };
   if (gps) store.set('gps_ci_' + todayKey() + '_' + r.start, JSON.stringify({ lat: gps.lat, lng: gps.lng }));
   try { await fetch(SCRIPT_URL, { method:'POST', mode:'no-cors', headers:{'Content-Type':'application/json'}, body:JSON.stringify(payload) }); } catch(e) {}
