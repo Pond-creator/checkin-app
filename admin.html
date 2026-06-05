@@ -8,72 +8,48 @@
 * { box-sizing: border-box; margin: 0; padding: 0; }
 body { font-family: 'Sarabun', sans-serif; background: #f6f8fa; min-height: 100vh; }
 
-/* ── Top bar ── */
-.topbar {
-  background: #0d1117; color: #58a6ff;
-  padding: 12px 20px; display: flex; justify-content: space-between; align-items: center;
-}
+/* Top bar */
+.topbar { background: #0d1117; color: #58a6ff; padding: 12px 20px; display: flex; justify-content: space-between; align-items: center; }
 .topbar h1 { font-size: 15px; font-weight: 700; letter-spacing: 1px; }
 .topbar-right { display: flex; gap: 10px; align-items: center; }
 .topbar span { font-size: 12px; color: #8b949e; }
-.btn-nav {
-  background: rgba(255,255,255,0.1); border: none; color: #e6edf3;
-  font-size: 16px; padding: 5px 10px; border-radius: 7px; cursor: pointer;
-}
+.btn-nav { background: rgba(255,255,255,0.1); border: none; color: #e6edf3; font-size: 16px; padding: 5px 10px; border-radius: 7px; cursor: pointer; }
 
-/* ── Nav Drawer ── */
+/* Nav Drawer */
 .nav-overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,.5); z-index:600; }
 .nav-overlay.open { display:block; }
-.nav-drawer {
-  position:fixed; top:0; right:-260px; width:240px; height:100%;
-  background:#fff; z-index:601; transition:right .25s ease;
-  display:flex; flex-direction:column; box-shadow:-4px 0 20px rgba(0,0,0,.2);
-}
+.nav-drawer { position:fixed; top:0; right:-260px; width:240px; height:100%; background:#fff; z-index:601; transition:right .25s ease; display:flex; flex-direction:column; box-shadow:-4px 0 20px rgba(0,0,0,.2); }
 .nav-drawer.open { right:0; }
 .nav-header { background:#0d1117; padding:18px 16px; color:#e6edf3; }
 .nav-header .nav-name { font-size:15px; font-weight:700; }
 .nav-header .nav-role { font-size:11px; color:#58a6ff; text-transform:uppercase; letter-spacing:1px; margin-top:2px; }
 .nav-items { flex:1; padding:8px 0; }
-.nav-item {
-  display:flex; align-items:center; gap:10px; padding:13px 18px;
-  font-size:14px; color:#1f2328; cursor:pointer; border-bottom:1px solid #f6f8fa;
-  text-decoration:none;
-}
+.nav-item { display:flex; align-items:center; gap:10px; padding:13px 18px; font-size:14px; color:#1f2328; cursor:pointer; border-bottom:1px solid #f6f8fa; text-decoration:none; }
 .nav-item:hover { background:#f6f8fa; }
 .nav-item .ni { font-size:18px; width:26px; text-align:center; }
-.nav-logout {
-  padding:14px 18px; border-top:1px solid #e1e4e8;
-  display:flex; align-items:center; gap:10px; font-size:14px; color:#cf222e; cursor:pointer;
-}
+.nav-logout { padding:14px 18px; border-top:1px solid #e1e4e8; display:flex; align-items:center; gap:10px; font-size:14px; color:#cf222e; cursor:pointer; }
 .nav-logout:hover { background:#ffebe9; }
 
-/* ── Tabs ── */
+/* Tabs */
 .tabs { background:#161b22; display:flex; border-bottom:2px solid #30363d; overflow-x:auto; }
-.tab {
-  padding:11px 20px; font-size:13px; font-weight:600; cursor:pointer;
-  color:#8b949e; border-bottom:2px solid transparent; margin-bottom:-2px;
-  white-space:nowrap; transition:all .2s;
-}
+.tab { padding:11px 20px; font-size:13px; font-weight:600; cursor:pointer; color:#8b949e; border-bottom:2px solid transparent; margin-bottom:-2px; white-space:nowrap; transition:all .2s; }
 .tab.active { color:#58a6ff; border-bottom-color:#58a6ff; }
 .tab:hover:not(.active) { color:#e6edf3; }
 .tab-content { display:none; }
 .tab-content.active { display:block; }
 
-/* ── Toolbar ── */
-.toolbar {
-  background:#fff; border-bottom:1px solid #d0d7de;
-  padding:10px 20px; display:flex; gap:8px; flex-wrap:wrap; align-items:center;
-}
+/* Toolbar */
+.toolbar { background:#fff; border-bottom:1px solid #d0d7de; padding:10px 20px; display:flex; gap:8px; flex-wrap:wrap; align-items:center; }
 .btn { padding:7px 14px; border-radius:8px; border:none; cursor:pointer; font-size:13px; font-weight:600; font-family:inherit; }
 .btn-primary { background:#0969da; color:#fff; }
 .btn-success { background:#1a7f37; color:#fff; }
 .btn-outline { background:#fff; color:#57606a; border:1px solid #d0d7de; }
-.btn-danger  { background:#cf222e; color:#fff; }
-.toolbar input, .toolbar select {
-  padding:7px 12px; border:1px solid #d0d7de; border-radius:8px; font-size:13px;
-}
+.toolbar input, .toolbar select { padding:7px 12px; border:1px solid #d0d7de; border-radius:8px; font-size:13px; font-family:inherit; }
+.view-toggle { display:flex; border:1px solid #d0d7de; border-radius:8px; overflow:hidden; }
+.view-toggle button { padding:6px 12px; border:none; background:#fff; cursor:pointer; font-size:12px; color:#57606a; font-weight:600; font-family:inherit; }
+.view-toggle button.on { background:#0969da; color:#fff; }
 
-/* ── Stats ── */
+/* Stats */
 .stats { display:flex; gap:10px; padding:14px 20px; flex-wrap:wrap; }
 .stat { background:#fff; border-radius:10px; padding:12px 18px; border:1px solid #d0d7de; flex:1; min-width:110px; }
 .stat .n { font-size:26px; font-weight:700; color:#1f2328; }
@@ -83,136 +59,30 @@ body { font-family: 'Sarabun', sans-serif; background: #f6f8fa; min-height: 100v
 .stat-btn.active { border-color:#0969da; background:#ddf4ff; box-shadow:0 0 0 2px #0969da33; }
 .stat-btn.active .l { color:#0969da; font-weight:700; }
 
-/* ── Log table ── */
+/* Table */
 .tbl-wrap { padding:0 20px 24px; overflow-x:auto; }
-table { width:100%; border-collapse:collapse; background:#fff;
-  border-radius:10px; overflow:hidden; box-shadow:0 1px 3px rgba(0,0,0,.07); }
+table { width:100%; border-collapse:collapse; background:#fff; border-radius:10px; overflow:hidden; box-shadow:0 1px 3px rgba(0,0,0,.07); }
 thead { background:#f6f8fa; }
-th { padding:10px 12px; text-align:left; font-size:12px; font-weight:700;
-  color:#57606a; border-bottom:1px solid #d0d7de; white-space:nowrap; }
+th { padding:10px 12px; text-align:left; font-size:12px; font-weight:700; color:#57606a; border-bottom:1px solid #d0d7de; white-space:nowrap; }
 td { padding:10px 12px; font-size:13px; border-bottom:1px solid #f0f2f5; vertical-align:middle; }
 tr:last-child td { border-bottom:none; }
 tr:hover td { background:#f6f8fa; }
 
 .badge { display:inline-block; padding:2px 8px; border-radius:20px; font-size:11px; font-weight:700; }
-.b-m { background:#fff8c5; color:#9a6700; }
-.b-n { background:#ddf4ff; color:#0969da; }
-.b-e { background:#ffebe9; color:#cf222e; }
-.b-k { background:#f0f0ff; color:#6e40c9; }
 .b-special { background:#fdf0ff; color:#8250df; }
 .alert-badge { background:#ffebe9; color:#cf222e; font-size:10px; padding:2px 6px; border-radius:20px; }
 .gps-a { color:#0969da; font-size:11px; text-decoration:none; }
 .photo-th { width:44px; height:44px; object-fit:cover; border-radius:6px; cursor:pointer; border:1px solid #d0d7de; }
-.no-ph { width:44px; height:44px; background:#f6f8fa; border-radius:6px;
-  display:flex; align-items:center; justify-content:center; font-size:18px; border:1px solid #d0d7de; }
+.no-ph { width:44px; height:44px; background:#f6f8fa; border-radius:6px; display:flex; align-items:center; justify-content:center; font-size:18px; border:1px solid #d0d7de; }
 .empty { text-align:center; padding:48px 20px; color:#8c959f; }
 .empty .ic { font-size:40px; margin-bottom:10px; }
 
-/* ── PLAN TAB ── */
-.plan-toolbar {
-  background:#fff; border-bottom:1px solid #d0d7de;
-  padding:10px 20px; display:flex; gap:8px; align-items:center; flex-wrap:wrap;
-}
-.plan-toolbar .nav-btn {
-  padding:7px 12px; border-radius:8px; border:1px solid #d0d7de;
-  background:#fff; cursor:pointer; font-size:14px; color:#57606a;
-}
-.plan-toolbar .nav-btn:hover { background:#f6f8fa; }
-.plan-toolbar .current-range {
-  font-size:14px; font-weight:700; color:#1f2328; min-width:180px; text-align:center;
-}
-.view-toggle { display:flex; border:1px solid #d0d7de; border-radius:8px; overflow:hidden; }
-.view-toggle button {
-  padding:6px 14px; border:none; background:#fff; cursor:pointer;
-  font-size:13px; color:#57606a; font-weight:600; font-family:inherit;
-}
-.view-toggle button.on { background:#0969da; color:#fff; }
-.cal-wrap { padding:16px 20px 24px; overflow-x:auto; }
-.cal-grid { min-width:700px; border-radius:10px; overflow:hidden; box-shadow:0 1px 3px rgba(0,0,0,.08); }
-.week-table { width:100%; border-collapse:collapse; background:#fff; }
-.week-table th { background:#f6f8fa; padding:10px 8px; font-size:12px; font-weight:700;
-  color:#57606a; border:1px solid #e1e4e8; text-align:center; }
-.week-table th.today-h { background:#ddf4ff; color:#0969da; }
-.week-table td { border:1px solid #e1e4e8; vertical-align:top; padding:6px;
-  background:#fff; min-width:100px; min-height:70px; cursor:pointer; }
-.week-table td:hover { background:#f6f8fa; }
-.week-table td.today-col { background:#f0f7ff; }
-.week-table .staff-cell { background:#f6f8fa; font-size:13px; font-weight:700;
-  color:#1f2328; padding:10px 12px; white-space:nowrap; cursor:default; }
-.week-table .staff-cell:hover { background:#f6f8fa; }
-.add-btn-cell { color:#0969da; font-size:18px; float:right; opacity:0; transition:opacity .15s; }
-.week-table td:hover .add-btn-cell { opacity:1; }
-.task-chip { background:#0969da; color:#fff; border-radius:6px;
-  padding:4px 8px; font-size:11px; margin-bottom:4px;
-  cursor:pointer; display:flex; justify-content:space-between; align-items:flex-start; gap:4px; }
-.task-chip:hover { background:#0550ae; }
-.task-chip .chip-del { background:rgba(255,255,255,.25); border:none; color:#fff;
-  border-radius:4px; font-size:11px; cursor:pointer; padding:0 4px; flex-shrink:0; }
-.month-table { width:100%; border-collapse:collapse; background:#fff; }
-.month-table th { background:#f6f8fa; padding:8px; font-size:12px; font-weight:700;
-  color:#57606a; border:1px solid #e1e4e8; text-align:center; }
-.month-table td { border:1px solid #e1e4e8; vertical-align:top; padding:6px; min-height:80px; cursor:pointer; }
-.month-table td:hover { background:#f6f8fa; }
-.month-table td.today-day { background:#f0f7ff; }
-.month-table td.other-month { background:#fafafa; }
-.day-num { font-size:12px; font-weight:700; color:#57606a; margin-bottom:4px; }
-.day-num.today { color:#fff; background:#0969da; width:22px; height:22px; border-radius:50%;
-  display:flex; align-items:center; justify-content:center; }
-.month-chip { font-size:10px; padding:2px 6px; border-radius:4px;
-  margin-bottom:2px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
-  background:#ddf4ff; color:#0969da; cursor:pointer; }
-.more-chip { font-size:10px; color:#0969da; cursor:pointer; }
-
-/* ── SUMMARY TAB ── */
-.sum-toolbar {
-  background:#fff; border-bottom:1px solid #d0d7de;
-  padding:12px 20px; display:flex; gap:10px; align-items:center; flex-wrap:wrap;
-}
-.sum-toolbar label { font-size:13px; font-weight:700; color:#57606a; }
-.sum-toolbar input[type=date] { padding:7px 12px; border:1.5px solid #d0d7de; border-radius:8px; font-size:13px; }
-.sum-stats { display:flex; gap:10px; padding:14px 20px; flex-wrap:wrap; }
-.sum-stat { background:#fff; border-radius:10px; padding:14px 20px; border:1px solid #d0d7de; flex:1; min-width:120px; text-align:center; }
-.sum-stat .ss-n { font-size:28px; font-weight:800; }
-.sum-stat .ss-l { font-size:11px; color:#57606a; margin-top:3px; }
-.sum-stat.clickable { cursor:pointer; transition:all .15s; }
-.sum-stat.clickable:hover { border-color:#0969da; background:#f0f7ff; }
-.sum-body { padding:0 20px 28px; }
-.sum-table { width:100%; border-collapse:collapse; background:#fff; border-radius:10px;
-  overflow:hidden; box-shadow:0 1px 3px rgba(0,0,0,.07); margin-top:4px; }
-.sum-table thead { background:#f6f8fa; }
-.sum-table th { padding:10px 14px; text-align:left; font-size:12px; font-weight:700;
-  color:#57606a; border-bottom:1px solid #d0d7de; white-space:nowrap; }
-.sum-table td { padding:10px 14px; font-size:13px; border-bottom:1px solid #f0f2f5; vertical-align:middle; }
-.sum-table tr:last-child td { border-bottom:none; }
-.sum-table tr:hover td { background:#f6f8fa; }
-.sum-num { cursor:pointer; color:#0969da; font-weight:700; text-decoration:underline dotted; }
-.sum-num:hover { color:#0550ae; }
-.prog-bar { background:#e1e4e8; border-radius:20px; height:8px; width:80px; display:inline-block; overflow:hidden; vertical-align:middle; margin-left:6px; }
-.prog-fill { height:100%; border-radius:20px; background:#1a7f37; }
-/* Detail modal for summary */
-.det-modal-bg { display:none; position:fixed; inset:0; background:rgba(0,0,0,.55); z-index:350;
-  align-items:center; justify-content:center; padding:16px; }
-.det-modal-bg.open { display:flex; }
-.det-modal-box { background:#fff; border-radius:16px; padding:24px; width:100%; max-width:560px;
-  max-height:88vh; overflow-y:auto; animation:popIn .2s ease; }
-.det-modal-box h3 { font-size:16px; font-weight:700; margin-bottom:4px; }
-.det-modal-box .sub { font-size:12px; color:#57606a; margin-bottom:16px; }
-.det-section { margin-bottom:16px; }
-.det-section h4 { font-size:13px; font-weight:700; margin-bottom:8px; padding:6px 10px;
-  border-radius:6px; }
-.det-section.done h4 { background:#e6ffed; color:#1a7f37; }
-.det-section.miss h4 { background:#ffebe9; color:#cf222e; }
-.det-row { display:flex; align-items:center; justify-content:space-between;
-  padding:7px 10px; border-radius:6px; font-size:13px; margin-bottom:4px; background:#f6f8fa; }
-
-/* ── USERS TAB ── */
+/* Users */
 .users-wrap { padding:16px 20px 24px; }
-.users-toolbar { display:flex; gap:8px; margin-bottom:14px; flex-wrap:wrap; }
+.users-toolbar { display:flex; gap:8px; margin-bottom:14px; }
 .user-table-wrap { overflow-x:auto; }
-.user-table { width:100%; border-collapse:collapse; background:#fff;
-  border-radius:10px; overflow:hidden; box-shadow:0 1px 3px rgba(0,0,0,.07); }
-.user-table th { background:#f6f8fa; padding:10px 12px; font-size:12px; font-weight:700;
-  color:#57606a; border-bottom:1px solid #d0d7de; text-align:left; }
+.user-table { width:100%; border-collapse:collapse; background:#fff; border-radius:10px; overflow:hidden; box-shadow:0 1px 3px rgba(0,0,0,.07); }
+.user-table th { background:#f6f8fa; padding:10px 12px; font-size:12px; font-weight:700; color:#57606a; border-bottom:1px solid #d0d7de; text-align:left; }
 .user-table td { padding:10px 12px; font-size:13px; border-bottom:1px solid #f0f2f5; }
 .role-badge { display:inline-block; padding:3px 10px; border-radius:20px; font-size:12px; font-weight:700; }
 .role-admin { background:#fff3cd; color:#856404; }
@@ -221,34 +91,26 @@ tr:hover td { background:#f6f8fa; }
 .btn-edit { background:#f6f8fa; color:#57606a; border:1px solid #d0d7de; }
 .btn-del  { background:#ffebe9; color:#cf222e; }
 
-/* ── Task Modal ── */
-.modal-bg { display:none; position:fixed; inset:0; background:rgba(0,0,0,.55); z-index:300;
-  align-items:center; justify-content:center; padding:16px; }
+/* Modal */
+.modal-bg { display:none; position:fixed; inset:0; background:rgba(0,0,0,.55); z-index:300; align-items:center; justify-content:center; padding:16px; }
 .modal-bg.open { display:flex; }
-.modal-box { background:#fff; border-radius:16px; padding:24px; width:100%; max-width:480px;
-  max-height:90vh; overflow-y:auto; animation:popIn .2s ease; }
+.modal-box { background:#fff; border-radius:16px; padding:24px; width:100%; max-width:400px; max-height:90vh; overflow-y:auto; animation:popIn .2s ease; }
 @keyframes popIn { from{transform:scale(.95);opacity:0} to{transform:scale(1);opacity:1} }
 .modal-box h3 { font-size:17px; font-weight:700; margin-bottom:16px; }
 .form-row { margin-bottom:14px; }
 .form-row label { font-size:12px; font-weight:700; color:#57606a; display:block; margin-bottom:5px; }
-.form-row input, .form-row select, .form-row textarea {
-  width:100%; padding:9px 12px; border:1.5px solid #d0d7de;
-  border-radius:8px; font-size:14px; outline:none; font-family:inherit;
-}
-.form-row input:focus, .form-row select:focus, .form-row textarea:focus { border-color:#0969da; }
-.form-row textarea { resize:vertical; min-height:70px; }
-.form-row .row2 { display:flex; gap:10px; }
-.form-row .row2 > * { flex:1; }
+.form-row input, .form-row select { width:100%; padding:9px 12px; border:1.5px solid #d0d7de; border-radius:8px; font-size:14px; outline:none; font-family:inherit; }
+.form-row input:focus, .form-row select:focus { border-color:#0969da; }
 .modal-actions { display:flex; gap:8px; margin-top:20px; }
 .modal-actions button { flex:1; padding:12px; border-radius:10px; border:none; cursor:pointer; font-size:14px; font-weight:700; font-family:inherit; }
 
-/* ── Photo lightbox ── */
+/* Lightbox */
 .lightbox { display:none; position:fixed; inset:0; background:rgba(0,0,0,.85); z-index:400; align-items:center; justify-content:center; }
 .lightbox.open { display:flex; }
 .lightbox img { max-width:90vw; max-height:90vh; border-radius:8px; }
 .lightbox-close { position:absolute; top:16px; right:20px; color:#fff; font-size:28px; cursor:pointer; background:none; border:none; }
 
-/* ── Config modal ── */
+/* Config */
 .cfg-bg { display:none; position:fixed; inset:0; background:rgba(0,0,0,.5); z-index:300; align-items:center; justify-content:center; }
 .cfg-bg.open { display:flex; }
 .cfg-box { background:#fff; border-radius:14px; padding:22px; width:90%; max-width:460px; }
@@ -257,7 +119,7 @@ tr:hover td { background:#f6f8fa; }
 .cfg-box input { width:100%; padding:9px 12px; border:1px solid #d0d7de; border-radius:8px; font-size:13px; margin-bottom:12px; font-family:inherit; }
 .cfg-actions { display:flex; gap:8px; justify-content:flex-end; }
 
-/* ── Spinner ── */
+/* Spinner */
 .spinner { width:32px; height:32px; border:3px solid #e1e4e8; border-top-color:#0969da; border-radius:50%; animation:spin .8s linear infinite; margin:0 auto; }
 @keyframes spin { to{transform:rotate(360deg)} }
 .loading-bar { display:none; background:rgba(0,0,0,.4); position:fixed; inset:0; z-index:500; align-items:center; justify-content:center; }
@@ -275,7 +137,6 @@ tr:hover td { background:#f6f8fa; }
   </div>
 </div>
 
-<!-- Nav Drawer -->
 <div class="nav-overlay" id="nav-overlay" onclick="closeNav()"></div>
 <div class="nav-drawer" id="nav-drawer">
   <div class="nav-header">
@@ -283,33 +144,24 @@ tr:hover td { background:#f6f8fa; }
     <div class="nav-role">ผู้ดูแลระบบ</div>
   </div>
   <div class="nav-items">
-    <div class="nav-item" onclick="location.href='checkin.html'">
-      <span class="ni">🏁</span> Check-In (Staff view)
-    </div>
-    <div class="nav-item" onclick="location.href='admin.html'">
-      <span class="ni">⚡</span> Admin Dashboard
-    </div>
+    <div class="nav-item" onclick="location.href='checkin.html'"><span class="ni">🏁</span> Check-In (Staff)</div>
+    <div class="nav-item" onclick="location.href='admin.html'"><span class="ni">⚡</span> Admin Dashboard</div>
   </div>
-  <div class="nav-logout" onclick="logout()">
-    <span class="ni">🚪</span> ออกจากระบบ
-  </div>
+  <div class="nav-logout" onclick="logout()"><span class="ni">🚪</span> ออกจากระบบ</div>
 </div>
 
-<!-- TABS -->
 <div class="tabs">
   <div class="tab active" onclick="switchTab('log')">📋 Check-in Log</div>
   <div class="tab" onclick="switchTab('users')">👥 ผู้ใช้งาน</div>
   <div class="tab" onclick="switchTab('hr')">🕐 เวลาทำงาน</div>
-  <div class="tab" style="color:#8c959f;cursor:not-allowed;opacity:.45" title="ปิดใช้งานชั่วคราว">📅 แผนงาน</div>
-  <div class="tab" style="color:#8c959f;cursor:not-allowed;opacity:.45" title="ปิดใช้งานชั่วคราว">📊 สรุปแผนงาน</div>
 </div>
 
-<!-- ══════════ TAB: LOG ══════════ -->
+<!-- ══ TAB: LOG ══ -->
 <div class="tab-content active" id="tab-log">
   <div class="toolbar">
     <button class="btn btn-primary" onclick="loadLog()">🔄 โหลดข้อมูล</button>
     <div style="display:flex;gap:4px;align-items:center;flex-wrap:wrap">
-      <div class="view-toggle" style="border-radius:8px;margin-right:4px">
+      <div class="view-toggle">
         <button id="qf-today"  class="on" onclick="setLogRange('today')">วันนี้</button>
         <button id="qf-week"   onclick="setLogRange('week')">สัปดาห์</button>
         <button id="qf-month"  onclick="setLogRange('month')">เดือน</button>
@@ -317,21 +169,13 @@ tr:hover td { background:#f6f8fa; }
         <button id="qf-range"  onclick="setLogRange('range')">ช่วงวันที่</button>
       </div>
       <span style="font-size:12px;color:#57606a">📅 จาก</span>
-      <input type="date" id="f-date-from" onchange="renderLog(true)" style="padding:7px 10px;border:1px solid #d0d7de;border-radius:8px;font-size:13px;">
-      <span id="f-date-sep" style="font-size:12px;color:#57606a">ถึง</span>
-      <input type="date" id="f-date-to" onchange="renderLog(true)" style="padding:7px 10px;border:1px solid #d0d7de;border-radius:8px;font-size:13px;">
-      <input type="hidden" id="f-date">
+      <input type="date" id="f-date-from" onchange="renderLog(true)">
+      <span style="font-size:12px;color:#57606a">ถึง</span>
+      <input type="date" id="f-date-to"   onchange="renderLog(true)">
     </div>
-    <select id="f-user" onchange="renderLog(true)" style="padding:7px 12px;border:1px solid #d0d7de;border-radius:8px;font-size:13px;">
-      <option value="">👤 ทุกคน</option>
-    </select>
-    <select id="f-round" onchange="renderLog(true)" style="display:none">
-      <option value=""></option>
-    </select>
-    <select id="f-branch" onchange="renderLog(true)" style="padding:7px 12px;border:1px solid #d0d7de;border-radius:8px;font-size:13px;">
-      <option value="">📍 ทุกสาขา</option>
-    </select>
-    <select id="f-status" onchange="renderLog(true)" style="padding:7px 12px;border:1px solid #d0d7de;border-radius:8px;font-size:13px;">
+    <select id="f-user"   onchange="renderLog(true)"><option value="">👤 ทุกคน</option></select>
+    <select id="f-branch" onchange="renderLog(true)"><option value="">📍 ทุกสาขา</option></select>
+    <select id="f-status" onchange="renderLog(true)">
       <option value="">🔖 ทุกสถานะ</option>
       <option value="จบงาน">✅ จบงาน</option>
       <option value="ไม่จบงาน">❌ ไม่จบงาน</option>
@@ -341,21 +185,17 @@ tr:hover td { background:#f6f8fa; }
     <button class="btn btn-outline" onclick="openCfg()">⚙ ตั้งค่า</button>
   </div>
   <div class="stats">
-    <div class="stat stat-btn" id="sc-all"        onclick="statFilter('all')">        <div class="n" id="s-all">0</div>        <div class="l">Check-in ทั้งหมด</div></div>
-    <div class="stat stat-btn" id="sc-total" style="display:none"><div class="n" id="s-total">0</div></div>
-    <div class="stat stat-btn" id="sc-special" onclick="statFilter('special')"><div class="n" id="s-special" style="color:#0969da">0</div><div class="l">งาน</div></div>
-
-    <div class="stat stat-btn" id="sc-nocheckout" onclick="statFilter('nocheckout')"> <div class="n" id="s-nocheckout" style="color:#9a3412">0</div><div class="l">ยังไม่จบงาน</div></div>
-    <div class="stat stat-btn" id="sc-alert"      onclick="statFilter('alert')">      <div class="n" id="s-alert" style="color:#cf222e">0</div><div class="l">แจ้งเตือน GPS</div></div>
+    <div class="stat stat-btn" id="sc-all"       onclick="statFilter('all')">      <div class="n" id="s-all">0</div><div class="l">Check-in ทั้งหมด</div></div>
+    <div class="stat stat-btn" id="sc-nocheckout" onclick="statFilter('nocheckout')"><div class="n" id="s-nocheckout" style="color:#9a3412">0</div><div class="l">ยังไม่จบงาน</div></div>
+    <div class="stat stat-btn" id="sc-alert"      onclick="statFilter('alert')">    <div class="n" id="s-alert" style="color:#cf222e">0</div><div class="l">แจ้งเตือน GPS</div></div>
   </div>
   <div class="tbl-wrap">
     <table>
-      <thead id="log-thead">
-        <tr>
-          <th>#</th><th>📷 รูปเช็กอิน</th><th>🏁 รูปจบงาน</th><th>ชื่อ</th><th>สาขา</th>
-          <th>รอบ</th><th>สถานะ</th><th>เวลาเข้า-ออก</th><th>GPS เช็กอิน</th><th>±m</th><th>แจ้งเตือน</th><th>GPS จบงาน</th><th>Maps จบงาน</th>
-        </tr>
-      </thead>
+      <thead><tr>
+        <th>#</th><th>📷 รูปเช็กอิน</th><th>🏁 รูปจบงาน</th><th>ชื่อ</th><th>สาขา</th>
+        <th>รอบ</th><th>สถานะ</th><th>เวลาเข้า-ออก</th><th>GPS เช็กอิน</th><th>±m</th>
+        <th>แจ้งเตือน</th><th>GPS จบงาน</th><th>Maps จบงาน</th>
+      </tr></thead>
       <tbody id="log-body">
         <tr><td colspan="13"><div class="empty"><div class="ic">📋</div>กด "โหลดข้อมูล" หรือ <a href="#" onclick="openCfg();return false">ตั้งค่า URL</a></div></td></tr>
       </tbody>
@@ -363,70 +203,7 @@ tr:hover td { background:#f6f8fa; }
   </div>
 </div>
 
-<!-- ══════════ TAB: PLAN ══════════ -->
-<div class="tab-content" id="tab-plan">
-  <div class="plan-toolbar">
-    <button class="nav-btn" onclick="navPlan(-1)">◀</button>
-    <span class="current-range" id="plan-range"></span>
-    <button class="nav-btn" onclick="navPlan(1)">▶</button>
-    <button class="nav-btn" onclick="goToday()">วันนี้</button>
-    <div class="view-toggle">
-      <button id="vbtn-week" class="on" onclick="setView('week')">สัปดาห์</button>
-      <button id="vbtn-month" onclick="setView('month')">เดือน</button>
-    </div>
-    <button class="btn btn-primary" onclick="openTaskModal()">+ เพิ่มงาน</button>
-    <button class="btn btn-outline" onclick="loadPlan()">🔄 รีเฟรช</button>
-  </div>
-  <div class="cal-wrap"><div class="cal-grid" id="cal-grid"></div></div>
-</div>
-
-<!-- ══════════ TAB: SUMMARY ══════════ -->
-<div class="tab-content" id="tab-summary">
-  <div class="sum-toolbar">
-    <div class="view-toggle" style="border-radius:8px">
-      <button id="sb-day"   class="on" onclick="setSumMode('day')">วันนี้</button>
-      <button id="sb-week"  onclick="setSumMode('week')">สัปดาห์</button>
-      <button id="sb-month" onclick="setSumMode('month')">เดือน</button>
-      <button id="sb-range" onclick="setSumMode('range')">ช่วงวันที่</button>
-    </div>
-    <div id="sum-date-wrap" style="display:flex;align-items:center;gap:6px">
-      <label style="font-size:13px;color:#57606a;font-weight:700" id="sum-date-label">📅</label>
-      <input type="date" id="sum-date-from" onchange="loadSummary()">
-      <span id="sum-date-sep" style="display:none;color:#57606a">ถึง</span>
-      <input type="date" id="sum-date-to" style="display:none" onchange="loadSummary()">
-    </div>
-    <button class="btn btn-primary" onclick="loadSummary()">🔄 โหลดสรุป</button>
-  </div>
-  <div class="sum-stats" id="sum-stats">
-    <div class="sum-stat"><div class="ss-n" id="ss-plans" style="color:#0969da">0</div><div class="ss-l">แผนทั้งหมด</div></div>
-    <div class="sum-stat clickable" onclick="showSumDetail('checkin')" title="คลิกดูรายละเอียด"><div class="ss-n" id="ss-cin" style="color:#1a7f37">0</div><div class="ss-l">เช็กอินแล้ว</div></div>
-    <div class="sum-stat clickable" onclick="showSumDetail('completed')" title="คลิกดูรายละเอียด"><div class="ss-n" id="ss-done" style="color:#1a7f37">0</div><div class="ss-l">จบงานแล้ว</div></div>
-    <div class="sum-stat clickable" onclick="showSumDetail('notyet')" title="คลิกดูรายละเอียด"><div class="ss-n" id="ss-notyet" style="color:#0969da">0</div><div class="ss-l">ยังไม่ถึงเวลา ⏳</div></div>
-    <div class="sum-stat clickable" onclick="showSumDetail('late')" title="คลิกดูรายละเอียด"><div class="ss-n" id="ss-noco" style="color:#d97706">0</div><div class="ss-l">ล่าช้า ⏰</div></div>
-    <div class="sum-stat clickable" onclick="showSumDetail('missing')" title="คลิกดูรายละเอียด"><div class="ss-n" id="ss-miss" style="color:#cf222e">0</div><div class="ss-l">ขาดงาน ❌</div></div>
-    <div class="sum-stat clickable" onclick="showSumDetail('extra')" title="คลิกดูรายละเอียด"><div class="ss-n" id="ss-extra" style="color:#d97706">0</div><div class="ss-l">งานพิเศษ ⭐</div></div>
-    <div class="sum-stat"><div class="ss-n" id="ss-pct" style="color:#6e40c9">0%</div><div class="ss-l">% สำเร็จ (จบงาน)</div></div>
-  </div>
-  <div class="sum-body">
-    <div id="sum-table-wrap">
-      <div class="empty" style="padding:40px 20px"><div class="ic">📊</div>เลือกวันที่แล้วกด "โหลดสรุป"</div>
-    </div>
-  </div>
-</div>
-
-<!-- ══════════ DETAIL MODAL (Summary) ══════════ -->
-<div class="det-modal-bg" id="det-modal">
-  <div class="det-modal-box">
-    <h3 id="det-title">รายละเอียด</h3>
-    <div class="sub" id="det-sub"></div>
-    <div id="det-body"></div>
-    <div style="margin-top:18px;text-align:right">
-      <button class="btn btn-outline" onclick="closeSumDetail()">✕ ปิด</button>
-    </div>
-  </div>
-</div>
-
-<!-- ══════════ TAB: USERS ══════════ -->
+<!-- ══ TAB: USERS ══ -->
 <div class="tab-content" id="tab-users">
   <div class="users-wrap">
     <div class="users-toolbar">
@@ -435,9 +212,7 @@ tr:hover td { background:#f6f8fa; }
     </div>
     <div class="user-table-wrap">
       <table class="user-table">
-        <thead>
-          <tr><th>ID</th><th>ชื่อ</th><th>Role</th><th>จัดการ</th></tr>
-        </thead>
+        <thead><tr><th>ID</th><th>ชื่อ</th><th>Role</th><th>จัดการ</th></tr></thead>
         <tbody id="user-body">
           <tr><td colspan="4" style="text-align:center;padding:30px;color:#8c959f;">กด รีเฟรช เพื่อโหลดรายชื่อ</td></tr>
         </tbody>
@@ -446,20 +221,18 @@ tr:hover td { background:#f6f8fa; }
   </div>
 </div>
 
-<!-- ══════════ TAB: HR ══════════ -->
+<!-- ══ TAB: HR ══ -->
 <div class="tab-content" id="tab-hr">
   <div style="padding:20px">
     <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:16px">
-      <select id="hr-emp" style="padding:7px 12px;border:1px solid #d0d7de;border-radius:8px;font-size:14px">
+      <select id="hr-emp" style="padding:7px 12px;border:1px solid #d0d7de;border-radius:8px;font-size:14px;font-family:inherit">
         <option value="">-- เลือกพนักงาน --</option>
       </select>
       <input type="month" id="hr-month" style="padding:7px 12px;border:1px solid #d0d7de;border-radius:8px;font-size:14px">
       <button class="btn btn-primary" onclick="loadHR()">📊 ดูรายงาน</button>
       <button class="btn btn-outline" onclick="exportHRCSV()">📥 Export CSV</button>
     </div>
-    <!-- Summary cards -->
     <div id="hr-cards" style="display:none;gap:12px;flex-wrap:wrap;margin-bottom:20px"></div>
-    <!-- Table -->
     <div style="overflow-x:auto">
       <table id="hr-table" style="width:100%;border-collapse:collapse;background:#fff;border-radius:10px;overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,.08);display:none">
         <thead>
@@ -485,74 +258,13 @@ tr:hover td { background:#f6f8fa; }
   </div>
 </div>
 
-<!-- ══════════ TASK MODAL ══════════ -->
-<div class="modal-bg" id="task-modal">
-  <div class="modal-box">
-    <h3 id="task-modal-title">➕ เพิ่มงาน</h3>
-    <div class="form-row">
-      <label>👤 พนักงาน *</label>
-      <input id="t-name" list="dl-staff" placeholder="ชื่อพนักงาน" autocomplete="off">
-      <datalist id="dl-staff"></datalist>
-    </div>
-    <div class="form-row">
-      <label>📅 วันที่ *</label>
-      <input id="t-date" type="date">
-    </div>
-    <div class="form-row">
-      <label>⏰ ช่วงเวลา</label>
-      <div class="row2">
-        <select id="t-start"></select>
-        <select id="t-end"></select>
-      </div>
-    </div>
-    <div class="form-row">
-      <label>📍 สาขา / โลเคชั่น *</label>
-      <input id="t-branch" list="dl-branch-plan" placeholder="สาขา" autocomplete="off">
-      <datalist id="dl-branch-plan"></datalist>
-    </div>
-    <div class="form-row">
-      <label>🗂 ประเภทงาน</label>
-      <input id="t-type" list="dl-tasktype" placeholder="เช่น จัดเรียงสินค้า, สาธิตสินค้า" autocomplete="off">
-      <datalist id="dl-tasktype">
-        <option value="จัดเรียงสินค้า"><option value="สาธิตสินค้า"><option value="ตรวจสต็อก">
-        <option value="ติดตั้ง POP"><option value="ประชุมทีม"><option value="อบรม">
-      </datalist>
-    </div>
-    <div class="form-row">
-      <label>🌐 พิกัดสาขา (สำหรับ Geofence) — ไม่บังคับ</label>
-      <div class="row2">
-        <input id="t-lat" type="number" step="any" placeholder="Latitude เช่น 13.7563">
-        <input id="t-lng" type="number" step="any" placeholder="Longitude เช่น 100.5018">
-      </div>
-    </div>
-    <div class="form-row">
-      <label>📝 หมายเหตุ</label>
-      <textarea id="t-note" placeholder="รายละเอียดเพิ่มเติม..."></textarea>
-    </div>
-    <div class="modal-actions">
-      <button onclick="closeTaskModal()" style="background:#f6f8fa;color:#57606a;">ยกเลิก</button>
-      <button onclick="saveTask()" id="btn-save-task" style="background:#0969da;color:#fff;">💾 บันทึก</button>
-      <button onclick="deleteTask()" id="btn-del-task" style="background:#cf222e;color:#fff;display:none">🗑 ลบ</button>
-    </div>
-  </div>
-</div>
-
-<!-- ══════════ USER MODAL ══════════ -->
+<!-- User Modal -->
 <div class="modal-bg" id="user-modal">
-  <div class="modal-box" style="max-width:380px">
+  <div class="modal-box">
     <h3 id="user-modal-title">➕ เพิ่มผู้ใช้</h3>
-    <div class="form-row">
-      <label>รหัสผู้ใช้ (ID) *</label>
-      <input id="u-id" placeholder="เช่น S001">
-    </div>
-    <div class="form-row">
-      <label>ชื่อ-นามสกุล *</label>
-      <input id="u-name" placeholder="ชื่อพนักงาน">
-    </div>
-    <div class="form-row">
-      <label>รหัสผ่าน *</label>
-      <input id="u-pass" type="password" placeholder="••••••">
-    </div>
+    <div class="form-row"><label>รหัสผู้ใช้ (ID) *</label><input id="u-id" placeholder="เช่น S001"></div>
+    <div class="form-row"><label>ชื่อ-นามสกุล *</label><input id="u-name" placeholder="ชื่อพนักงาน"></div>
+    <div class="form-row"><label>รหัสผ่าน *</label><input id="u-pass" type="password" placeholder="••••••"></div>
     <div class="form-row">
       <label>Role *</label>
       <select id="u-role">
@@ -562,7 +274,7 @@ tr:hover td { background:#f6f8fa; }
     </div>
     <div class="modal-actions">
       <button onclick="closeUserModal()" style="background:#f6f8fa;color:#57606a;">ยกเลิก</button>
-      <button onclick="saveUser()" style="background:#0969da;color:#fff;">💾 บันทึก</button>
+      <button onclick="saveUser()"       style="background:#0969da;color:#fff;">💾 บันทึก</button>
       <button onclick="deleteUser()" id="btn-del-user" style="background:#cf222e;color:#fff;display:none">🗑 ลบ</button>
     </div>
   </div>
@@ -600,10 +312,7 @@ const store = {
   set: (k,v) => { try { localStorage.setItem(k,v); } catch(e) { mem[k]=v; } }
 };
 const session = (() => { try { return JSON.parse(store.get('session')||'null'); } catch { return null; } })();
-if (!session || session.role !== 'admin') {
-  alert('ต้องล็อกอินด้วยบัญชี Admin');
-  location.href = 'index.html';
-}
+if (!session || session.role !== 'admin') { alert('ต้องล็อกอินด้วยบัญชี Admin'); location.href = 'index.html'; }
 document.getElementById('nav-name').textContent = session ? session.name : '—';
 
 function openNav()  { document.getElementById('nav-overlay').classList.add('open'); document.getElementById('nav-drawer').classList.add('open'); }
@@ -612,172 +321,50 @@ function logout()   { store.set('session',''); location.href = 'index.html'; }
 
 // ── State ──────────────────────────────────────────
 let logData  = [];
-let planData = [];
 let userData = [];
-let viewMode = 'week';
-let cursor   = new Date();
-let editingTaskId = null;
-let editingUserId = null;
-const DAYS_TH   = ['อา','จ','อ','พ','พฤ','ศ','ส'];
-const MONTHS_TH = ['มกราคม','กุมภาพันธ์','มีนาคม','เมษายน','พฤษภาคม','มิถุนายน',
-                   'กรกฎาคม','สิงหาคม','กันยายน','ตุลาคม','พฤศจิกายน','ธันวาคม'];
+let activeStatCard = 'all';
+let logRangeMode = 'today';
 
 const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxst_UC3w1zJJ_1gc3aBthvRnEhYbdX76E0z7hDV8nWEKh2tVlWV2YEpQMiCVzMOhuv/exec';
 function getUrl()    { return SCRIPT_URL || store.get('adminUrl') || store.get('scriptUrl') || ''; }
 function showLoad(v) { document.getElementById('loading').classList.toggle('show', v); }
 function fmtDate(d)  { return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
-
-// Clean time field (handles "Sat Dec 30 1899 09:00:00..." → "09:00")
-function normTime(raw) {
-  if (!raw) return '';
-  raw = raw.toString().trim();
-  // Already HH:mm or HH:mm:ss
-  if (/^\d{1,2}:\d{2}/.test(raw)) return raw.substring(0,5);
-  // Date object string — extract time part
-  const m = raw.match(/(\d{2}:\d{2}):\d{2}/);
-  if (m) return m[1];
-  return raw;
-}
-
-// Normalize plan date to yyyy-MM-dd (handles Date.toString, dd/MM/yyyy, etc.)
-function normPlanDate(raw) {
-  if (!raw) return '';
-  raw = raw.toString().trim();
-  // Already yyyy-MM-dd
-  if (/^\d{4}-\d{2}-\d{2}$/.test(raw)) return raw;
-  // dd/MM/yyyy
-  const m1 = raw.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})/);
-  if (m1) return `${m1[3]}-${m1[2].padStart(2,'0')}-${m1[1].padStart(2,'0')}`;
-  // Date toString e.g. "Mon Jun 01 2026 ..."
-  const dt = new Date(raw);
-  if (!isNaN(dt) && dt.getFullYear() > 2000) return fmtDate(dt);
-  return raw;
-}
 function todayStr()  { return fmtDate(new Date()); }
 
-// ── Tab switch ─────────────────────────────────────
+// ── Tab ────────────────────────────────────────────
 function switchTab(name) {
-  const tabNames = ['log','plan','summary','users','hr'];
-  document.querySelectorAll('.tab').forEach((t,i)=>t.classList.toggle('active', tabNames[i]===name));
-  document.querySelectorAll('.tab-content').forEach(c=>c.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach((t,i) => t.classList.toggle('active', ['log','users','hr'][i]===name));
+  document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
   document.getElementById('tab-'+name).classList.add('active');
-  if (name==='plan')    renderCal();
-  if (name==='users')   loadUsers();
-  if (name==='hr')      initHR();
-  if (name==='summary') {
-    if (!document.getElementById('sum-date-from').value) {
-      setSumMode('day');
-    } else {
-      loadSummary();
-    }
-  }
+  if (name === 'users') loadUsers();
+  if (name === 'hr')    initHR();
 }
 
-// ══════════════════
-//  LOG TAB
-// ══════════════════
-async function loadLog() {
-  const url = getUrl();
-  if (!url) { openCfg(); return; }
-  showLoad(true);
-  try {
-    const [logRes, planRes] = await Promise.all([
-      fetch(`${url}?action=getAll&t=${Date.now()}`).then(r=>r.json()),
-      fetch(`${url}?action=getPlans&t=${Date.now()}`).then(r=>r.json())
-    ]);
-    logData  = logRes.data  || [];
-    planData = planRes.data || [];
-    populateDateFilter();
-    // refresh → วันปัจจุบัน + Check-in ทั้งหมด
-    setLogRange('today', true);
-    activeStatCard = 'all';
-    document.querySelectorAll('.stat-btn').forEach(el=>el.classList.remove('active'));
-    document.getElementById('sc-all')?.classList.add('active');
-    document.getElementById('f-status').value = '';
-    renderLog();
-    updateStats();
-    document.getElementById('last-sync').textContent = 'อัปเดต ' + new Date().toLocaleTimeString('th-TH');
-    fillStaffDatalist();
-  } catch(e) { alert('โหลดไม่สำเร็จ: '+e.message); }
-  showLoad(false);
-}
-
-function populateDateFilter() {
-  // populate user filter — from userData (all staff) + any names in logs
-  const fromUsers = userData.map(u=>u.name).filter(Boolean);
-  const fromLogs  = logData.map(r=>r.name).filter(Boolean);
-  const users = [...new Set([...fromUsers, ...fromLogs])].sort();
-  const uSel = document.getElementById('f-user');
-  const curUser = uSel.value;
-  uSel.innerHTML = '<option value="">👤 ทุกคน</option>' + users.map(n=>`<option value="${n}">${n}</option>`).join('');
-  if (curUser) uSel.value = curUser;
-
-  // populate branch filter
-  const branches = [...new Set(logData.map(r=>r.branch).filter(Boolean))].sort();
-  const bSel = document.getElementById('f-branch');
-  const curBranch = bSel.value;
-  bSel.innerHTML = '<option value="">📍 ทุกสาขา</option>' + branches.map(b=>`<option value="${b}">${b}</option>`).join('');
-  if (curBranch) bSel.value = curBranch;
-
-  // leave date blank = ทุกวัน (don't auto-filter to today)
-  // document.getElementById('f-date').value = '';
-}
-
-// Convert dd/MM/yyyy → yyyy-MM-dd for comparison with <input type="date">
-function dateThToISO(dth) {
-  if (!dth) return '';
-  const p = dth.split('/');
-  if (p.length !== 3) return dth;
-  return `${p[2]}-${p[1].padStart(2,'0')}-${p[0].padStart(2,'0')}`;
-}
-
-// Get ISO date from a record (handles dd/MM/yyyy, Date.toString(), timestamp)
+// ── Helpers ────────────────────────────────────────
 function getRecordDateISO(r) {
-  // Try r.date in dd/MM/yyyy format
-  const d = (r.date || '').toString().trim();
+  const d = (r.date||'').toString().trim();
   const m1 = d.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})/);
   if (m1) return `${m1[3]}-${m1[2].padStart(2,'0')}-${m1[1].padStart(2,'0')}`;
-  // Try parsing as a JS date string (e.g. "Thu Jun 01 2026 ...")
   const dt1 = new Date(d);
   if (!isNaN(dt1) && dt1.getFullYear() > 2000) return fmtDate(dt1);
-  // Try D/M/YYYY(BE) from timestamp e.g. "1/6/2569 13:27:02"
-  const ts = (r.timestamp || '').toString().trim();
+  const ts = (r.timestamp||'').toString().trim();
   const m2 = ts.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})/);
-  if (m2) {
-    let y = parseInt(m2[3]); if (y > 2400) y -= 543;
-    return `${y}-${m2[2].padStart(2,'0')}-${m2[1].padStart(2,'0')}`;
-  }
+  if (m2) { let y=parseInt(m2[3]); if(y>2400)y-=543; return `${y}-${m2[2].padStart(2,'0')}-${m2[1].padStart(2,'0')}`; }
   return '';
 }
 
-// Clean & reformat timestamp → DD/MM/YYYY HH:mm
 function cleanTime(ts) {
   if (!ts) return '';
   ts = ts.trim();
-  // Already DD/MM/YYYY HH:mm[:ss] — just trim seconds
-  if (/^\d{1,2}\/\d{1,2}\/\d{4}/.test(ts)) {
-    return ts.replace(/:\d{2}$/, '').substring(0, 16);
-  }
-  // Thai locale D/M/YYYY(BE) e.g. "1/6/2569 13:27:02"
+  if (/^\d{1,2}\/\d{1,2}\/\d{4}/.test(ts)) return ts.replace(/:\d{2}$/, '').substring(0,16);
   const m1 = ts.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})\s+(\d{2}:\d{2})/);
-  if (m1) {
-    let y = parseInt(m1[3]);
-    if (y > 2400) y -= 543; // พ.ศ. → ค.ศ.
-    return `${m1[1].padStart(2,'0')}/${m1[2].padStart(2,'0')}/${y} ${m1[4]}`;
-  }
-  // e.g. "Thu Jun 01 2569 13:27:02"
+  if (m1) { let y=parseInt(m1[3]); if(y>2400)y-=543; return `${m1[1].padStart(2,'0')}/${m1[2].padStart(2,'0')}/${y} ${m1[4]}`; }
   const months = {Jan:1,Feb:2,Mar:3,Apr:4,May:5,Jun:6,Jul:7,Aug:8,Sep:9,Oct:10,Nov:11,Dec:12};
   const m2 = ts.match(/(\w{3})\s+(\d{1,2})\s+(\d{4})\s+(\d{2}:\d{2})/);
-  if (m2 && months[m2[1]]) {
-    let y = parseInt(m2[3]);
-    if (y > 2400) y -= 543;
-    return `${m2[2].padStart(2,'0')}/${String(months[m2[1]]).padStart(2,'0')}/${y} ${m2[4]}`;
-  }
-  // Remove GMT text as last resort
-  return ts.replace(/\s*GMT[+-]\d+\s*\([^)]*\)/gi, '').trim();
+  if (m2 && months[m2[1]]) { let y=parseInt(m2[3]); if(y>2400)y-=543; return `${m2[2].padStart(2,'0')}/${String(months[m2[1]]).padStart(2,'0')}/${y} ${m2[4]}`; }
+  return ts.replace(/\s*GMT[+-]\d+\s*\([^)]*\)/gi,'').trim();
 }
 
-// Fix Google Drive photo URL for display (old uc?id= → thumbnail)
 function fixPhotoUrl(url) {
   if (!url) return '';
   const m = url.match(/[?&]id=([^&]+)/);
@@ -785,149 +372,139 @@ function fixPhotoUrl(url) {
   return url;
 }
 
-// Determine record status
-function getStatus(r) {
-  const co = (r.checkoutTime||'').trim();
-  if (co) return 'จบงาน';
-  // try to check if end time has passed using roundTime field e.g. "09:00-18:00"
-  const match = (r.roundTime||'').match(/(\d{1,2}:\d{2})\s*[-–]\s*(\d{1,2}:\d{2})/);
-  const dateParts = (r.date||'').split('/');
-  const now = new Date();
-  if (match && dateParts.length === 3) {
-    const ep = match[2].split(':');
-    const endDt = new Date(parseInt(dateParts[2]), parseInt(dateParts[1])-1, parseInt(dateParts[0]), parseInt(ep[0]), parseInt(ep[1]));
-    if (now > endDt) return 'ไม่จบงาน';
-    return 'ยังไม่ถึงเวลา';
-  }
-  // fallback: past dates = ไม่จบงาน
-  if (dateParts.length === 3) {
-    const recDt = new Date(parseInt(dateParts[2]), parseInt(dateParts[1])-1, parseInt(dateParts[0]));
-    const today0 = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-    if (recDt < today0) return 'ไม่จบงาน';
-    return 'ยังไม่ถึงเวลา';
-  }
-  return 'ไม่จบงาน';
+function dateRange(from, to) {
+  const dates = [], d = new Date(from);
+  const end   = new Date(to);
+  while (d <= end) { dates.push(fmtDate(d)); d.setDate(d.getDate()+1); }
+  return dates;
+}
+
+// ── Log Tab ────────────────────────────────────────
+async function loadLog() {
+  const url = getUrl();
+  if (!url) { openCfg(); return; }
+  showLoad(true);
+  try {
+    const res  = await fetch(`${url}?action=getAll&t=${Date.now()}`);
+    const json = await res.json();
+    logData = json.data || [];
+    populateFilters();
+    setLogRange('today', true);
+    activeStatCard = 'all';
+    document.querySelectorAll('.stat-btn').forEach(el => el.classList.remove('active'));
+    document.getElementById('sc-all').classList.add('active');
+    document.getElementById('f-status').value = '';
+    renderLog();
+    document.getElementById('last-sync').textContent = 'อัปเดต ' + new Date().toLocaleTimeString('th-TH');
+    // load users silently for HR tab
+    const ures = await fetch(`${url}?action=getUsers&t=${Date.now()}`);
+    const ujson = await ures.json();
+    userData = ujson.data || [];
+    fillHREmp();
+  } catch(e) { alert('โหลดไม่สำเร็จ: '+e.message); }
+  showLoad(false);
+}
+
+function populateFilters() {
+  const names    = [...new Set(logData.map(r=>r.name).filter(Boolean))].sort();
+  const branches = [...new Set(logData.map(r=>r.branch).filter(Boolean))].sort();
+  const uSel = document.getElementById('f-user');
+  const prev = uSel.value;
+  uSel.innerHTML = '<option value="">👤 ทุกคน</option>' + names.map(n=>`<option value="${n}">${n}</option>`).join('');
+  if (prev) uSel.value = prev;
+  const bSel = document.getElementById('f-branch');
+  const prevB = bSel.value;
+  bSel.innerHTML = '<option value="">📍 ทุกสาขา</option>' + branches.map(b=>`<option value="${b}">${b}</option>`).join('');
+  if (prevB) bSel.value = prevB;
 }
 
 function getLogDateRange() {
-  const from = document.getElementById('f-date-from').value;
-  const to   = document.getElementById('f-date-to').value || from;
-  return { from, to };
+  return { from: document.getElementById('f-date-from').value, to: document.getElementById('f-date-to').value };
 }
 
 function getFiltered() {
   const { from, to } = getLogDateRange();
-  const round   = document.getElementById('f-round').value;
-  const user    = document.getElementById('f-user').value;
-  const branch  = document.getElementById('f-branch').value;
-  const status  = document.getElementById('f-status').value;
-  // sync hidden f-date (ใช้ from เป็น reference สำหรับ updateStats)
-  document.getElementById('f-date').value = from;
+  const toDate = to || from;
+  const user   = document.getElementById('f-user').value;
+  const branch = document.getElementById('f-branch').value;
+  const status = document.getElementById('f-status').value;
 
   return logData.filter(r => {
     if (user   && r.name   !== user)   return false;
     if (branch && r.branch !== branch) return false;
-    if (from) {
-      const d = getRecordDateISO(r);
-      if (d < from || d > to) return false;
-    }
-    if (round) {
-      if (round === 'รอบพิเศษ') {
-        if (['รอบเช้า','รอบบ่าย','รอบเย็น','รอบค่ำ'].includes(r.round)) return false;
-      } else {
-        if (r.round !== round) return false;
-      }
-    }
-    if (status === 'gps')      { if (!r.geofenceAlert && !r.checkoutGeofenceAlert) return false; }
-    else if (status === 'ไม่จบงาน') { if ((r.checkoutTime||'').trim()) return false; }
-    else if (status && getStatus(r) !== status) return false;
-    if (activeStatCard === 'alert'      && !r.geofenceAlert && !r.checkoutGeofenceAlert) return false;
-    if (activeStatCard === 'nocheckout' && (r.checkoutTime||'').trim()) return false;
-    if (activeStatCard === 'total'      && isSpecialRound(r)) return false;
-    // special = แสดงทุก record (ไม่ filter)
+    if (from) { const d = getRecordDateISO(r); if (d < from || d > toDate) return false; }
+    const co = (r.checkoutTime||'').trim();
+    if (status === 'gps')       { if (!r.geofenceAlert && !r.checkoutGeofenceAlert) return false; }
+    else if (status === 'จบงาน')   { if (!co) return false; }
+    else if (status === 'ไม่จบงาน') { if (co)  return false; }
+    if (activeStatCard === 'nocheckout' && co)  return false;
+    if (activeStatCard === 'alert' && !r.geofenceAlert && !r.checkoutGeofenceAlert) return false;
     return true;
   });
 }
 
-function renderLog(fromDropdown) {
-  // fromDropdown = เปลี่ยน filter (วันที่/คน/สาขา/สถานะ)
-  // ถ้า active card เป็น plan ให้คงไว้ ไม่ reset
-  if (fromDropdown && activeStatCard !== 'plan') {
+function renderLog(fromFilter) {
+  if (fromFilter) {
     activeStatCard = null;
-    document.querySelectorAll('.stat-btn').forEach(el=>el.classList.remove('active'));
+    document.querySelectorAll('.stat-btn').forEach(el => el.classList.remove('active'));
   }
-
-  // แผนงาน card → แสดง plan view แทน log
-  if (activeStatCard === 'plan') {
-    renderPlanView();
-    return;
-  }
-
   const rows  = getFiltered();
   const tbody = document.getElementById('log-body');
-  const bmap  = {'รอบเช้า':'b-m','รอบบ่าย':'b-n','รอบเย็น':'b-e','รอบค่ำ':'b-k'};
-  document.getElementById('log-thead').innerHTML = `<tr>
-    <th>#</th><th>📷 รูปเช็กอิน</th><th>🏁 รูปจบงาน</th><th>ชื่อ</th><th>สาขา</th>
-    <th>รอบ</th><th>สถานะ</th><th>เวลาเข้า-ออก</th><th>GPS เช็กอิน</th><th>±m</th><th>แจ้งเตือน</th><th>GPS จบงาน</th><th>Maps จบงาน</th>
-  </tr>`;
   updateStats(rows);
   if (!rows.length) {
     tbody.innerHTML = `<tr><td colspan="13"><div class="empty"><div class="ic">🔍</div>ไม่พบข้อมูล</div></td></tr>`;
     return;
   }
-  tbody.innerHTML = rows.map((r,i) => {
-    const bc   = bmap[r.round] || 'b-special';
-    const maps = r.mapsLink || (r.lat&&r.lng ? `https://maps.google.com/?q=${r.lat},${r.lng}` : '');
-    const gps  = maps ? `<a class="gps-a" href="${maps}" target="_blank">📍 ${r.lat},${r.lng}</a>` : '-';
+  tbody.innerHTML = rows.map((r, i) => {
+    const co = (r.checkoutTime||'').trim();
+    const maps    = r.mapsLink || (r.lat&&r.lng ? `https://maps.google.com/?q=${r.lat},${r.lng}` : '');
     const mapsOut = r.checkoutMapsLink || (r.checkoutLat&&r.checkoutLng ? `https://maps.google.com/?q=${r.checkoutLat},${r.checkoutLng}` : '');
-    const gpsOut = mapsOut ? `<a class="gps-a" href="${mapsOut}" target="_blank" style="color:#0969da">🏁 ${parseFloat(r.checkoutLat||0).toFixed(4)},${parseFloat(r.checkoutLng||0).toFixed(4)}</a>` : '-';
-    const phUrl = fixPhotoUrl(r.photo);
-    const ph   = phUrl ? `<img class="photo-th" src="${phUrl}" onclick="openLightbox('${phUrl}')" onerror="this.parentNode.innerHTML='<div class=\'no-ph\'>📷</div>'">` : '<div class="no-ph">📷</div>';
+    const gpsIn   = maps ? `<a class="gps-a" href="${maps}" target="_blank">📍 ${r.lat},${r.lng}</a>` : '-';
+    const gpsOut  = mapsOut ? `<a class="gps-a" href="${mapsOut}" target="_blank" style="color:#0969da">🏁 ${parseFloat(r.checkoutLat||0).toFixed(4)},${parseFloat(r.checkoutLng||0).toFixed(4)}</a>` : '-';
+
+    const phUrl   = fixPhotoUrl(r.photo);
+    const ph      = phUrl ? `<img class="photo-th" src="${phUrl}" onclick="openLightbox('${phUrl}')" onerror="this.parentNode.innerHTML='<div class=no-ph>📷</div>'">` : '<div class="no-ph">📷</div>';
     const phCoUrl = fixPhotoUrl(r.checkoutPhoto);
-    const phCo = phCoUrl ? `<img class="photo-th" src="${phCoUrl}" onclick="openLightbox('${phCoUrl}')" onerror="this.parentNode.innerHTML='<div class=\'no-ph\'>🏁</div>'">` : '<div class="no-ph" style="font-size:14px">🏁</div>';
-    const hasAnyAlert = r.geofenceAlert || r.checkoutGeofenceAlert;
-    const coMapsUrl = r.checkoutMapsLink || (r.checkoutLat&&r.checkoutLng ? `https://maps.google.com/?q=${r.checkoutLat},${r.checkoutLng}` : '');
-    const alertBadge = hasAnyAlert
-      ? `<div>${r.geofenceAlert ? `<span class="alert-badge">🚨 ${r.geofenceAlert}</span>` : ''}</div>
-         <div>${r.checkoutGeofenceAlert ? `<span style="color:#cf222e;font-size:12px;font-weight:700">🔴 ${r.checkoutGeofenceAlert}</span>` : ''}</div>`
+    const phCo    = phCoUrl ? `<img class="photo-th" src="${phCoUrl}" onclick="openLightbox('${phCoUrl}')" onerror="this.parentNode.innerHTML='<div class=no-ph>🏁</div>'">` : '<div class="no-ph" style="font-size:14px">🏁</div>';
+
+    const hasAlert   = r.geofenceAlert || r.checkoutGeofenceAlert;
+    const alertBadge = hasAlert
+      ? `${r.geofenceAlert ? `<div><span class="alert-badge">🚨 ${r.geofenceAlert}</span></div>` : ''}
+         ${r.checkoutGeofenceAlert ? `<div><span style="color:#cf222e;font-size:12px;font-weight:700">🔴 ${r.checkoutGeofenceAlert}</span></div>` : ''}`
       : `<span style="color:#1a7f37;font-size:16px">✅</span>`;
-    // GPS จบงาน column: แสดงระยะห่าง
+
+    // GPS จบงาน column
     const coDistMatch = (r.checkoutGeofenceAlert||'').match(/(\d+)\s*m/);
-    const coDistNum = coDistMatch ? parseInt(coDistMatch[1]) : null;
-    const coAlertBadge = coMapsUrl
+    const coDistNum   = coDistMatch ? parseInt(coDistMatch[1]) : null;
+    const coAlertBadge = mapsOut
       ? (coDistNum && coDistNum > 100
-          ? `<a href="${coMapsUrl}" target="_blank" style="color:#cf222e;font-size:12px;font-weight:700;text-decoration:none">📍 ${coDistNum}m</a>`
+          ? `<a href="${mapsOut}" target="_blank" style="color:#cf222e;font-size:12px;font-weight:700;text-decoration:none">📍 ${coDistNum}m</a>`
           : coDistNum !== null
-            ? `<a href="${coMapsUrl}" target="_blank" style="color:#1a7f37;font-size:12px;text-decoration:none">📍 ${coDistNum}m</a>`
-            : `<a href="${coMapsUrl}" target="_blank" style="color:#0969da;font-size:11px;text-decoration:none">📍 Maps</a>`)
-      : (r.checkoutGeofenceAlert
-          ? `<span style="color:#cf222e;font-size:16px">🔴</span>`
-          : co
-            ? `<span style="color:#1a7f37;font-size:16px">✅</span>`
-            : `<span style="color:#d97706;font-size:14px">🕐</span>`);
-    const co  = (r.checkoutTime||'').trim();
-    const st  = getStatus(r);
+            ? `<a href="${mapsOut}" target="_blank" style="color:#1a7f37;font-size:12px;text-decoration:none">📍 ${coDistNum}m</a>`
+            : `<a href="${mapsOut}" target="_blank" style="color:#0969da;font-size:11px;text-decoration:none">📍 Maps</a>`)
+      : co ? `<span style="color:#1a7f37;font-size:16px">✅</span>`
+           : `<span style="color:#d97706;font-size:14px">🕐</span>`;
+
     const statusCell = co
       ? (r.checkoutGeofenceAlert
           ? `<span style="background:#ffebe9;color:#cf222e;padding:3px 10px;border-radius:20px;font-size:12px;font-weight:700">⚠️ จบงานผิดปกติ</span>`
           : `<span style="background:#dafbe1;color:#1a7f37;padding:3px 10px;border-radius:20px;font-size:12px;font-weight:700">✅ จบงานแล้ว</span>`)
-      : st === 'ยังไม่ถึงเวลา'
-        ? `<span style="background:#ddf4ff;color:#0969da;padding:3px 10px;border-radius:20px;font-size:12px;font-weight:700">⏳ ยังไม่ถึงเวลา</span>`
-        : `<span style="background:#fff7ed;color:#d97706;padding:3px 10px;border-radius:20px;font-size:12px;font-weight:700">⏰ ล่าช้า</span>`;
+      : `<span style="background:#fff7ed;color:#d97706;padding:3px 10px;border-radius:20px;font-size:12px;font-weight:700">⏰ ยังไม่จบงาน</span>`;
+
     const timeInOut = `<div style="font-size:12px;line-height:1.8">
       <span style="color:#1a7f37">▲ ${cleanTime(r.timestamp)||'-'}</span><br>
       ${co ? `<span style="color:#0969da">▼ ${cleanTime(co)}</span>` : '<span style="color:#8c959f;font-size:11px">ยังไม่จบงาน</span>'}
     </div>`;
-    return `<tr>
+
+    return `<tr${hasAlert?' style="background:#fff5f5"':''}>
       <td style="color:#8c959f;font-size:11px">${i+1}</td>
-      <td>${ph}</td>
-      <td>${phCo}</td>
+      <td>${ph}</td><td>${phCo}</td>
       <td><b>${r.name||'-'}</b></td>
       <td>${r.branch||'-'}</td>
-      <td><span class="badge ${bc}">${r.round||'-'}</span></td>
+      <td><span class="badge b-special">${r.round||'-'}</span></td>
       <td>${statusCell}</td>
       <td>${timeInOut}</td>
-      <td>${gps}</td>
+      <td>${gpsIn}</td>
       <td style="font-size:11px;color:#57606a">${r.accuracy?'±'+r.accuracy+'m':'-'}</td>
       <td>${alertBadge}</td>
       <td>${coAlertBadge}</td>
@@ -936,215 +513,50 @@ function renderLog(fromDropdown) {
   }).join('');
 }
 
-const STD_ROUNDS = ['รอบเช้า','รอบบ่าย','รอบเย็น','รอบค่ำ'];
-function isSpecialRound(r) { return !STD_ROUNDS.includes(r.round||''); }
-
-function renderPlanView() {
-  const { from, to } = getLogDateRange();
-  const fromISO    = from || todayStr();
-  const toISO      = to   || fromISO;
-  const userFilter = document.getElementById('f-user').value;
-  const nowMs      = Date.now();
-  const todayISO   = todayStr();
-  const dates      = dateRange(fromISO, toISO);
-
-  const plans = planData.filter(t => {
-    if (!dates.includes(normPlanDate(t.date))) return false;
-    if (userFilter && t.staffName !== userFilter) return false;
-    return true;
-  });
-
-  const tbody = document.getElementById('log-body');
-  document.getElementById('log-thead').innerHTML = `<tr>
-    <th>#</th><th>📷 รูปเช็กอิน</th><th>🏁 รูปจบงาน</th><th>ชื่อ</th><th>สาขา</th>
-    <th>เวลางาน</th><th>สถานะ</th><th>เวลาเข้า-ออก</th><th>ประเภทงาน</th><th>แจ้งเตือน</th>
-  </tr>`;
-  updateStats(getFiltered());
-
-  if (!plans.length) {
-    tbody.innerHTML = `<tr><td colspan="10"><div class="empty"><div class="ic">📋</div>ไม่มีแผนงานวันนี้</div></td></tr>`;
-    return;
-  }
-
-  tbody.innerHTML = plans.map((p, i) => {
-    const dateOfPlan = normPlanDate(p.date);
-    // หา log ที่ตรงกับแผนนี้
-    const matchLog = logData.find(r =>
-      r.name === p.staffName &&
-      getRecordDateISO(r) === dateOfPlan &&
-      normTime((r.roundTime||'').match(/(\d{1,2}:\d{2})/)?.[1]||'') === normTime(p.startTime)
-    );
-
-    // คำนวณสถานะ
-    const endMs = (() => {
-      const t = (p.endTime||'').match(/(\d{1,2}):(\d{2})/);
-      if (!t) return null;
-      return new Date(dateOfPlan + 'T' + t[1].padStart(2,'0') + ':' + t[2] + ':00').getTime();
-    })();
-    const endPassed = endMs ? nowMs > endMs : dateOfPlan < todayISO;
-
-    let statusBadge;
-    if (matchLog && (matchLog.checkoutTime||'').trim()) {
-      statusBadge = matchLog.checkoutGeofenceAlert
-        ? `<span style="background:#ffebe9;color:#cf222e;padding:3px 10px;border-radius:20px;font-size:12px;font-weight:700">⚠️ จบงานผิดปกติ</span>`
-        : `<span style="background:#dafbe1;color:#1a7f37;padding:3px 10px;border-radius:20px;font-size:12px;font-weight:700">✅ จบงานแล้ว</span>`;
-    } else if (matchLog) {
-      statusBadge = endPassed
-        ? `<span style="background:#fff7ed;color:#d97706;padding:3px 10px;border-radius:20px;font-size:12px;font-weight:700">⏰ ล่าช้า</span>`
-        : `<span style="background:#fff8c5;color:#9a6700;padding:3px 10px;border-radius:20px;font-size:12px;font-weight:700">🔄 กำลังทำงาน</span>`;
-    } else if (!endPassed) {
-      statusBadge = `<span style="background:#ddf4ff;color:#0969da;padding:3px 10px;border-radius:20px;font-size:12px;font-weight:700">⏳ ยังไม่ถึงเวลา</span>`;
-    } else {
-      statusBadge = `<span style="background:#ffebe9;color:#cf222e;padding:3px 10px;border-radius:20px;font-size:12px;font-weight:700">❌ ขาดงาน</span>`;
-    }
-
-    const ciTime = matchLog ? `<div style="font-size:11px;color:#1a7f37">▲ ${cleanTime(matchLog.timestamp)||'-'}</div>` : '';
-    const coTime = matchLog && matchLog.checkoutTime ? `<div style="font-size:11px;color:#0969da">▼ ${cleanTime(matchLog.checkoutTime)}</div>` : '';
-    const phUrl  = matchLog ? fixPhotoUrl(matchLog.photo) : '';
-    const ph     = phUrl ? `<img class="photo-th" src="${phUrl}" onclick="openLightbox('${phUrl}')">` : '<div class="no-ph">📷</div>';
-    const phCoUrl = matchLog ? fixPhotoUrl(matchLog.checkoutPhoto) : '';
-    const phCo    = phCoUrl ? `<img class="photo-th" src="${phCoUrl}" onclick="openLightbox('${phCoUrl}')">` : '<div class="no-ph" style="font-size:14px">🏁</div>';
-
-    const gpsInAlert  = matchLog && matchLog.geofenceAlert
-      ? `<span style="color:#cf222e;font-size:11px">🔴 ${matchLog.geofenceAlert}</span>` : '';
-    const coAlert = matchLog ? (matchLog.checkoutGeofenceAlert||'') : '';
-    const gpsOutAlertCell = coAlert
-      ? `<span style="color:#cf222e;font-size:11px">🔴 ${coAlert}</span>`
-      : '';
-
-    return `<tr${(gpsInAlert||gpsOutAlertCell)?' style="background:#fff5f5"':''}>
-      <td style="color:#8c959f;font-size:11px">${i+1}</td>
-      <td>${ph}</td>
-      <td>${phCo}</td>
-      <td><b>${p.staffName||'-'}</b></td>
-      <td>${p.branch||'-'}</td>
-      <td><span style="font-size:12px;color:#57606a">${normTime(p.startTime)}–${normTime(p.endTime)}</span></td>
-      <td>${statusBadge}</td>
-      <td style="font-size:12px">${ciTime}${coTime}</td>
-      <td style="font-size:12px;color:#57606a">${p.taskType||'-'}</td>
-      <td style="font-size:11px">${gpsInAlert||gpsOutAlertCell ? `${gpsInAlert}${gpsInAlert&&gpsOutAlertCell?'<br>':''}${gpsOutAlertCell}` : '<span style="color:#1a7f37">✅</span>'}</td>
-    </tr>`;
-  }).join('');
-}
-
 function updateStats(rows) {
   if (!rows) rows = getFiltered();
-
-  const { from, to } = getLogDateRange();
-  const userFilter    = document.getElementById('f-user').value;
-  const rangeDates    = from ? dateRange(from, to||from) : null;
-  const plansFiltered = planData.filter(t => {
-    if (rangeDates && !rangeDates.includes(normPlanDate(t.date))) return false;
-    if (userFilter && t.staffName !== userFilter) return false;
-    return true;
-  });
-  const planCount  = plansFiltered.length;
-  const normalCin  = rows.filter(r => !isSpecialRound(r)).length;
-
-  // ขาดงาน = นับเฉพาะแผนที่ผ่านมาแล้ว (ไม่ใช่วันนี้หรืออนาคต) และไม่มีเช็กอิน
-  const todayISO = todayStr();
-  let missingCnt = '-';
-  if (from) {
-    if (to < todayISO) missingCnt = Math.max(0, planCount - normalCin);
-    else missingCnt = 0;
-  }
-
-  const sPlan = document.getElementById('s-plan'); if(sPlan) sPlan.textContent = planCount || (from ? '0' : '-');
-  document.getElementById('s-all').textContent        = rows.length;
-  document.getElementById('s-total').textContent      = normalCin;
-  document.getElementById('s-special').textContent    = rows.length;
-  // s-missing removed
-  document.getElementById('s-alert').textContent      = rows.filter(r=>r.geofenceAlert||r.checkoutGeofenceAlert).length;
+  document.getElementById('s-all').textContent       = rows.length;
   document.getElementById('s-nocheckout').textContent = rows.filter(r=>!(r.checkoutTime||'').trim()).length;
+  document.getElementById('s-alert').textContent      = rows.filter(r=>r.geofenceAlert||r.checkoutGeofenceAlert).length;
 }
 
-let activeStatCard = null;
-let logRangeMode = 'today';
-
-function setLogRange(mode, noRender) {
-  logRangeMode = mode;
-  const today = todayStr();
-  const now   = new Date();
-  let from = today, to = today;
-
-  if (mode === 'today') {
-    from = to = today;
-  } else if (mode === 'week') {
-    const d = new Date(now);
-    d.setDate(d.getDate() - d.getDay() + 1); // จันทร์
-    from = fmtDate(d);
-    const e = new Date(d); e.setDate(d.getDate() + 6);
-    to = fmtDate(e);
-  } else if (mode === 'month') {
-    from = `${today.slice(0,7)}-01`;
-    const lastDay = new Date(now.getFullYear(), now.getMonth()+1, 0);
-    to = fmtDate(lastDay);
-  } else if (mode === 'year') {
-    from = `${today.slice(0,4)}-01-01`;
-    to   = `${today.slice(0,4)}-12-31`;
-  } else if (mode === 'range') {
-    // ไม่เปลี่ยน date ให้ user กรอกเอง
-  }
-
-  // highlight active button
-  ['today','week','month','year','range'].forEach(m => {
-    document.getElementById('qf-'+m)?.classList.toggle('on', m === mode);
-  });
-
-  if (mode !== 'range') {
-    document.getElementById('f-date-from').value = from;
-    document.getElementById('f-date-to').value   = to;
-  }
-  if (!noRender) renderLog(true);
-}
 function statFilter(type) {
-  // toggle off if same card clicked again
   if (activeStatCard === type) {
     activeStatCard = null;
     document.querySelectorAll('.stat-btn').forEach(el=>el.classList.remove('active'));
     document.getElementById('f-status').value = '';
-    document.getElementById('f-round').value  = '';
-    // ไม่ล้าง f-date
-    renderLog();
-    return;
+    renderLog(); return;
   }
   activeStatCard = type;
   document.querySelectorAll('.stat-btn').forEach(el=>el.classList.remove('active'));
   document.getElementById('sc-'+type)?.classList.add('active');
-
-  if (type === 'plan') {
-    // reset กลับวันนี้ ล้างทุก filter
-    setLogRange('today', true);
-    document.getElementById('f-user').value   = '';
-    document.getElementById('f-round').value  = '';
-    document.getElementById('f-branch').value = '';
-    document.getElementById('f-status').value = '';
-  } else if (type === 'all') {
-    // ล้างเฉพาะ filter อื่น แต่คง date ไว้
-    document.getElementById('f-user').value   = '';
-    document.getElementById('f-round').value  = '';
-    document.getElementById('f-branch').value = '';
-    document.getElementById('f-status').value = '';
-  } else if (type === 'total') {
-    // งานปกติ — ล้าง round filter แล้วกรองหลังใน getFiltered
-    document.getElementById('f-status').value = '';
-    document.getElementById('f-round').value  = '';
-  } else if (type === 'special') {
-    document.getElementById('f-round').value  = '';
-    document.getElementById('f-status').value = '';
-  } else if (type === 'missing') {
-    document.getElementById('f-status').value = '';
-    document.getElementById('f-round').value  = '';
-  } else if (type === 'nocheckout') {
-    document.getElementById('f-status').value = 'ไม่จบงาน';
-    document.getElementById('f-round').value  = '';
-  } else if (type === 'alert') {
-    document.getElementById('f-status').value = 'gps';
-    document.getElementById('f-round').value  = '';
-  }
+  document.getElementById('f-status').value = type === 'nocheckout' ? 'ไม่จบงาน' : type === 'alert' ? 'gps' : '';
   renderLog();
 }
 
+// ── Date range buttons ─────────────────────────────
+function setLogRange(mode, noRender) {
+  logRangeMode = mode;
+  const today = new Date();
+  let from, to;
+  if (mode==='today') { from = to = fmtDate(today); }
+  else if (mode==='week') {
+    const mon = new Date(today); mon.setDate(today.getDate()-today.getDay()+1);
+    const sun = new Date(mon);   sun.setDate(mon.getDate()+6);
+    from = fmtDate(mon); to = fmtDate(sun);
+  } else if (mode==='month') {
+    from = fmtDate(new Date(today.getFullYear(), today.getMonth(), 1));
+    to   = fmtDate(new Date(today.getFullYear(), today.getMonth()+1, 0));
+  } else if (mode==='year') {
+    from = `${today.getFullYear()}-01-01`; to = `${today.getFullYear()}-12-31`;
+  } else { /* range — don't change dates */ }
+
+  ['today','week','month','year','range'].forEach(m => document.getElementById('qf-'+m).classList.toggle('on', m===mode));
+  if (from) { document.getElementById('f-date-from').value = from; document.getElementById('f-date-to').value = to; }
+  if (!noRender) renderLog();
+}
+
+// ── Export CSV ─────────────────────────────────────
 function exportCSV() {
   const rows = getFiltered();
   if (!rows.length) { alert('ไม่มีข้อมูล'); return; }
@@ -1153,1037 +565,239 @@ function exportCSV() {
     .map(row=>row.map(v=>`"${(v||'').replace(/"/g,'""')}"`).join(','))].join('\n');
   const a = document.createElement('a');
   a.href = URL.createObjectURL(new Blob(['﻿'+csv],{type:'text/csv;charset=utf-8'}));
-  a.download = `checkin_${todayStr()}.csv`;
-  a.click();
+  a.download = `checkin_${todayStr()}.csv`; a.click();
 }
 
-function fillStaffDatalist() {
-  const names = [...new Set(logData.map(r=>r.name).filter(Boolean))];
-  document.getElementById('dl-staff').innerHTML = names.map(n=>`<option value="${n}">`).join('');
-  const branches = [...new Set(logData.map(r=>r.branch).filter(Boolean))];
-  document.getElementById('dl-branch-plan').innerHTML = branches.map(b=>`<option value="${b}">`).join('');
-  // also populate plan branch datalist from planData
-  const planBranches = [...new Set(planData.map(p=>p.branch).filter(Boolean))];
-  const allBranches  = [...new Set([...branches,...planBranches])].sort();
-  document.getElementById('dl-branch-plan').innerHTML = allBranches.map(b=>`<option value="${b}">`).join('');
-}
-
-// ══════════════════
-//  PLAN TAB
-// ══════════════════
-async function loadPlan() {
-  const url = getUrl();
-  if (!url) return;
-  showLoad(true);
-  try {
-    const r = await fetch(`${url}?action=getPlans&t=${Date.now()}`);
-    const j = await r.json();
-    planData = j.data || [];
-    console.log('planData loaded:', planData.length, planData.slice(0,3));
-    renderCal();
-  } catch(e) { console.warn('plan load error:', e); }
-  showLoad(false);
-}
-
-function navPlan(dir) {
-  if (viewMode==='week') cursor.setDate(cursor.getDate()+dir*7);
-  else cursor.setMonth(cursor.getMonth()+dir);
-  renderCal();
-}
-function goToday() { cursor = new Date(); renderCal(); }
-function setView(v) {
-  viewMode = v;
-  document.getElementById('vbtn-week').classList.toggle('on', v==='week');
-  document.getElementById('vbtn-month').classList.toggle('on', v==='month');
-  renderCal();
-}
-function renderCal() { viewMode==='week' ? renderWeek() : renderMonth(); }
-
-function renderWeek() {
-  const d = new Date(cursor);
-  const day = d.getDay();
-  d.setDate(d.getDate()-(day===0?6:day-1));
-  const weekStart = new Date(d);
-  const days = [];
-  for (let i=0;i<7;i++) { const dd=new Date(weekStart); dd.setDate(weekStart.getDate()+i); days.push(dd); }
-  const rangeS = `${days[0].getDate()} ${MONTHS_TH[days[0].getMonth()]}`;
-  const rangeE = `${days[6].getDate()} ${MONTHS_TH[days[6].getMonth()]} ${days[6].getFullYear()+543}`;
-  document.getElementById('plan-range').textContent = `${rangeS} – ${rangeE}`;
-  const today = todayStr();
-  const allStaff = getStaffList();
-  if (!allStaff.length) allStaff.push('(ยังไม่มีพนักงาน)');
-
-  let html = `<table class="week-table"><thead><tr><th style="min-width:100px">👤 พนักงาน</th>`;
-  days.forEach(d => {
-    const ds = fmtDate(d);
-    html += `<th class="${ds===today?'today-h':''}">${DAYS_TH[d.getDay()]}<br><span style="font-size:14px;font-weight:700">${d.getDate()}</span></th>`;
-  });
-  html += `</tr></thead><tbody>`;
-
-  allStaff.forEach(staff => {
-    html += `<tr><td class="staff-cell">${staff}</td>`;
-    days.forEach(d => {
-      const ds = fmtDate(d);
-      const tasks = planData.filter(t=>t.staffName===staff&&normPlanDate(t.date)===ds);
-      const chips = tasks.map(t=>`
-        <div class="task-chip" onclick="editTask('${t.id}')">
-          <div>
-            <div style="font-weight:700">${normTime(t.startTime)} ${t.branch||''}</div>
-            <div style="opacity:.85">${t.taskType||''}</div>
-          </div>
-          <button class="chip-del" onclick="event.stopPropagation();quickDelete('${t.id}')">✕</button>
-        </div>`).join('');
-      html += `<td class="${ds===today?'today-col':''}" onclick="openTaskModalFor('${staff}','${ds}')">
-        ${chips}<span class="add-btn-cell">+</span></td>`;
-    });
-    html += `</tr>`;
-  });
-  html += `</tbody></table>`;
-  document.getElementById('cal-grid').innerHTML = html;
-}
-
-function renderMonth() {
-  const y=cursor.getFullYear(), m=cursor.getMonth();
-  document.getElementById('plan-range').textContent = `${MONTHS_TH[m]} ${y+543}`;
-  const firstDay=new Date(y,m,1), lastDay=new Date(y,m+1,0);
-  const today=todayStr();
-  let start=new Date(firstDay);
-  const fd=start.getDay();
-  start.setDate(start.getDate()-(fd===0?6:fd-1));
-  let html=`<table class="month-table"><thead><tr>`;
-  ['จ','อ','พ','พฤ','ศ','ส','อา'].forEach(d=>html+=`<th>${d}</th>`);
-  html+=`</tr></thead><tbody>`;
-  let cur=new Date(start);
-  while(cur<=lastDay||cur.getDay()!==1) {
-    if(cur.getDay()===1) html+=`<tr>`;
-    const ds=fmtDate(cur), isOther=cur.getMonth()!==m, isToday=ds===today;
-    const tasks=planData.filter(t=>normPlanDate(t.date)===ds);
-    const shown=tasks.slice(0,3), more=tasks.length-3;
-    const dayNum=isToday?`<div class="day-num today">${cur.getDate()}</div>`:`<div class="day-num" style="${isOther?'color:#ccc':''}">${cur.getDate()}</div>`;
-    const chips=shown.map(t=>`<div class="month-chip" onclick="editTask('${t.id}')" title="${t.staffName} - ${t.branch}">${t.staffName}</div>`).join('');
-    const moreBtn=more>0?`<div class="more-chip" onclick="event.stopPropagation();showAllDayPlans('${ds}')">+${more} อื่น</div>`:'';
-    html+=`<td class="${isToday?'today-day':''} ${isOther?'other-month':''}" onclick="openTaskModalFor('',ds)">${dayNum}${chips}${moreBtn}</td>`;
-    if(cur.getDay()===0) html+=`</tr>`;
-    cur.setDate(cur.getDate()+1);
-  }
-  html+=`</tbody></table>`;
-  document.getElementById('cal-grid').innerHTML=html;
-}
-
-function showAllDayPlans(ds) {
-  const tasks = planData.filter(t => normPlanDate(t.date) === ds);
-  const label = isoToDisplay ? isoToDisplay(ds) : ds;
-  const html = tasks.map(t => `
-    <div class="det-row" style="cursor:pointer" onclick="closeSumDetail();editTask('${t.id}')">
-      <span><b>${t.staffName}</b> — ${t.branch||'-'}${t.taskType?' ('+t.taskType+')':''}</span>
-      <span style="font-size:12px;color:#57606a">${normTime(t.startTime)}–${normTime(t.endTime)}</span>
-    </div>`).join('');
-  document.getElementById('det-title').textContent = `📋 แผนงาน ${label}`;
-  document.getElementById('det-sub').textContent   = `${tasks.length} รายการ`;
-  document.getElementById('det-body').innerHTML    = html || '<div style="text-align:center;padding:20px;color:#8c959f">ไม่มีข้อมูล</div>';
-  document.getElementById('det-modal').classList.add('open');
-}
-
-function getStaffList() {
-  const fromPlan = planData.map(t=>t.staffName);
-  const fromLog  = logData.map(r=>r.name);
-  const fromUser = userData.map(u=>u.name);
-  return [...new Set([...fromUser,...fromPlan,...fromLog])].filter(Boolean).sort();
-}
-
-// ── Task Modal ─────────────────────────────────────
-function openTaskModal(date='',staff='') {
-  editingTaskId=null;
-  document.getElementById('task-modal-title').textContent='➕ เพิ่มงาน';
-  document.getElementById('t-name').value=staff;
-  document.getElementById('t-date').value=date||todayStr();
-  document.getElementById('t-branch').value='';
-  document.getElementById('t-type').value='';
-  document.getElementById('t-note').value='';
-  document.getElementById('t-lat').value='';
-  document.getElementById('t-lng').value='';
-  document.getElementById('btn-del-task').style.display='none';
-  initTimeSelects('09:00','18:00');
-  document.getElementById('task-modal').classList.add('open');
-}
-function openTaskModalFor(staff,date) { openTaskModal(date,staff); }
-function closeTaskModal() { document.getElementById('task-modal').classList.remove('open'); }
-function editTask(id) {
-  const t=planData.find(x=>x.id===id);
-  if(!t) return;
-  editingTaskId=id;
-  document.getElementById('task-modal-title').textContent='✏️ แก้ไขงาน';
-  document.getElementById('t-name').value=t.staffName||'';
-  document.getElementById('t-date').value=t.date||'';
-  document.getElementById('t-branch').value=t.branch||'';
-  document.getElementById('t-type').value=t.taskType||'';
-  document.getElementById('t-note').value=t.note||'';
-  document.getElementById('t-lat').value=t.lat||'';
-  document.getElementById('t-lng').value=t.lng||'';
-  document.getElementById('btn-del-task').style.display='';
-  initTimeSelects(normTime(t.startTime)||'09:00', normTime(t.endTime)||'18:00');
-  document.getElementById('task-modal').classList.add('open');
-}
-
-async function saveTask() {
-  const name=document.getElementById('t-name').value.trim();
-  const date=document.getElementById('t-date').value;
-  const branch=document.getElementById('t-branch').value.trim();
-  if(!name||!date||!branch){ alert('กรุณากรอกชื่อ, วันที่ และสาขา'); return; }
-  const payload={
-    action:'savePlan', id:editingTaskId||('p_'+Date.now()),
-    staffName:name, date, startTime:document.getElementById('t-start').value,
-    endTime:document.getElementById('t-end').value, branch,
-    taskType:document.getElementById('t-type').value.trim(),
-    note:document.getElementById('t-note').value.trim(),
-    lat:document.getElementById('t-lat').value,
-    lng:document.getElementById('t-lng').value
-  };
-  const url=getUrl();
-  if(url) {
-    showLoad(true);
-    try { await fetch(url,{method:'POST',mode:'no-cors',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)}); }
-    catch(e){ console.warn(e); }
-    showLoad(false);
-  }
-  if(editingTaskId) { const idx=planData.findIndex(x=>x.id===editingTaskId); if(idx>=0) planData[idx]=payload; }
-  else planData.push(payload);
-  closeTaskModal(); renderCal();
-}
-
-async function deleteTask() {
-  if(!editingTaskId) return;
-  if(!confirm('ลบงานนี้?')) return;
-  const url=getUrl();
-  if(url) {
-    try { await fetch(url,{method:'POST',mode:'no-cors',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'deletePlan',id:editingTaskId})}); }
-    catch(e){}
-  }
-  planData=planData.filter(x=>x.id!==editingTaskId);
-  closeTaskModal(); renderCal();
-}
-
-async function quickDelete(id) {
-  if(!confirm('ลบงานนี้?')) return;
-  const url=getUrl();
-  if(url) {
-    try { await fetch(url,{method:'POST',mode:'no-cors',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'deletePlan',id})}); }
-    catch(e){}
-  }
-  planData=planData.filter(x=>x.id!==id); renderCal();
-}
-
-// ══════════════════
-//  USERS TAB
-// ══════════════════
+// ── Users Tab ──────────────────────────────────────
+let editingUserId = null;
 async function loadUsers() {
-  const url=getUrl();
-  if(!url) return;
+  const url = getUrl(); if (!url) return;
   showLoad(true);
   try {
-    const r=await fetch(`${url}?action=getUsers&t=${Date.now()}`);
-    const j=await r.json();
-    userData=j.data||[];
+    const res  = await fetch(`${url}?action=getUsers&t=${Date.now()}`);
+    const json = await res.json();
+    userData = json.data || [];
     renderUsers();
-    populateDateFilter(); // refresh user dropdown with all staff names
-  } catch(e){ console.warn(e); }
+  } catch(e) { alert('โหลดไม่สำเร็จ'); }
   showLoad(false);
 }
-
 function renderUsers() {
-  const tbody=document.getElementById('user-body');
-  if(!userData.length) {
-    tbody.innerHTML=`<tr><td colspan="4" style="text-align:center;padding:30px;color:#8c959f;">ยังไม่มีผู้ใช้งาน</td></tr>`;
-    return;
-  }
-  tbody.innerHTML=userData.map(u=>`
-    <tr>
-      <td style="font-family:monospace;font-size:12px">${u.id}</td>
-      <td><b>${u.name}</b></td>
-      <td><span class="role-badge ${u.role==='admin'?'role-admin':'role-staff'}">${u.role==='admin'?'👑 Admin':'👤 Staff'}</span></td>
-      <td>
-        <button class="btn-sm btn-edit" onclick="openUserModal('${u.id}')">✏️ แก้ไข</button>
-      </td>
-    </tr>`).join('');
+  const tbody = document.getElementById('user-body');
+  if (!userData.length) { tbody.innerHTML = `<tr><td colspan="4" style="text-align:center;padding:30px;color:#8c959f;">ไม่มีผู้ใช้</td></tr>`; return; }
+  tbody.innerHTML = userData.map(u => `<tr>
+    <td><b>${u.id}</b></td>
+    <td>${u.name}</td>
+    <td><span class="role-badge ${u.role==='admin'?'role-admin':'role-staff'}">${u.role==='admin'?'Admin':'Staff'}</span></td>
+    <td><button class="btn-sm btn-edit" onclick="editUser('${u.id}','${u.name}','${u.role}')">✏️ แก้ไข</button></td>
+  </tr>`).join('');
 }
-
-function openUserModal(id='') {
-  editingUserId=id||null;
-  const u=id?userData.find(x=>x.id===id):null;
-  document.getElementById('user-modal-title').textContent=id?'✏️ แก้ไขผู้ใช้':'➕ เพิ่มผู้ใช้';
-  document.getElementById('u-id').value=u?u.id:'';
-  document.getElementById('u-id').disabled=!!id; // ไม่ให้แก้ ID
-  document.getElementById('u-name').value=u?u.name:'';
-  document.getElementById('u-pass').value='';
-  document.getElementById('u-pass').placeholder=id?'(เว้นว่างถ้าไม่เปลี่ยน)':'••••••';
-  document.getElementById('u-role').value=u?u.role:'staff';
-  document.getElementById('btn-del-user').style.display=id?'':'none';
-  document.getElementById('user-modal').classList.add('open');
-}
+function openUserModal()  { editingUserId=null; document.getElementById('user-modal-title').textContent='➕ เพิ่มผู้ใช้'; ['u-id','u-name','u-pass'].forEach(id=>document.getElementById(id).value=''); document.getElementById('u-role').value='staff'; document.getElementById('btn-del-user').style.display='none'; document.getElementById('user-modal').classList.add('open'); }
+function editUser(id,name,role) { editingUserId=id; document.getElementById('user-modal-title').textContent='✏️ แก้ไขผู้ใช้'; document.getElementById('u-id').value=id; document.getElementById('u-name').value=name; document.getElementById('u-pass').value=''; document.getElementById('u-role').value=role; document.getElementById('btn-del-user').style.display=''; document.getElementById('user-modal').classList.add('open'); }
 function closeUserModal() { document.getElementById('user-modal').classList.remove('open'); }
-
 async function saveUser() {
-  const id  =document.getElementById('u-id').value.trim();
-  const name=document.getElementById('u-name').value.trim();
-  const pass=document.getElementById('u-pass').value;
-  const role=document.getElementById('u-role').value;
-  if(!id||!name) { alert('กรุณากรอก ID และชื่อ'); return; }
-  if(!editingUserId && !pass) { alert('กรุณากรอกรหัสผ่าน'); return; }
-
-  const url=getUrl();
-  if(url) {
-    showLoad(true);
-    try {
-      await fetch(url,{method:'POST',mode:'no-cors',headers:{'Content-Type':'application/json'},
-        body:JSON.stringify({action:'saveUser',id,name,pass:pass||undefined,role})});
-    } catch(e){ console.warn(e); }
-    showLoad(false);
-  }
-
-  // update local
-  if(editingUserId) {
-    const idx=userData.findIndex(x=>x.id===editingUserId);
-    if(idx>=0){ userData[idx].name=name; userData[idx].role=role; }
-  } else {
-    userData.push({id,name,role});
-  }
-  closeUserModal(); renderUsers();
-}
-
-async function deleteUser() {
-  if(!editingUserId||!confirm('ลบผู้ใช้นี้?')) return;
-  const url=getUrl();
-  if(url) {
-    try { await fetch(url,{method:'POST',mode:'no-cors',headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({action:'deleteUser',id:editingUserId})}); }
-    catch(e){}
-  }
-  userData=userData.filter(x=>x.id!==editingUserId);
-  closeUserModal(); renderUsers();
-}
-
-// ══════════════════
-//  SUMMARY TAB
-// ══════════════════
-let sumData = [];
-let sumMode = 'day'; // 'day' | 'week' | 'month' | 'range'
-
-function setSumMode(mode) {
-  sumMode = mode;
-  ['day','week','month','range'].forEach(m => document.getElementById('sb-'+m).classList.toggle('on', m===mode));
-
-  const fromEl = document.getElementById('sum-date-from');
-  const toEl   = document.getElementById('sum-date-to');
-  const sepEl  = document.getElementById('sum-date-sep');
-  const lblEl  = document.getElementById('sum-date-label');
-  const today  = todayStr();
-
-  if (mode === 'day') {
-    lblEl.textContent = '📅';
-    toEl.style.display = 'none'; sepEl.style.display = 'none';
-    fromEl.value = today;
-  } else if (mode === 'week') {
-    lblEl.textContent = '📅 สัปดาห์:';
-    toEl.style.display = ''; sepEl.style.display = '';
-    const d = new Date(); const day = d.getDay();
-    const mon = new Date(d); mon.setDate(d.getDate() - (day===0?6:day-1));
-    const sun = new Date(mon); sun.setDate(mon.getDate()+6);
-    fromEl.value = fmtDate(mon); toEl.value = fmtDate(sun);
-  } else if (mode === 'month') {
-    lblEl.textContent = '📅 เดือน:';
-    toEl.style.display = ''; sepEl.style.display = '';
-    const d = new Date();
-    fromEl.value = fmtDate(new Date(d.getFullYear(), d.getMonth(), 1));
-    toEl.value   = fmtDate(new Date(d.getFullYear(), d.getMonth()+1, 0));
-  } else { // range
-    lblEl.textContent = '📅 จาก:';
-    toEl.style.display = ''; sepEl.style.display = '';
-    if (!fromEl.value) fromEl.value = today;
-    if (!toEl.value)   toEl.value   = today;
-  }
-  loadSummary();
-}
-
-// ตรวจว่าเวลาสิ้นสุดของ plan/log ผ่านไปแล้วหรือยัง
-function isEndPassed(endTimeStr, dateISO) {
-  if (!endTimeStr || !dateISO) return true;
-  const [y,mo,d] = dateISO.split('-').map(Number);
-  const tp = endTimeStr.toString().trim().match(/(\d{1,2}):(\d{2})/);
-  if (!tp) return true;
-  return new Date() > new Date(y, mo-1, d, parseInt(tp[1]), parseInt(tp[2]));
-}
-
-async function loadSummary() {
-  const fromISO = document.getElementById('sum-date-from').value;
-  if (!fromISO) return;
-  const toISO = sumMode === 'day' ? fromISO : (document.getElementById('sum-date-to').value || fromISO);
-  const url = getUrl();
-  if (!url) { openCfg(); return; }
+  const id=document.getElementById('u-id').value.trim(), name=document.getElementById('u-name').value.trim(), pass=document.getElementById('u-pass').value, role=document.getElementById('u-role').value;
+  if (!id||!name) { alert('กรุณากรอก ID และชื่อ'); return; }
+  const url=getUrl(); if (!url) return;
   showLoad(true);
   try {
-    const [plansRes, logsRes] = await Promise.all([
-      fetch(`${url}?action=getPlans&t=${Date.now()}`).then(r=>r.json()),
-      fetch(`${url}?action=getAll&t=${Date.now()}`).then(r=>r.json())
-    ]);
-    planData = plansRes.data || [];
-    logData  = logsRes.data || [];
-    renderSummary(fromISO, toISO);
-    document.getElementById('last-sync').textContent = 'อัปเดต ' + new Date().toLocaleTimeString('th-TH');
-  } catch(e) { alert('โหลดไม่สำเร็จ: '+e.message); }
+    const res=await fetch(url,{method:'POST',mode:'no-cors',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'saveUser',id,name,pass,role})});
+    closeUserModal(); await loadUsers();
+  } catch(e) { alert('บันทึกไม่สำเร็จ'); }
+  showLoad(false);
+}
+async function deleteUser() {
+  if (!editingUserId||!confirm('ลบผู้ใช้ '+editingUserId+'?')) return;
+  const url=getUrl(); if (!url) return;
+  showLoad(true);
+  try {
+    await fetch(url,{method:'POST',mode:'no-cors',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'deleteUser',id:editingUserId})});
+    closeUserModal(); await loadUsers();
+  } catch(e) { alert('ลบไม่สำเร็จ'); }
   showLoad(false);
 }
 
-const MONTHS_SHORT = ['','ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'];
-function isoToDisplay(iso) {
-  if (!iso) return '';
-  const [y,mo,d] = iso.split('-');
-  return `${parseInt(d)} ${MONTHS_SHORT[parseInt(mo)]} ${parseInt(y)+543}`;
-}
-
-// สร้าง array ของ ISO dates ระหว่าง fromISO ถึง toISO
-function dateRange(fromISO, toISO) {
-  const dates = [];
-  const cur = new Date(fromISO);
-  const end = new Date(toISO);
-  while (cur <= end) { dates.push(fmtDate(new Date(cur))); cur.setDate(cur.getDate()+1); }
-  return dates;
-}
-
-function renderSummary(fromISO, toISO) {
-  const dates      = dateRange(fromISO, toISO);
-  const plansRange = planData.filter(t => dates.includes(normPlanDate(t.date)));
-  const logsRange  = logData.filter(r  => dates.includes(getRecordDateISO(r)));
-
-  // Build per-staff breakdown
-  const staffSet = [...new Set(plansRange.map(t => t.staffName))].sort();
-  sumData = staffSet.map(staff => {
-    const plans = plansRange.filter(t => t.staffName === staff);
-    const logs  = logsRange.filter(r  => r.name === staff);
-
-    const today  = todayStr();
-    const nowMs  = Date.now();
-
-    // helper: แปลง plan เป็น timestamp ปลายกะ (ms)
-    function planEndMs(p) {
-      const dateISO = normPlanDate(p.date);
-      const t = (p.endTime || '').match(/(\d{1,2}):(\d{2})/);
-      if (!t) return null;
-      return new Date(dateISO + 'T' + t[1].padStart(2,'0') + ':' + t[2] + ':00').getTime();
-    }
-
-    // จับคู่ log กับ plan โดยเทียบ roundTime-startTime
-    const planLogs  = [];
-    const extraLogs = [];
-    logs.forEach(r => {
-      const logDate  = getRecordDateISO(r);
-      const rtMatch  = (r.roundTime||'').match(/(\d{1,2}:\d{2})/);
-      const logStart = rtMatch ? rtMatch[1] : null;
-      const matched  = logStart && plans.some(p =>
-        normPlanDate(p.date) === logDate && normTime(p.startTime) === logStart
-      );
-      if (matched) planLogs.push(r);
-      else extraLogs.push(r);
-    });
-
-    // จัดสถานะแต่ละแผน
-    const planDetails = plans.map(p => {
-      const dateOfPlan = normPlanDate(p.date);
-      const endMs      = planEndMs(p);
-      const endPassed  = endMs ? nowMs > endMs : dateOfPlan < today;
-
-      const matchedLog = planLogs.find(r =>
-        getRecordDateISO(r) === dateOfPlan &&
-        normTime((r.roundTime||'').match(/(\d{1,2}:\d{2})/)?.[1]||'') === normTime(p.startTime)
-      );
-
-      let status;
-      if (matchedLog && (matchedLog.checkoutTime||'').trim()) {
-        status = 'completed';                                    // จบงานแล้ว ✅
-      } else if (!endPassed) {
-        status = 'notYet';                                       // ยังไม่ถึงเวลา ⏳
-      } else if (dateOfPlan < today && !matchedLog) {
-        status = 'missing';                                      // ขาดงาน ❌ (ข้ามวัน ไม่เช็กอินเลย)
-      } else {
-        status = 'late';                                         // ล่าช้า ⏰ (เลยเวลาแล้ว ยังไม่จบ)
-      }
-      return { plan: p, log: matchedLog || null, status };
-    });
-
-    const completedDetails = planDetails.filter(d => d.status === 'completed');
-    const notYetDetails    = planDetails.filter(d => d.status === 'notYet');
-    const lateDetails      = planDetails.filter(d => d.status === 'late');
-    const missingDetails   = planDetails.filter(d => d.status === 'missing');
-
-    const completed  = completedDetails.map(d => d.log);
-    const notYet     = notYetDetails.map(d => d.plan);
-    const noCheckout = lateDetails;   // keep alias for modal compat
-    const missing    = missingDetails.map(d => d.plan);
-
-    const extra = extraLogs.length;
-    const pct   = plans.length ? Math.min(100, Math.round(completed.length / plans.length * 100)) : 0;
-    return { staff, plans, logs, planLogs, completed, notYet, noCheckout, missing, extra, extraLogs, pct };
-  });
-
-  // Summary totals
-  const totPlans = plansRange.length;
-  const totCin   = logsRange.length;
-  const totDone  = logsRange.filter(r=>(r.checkoutTime||'').trim()).length;
-  const totNoCo  = sumData.reduce((s,r)=>s+r.noCheckout.length, 0);
-  const totNotYet= sumData.reduce((s,r)=>s+r.notYet.length, 0);
-  const totMiss  = sumData.reduce((s,r)=>s+r.missing.length, 0);
-  const totExtra = sumData.reduce((s,r)=>s+r.extra, 0);
-  const totPct   = totPlans ? Math.min(100, Math.round(totDone / totPlans * 100)) : 0;
-
-  document.getElementById('ss-plans').textContent  = totPlans;
-  document.getElementById('ss-cin').textContent    = totCin;
-  document.getElementById('ss-done').textContent   = totDone;
-  document.getElementById('ss-notyet').textContent = totNotYet;
-  document.getElementById('ss-noco').textContent   = totNoCo;
-  document.getElementById('ss-miss').textContent   = totMiss;
-  document.getElementById('ss-extra').textContent  = totExtra;
-  document.getElementById('ss-pct').textContent    = totPct + '%';
-
-  // Table
-  const wrap = document.getElementById('sum-table-wrap');
-  if (!staffSet.length) {
-    wrap.innerHTML = `<div class="empty"><div class="ic">📭</div>ไม่มีแผนงานในช่วงวันที่นี้</div>`;
-    return;
-  }
-
-  const rangeLabel = fromISO === toISO
-    ? `วันที่ ${isoToDisplay(fromISO)}`
-    : `${isoToDisplay(fromISO)} – ${isoToDisplay(toISO)}`;
-
-  wrap.innerHTML = `
-    <div style="font-size:13px;color:#57606a;margin-bottom:10px;font-weight:700">
-      📅 สรุปแผนงาน ${rangeLabel} — พนักงาน ${staffSet.length} คน
-    </div>
-    <table class="sum-table">
-      <thead>
-        <tr>
-          <th>👤 พนักงาน</th>
-          <th>แผน</th>
-          <th>เช็กอิน</th>
-          <th>เข้า-ออก</th>
-          <th>ยังไม่ถึงเวลา ⏳</th>
-          <th>ล่าช้า ⏰</th>
-          <th>ขาด ❌</th>
-          <th>⭐ งานพิเศษ</th>
-          <th>% สำเร็จ</th>
-          <th>รายละเอียด</th>
-        </tr>
-      </thead>
-      <tbody>
-        ${sumData.map((row,i) => `<tr>
-          <td><b>${row.staff}</b></td>
-          <td><span class="sum-num" onclick="showStaffDetail('${escHtml(row.staff)}','plans',${i})">${row.plans.length}</span></td>
-          <td><span class="sum-num" onclick="showStaffDetail('${escHtml(row.staff)}','checkin',${i})" style="color:${row.logs.length?'#1a7f37':'#cf222e'}">${row.logs.length}</span></td>
-          <td><span class="sum-num" onclick="showStaffDetail('${escHtml(row.staff)}','completed',${i})" style="color:${row.completed.length?'#1a7f37':'#8c959f'}">${row.completed.length}</span></td>
-          <td><span class="sum-num" onclick="showStaffDetail('${escHtml(row.staff)}','notyet',${i})" style="color:${row.notYet.length?'#0969da':'#8c959f'}">${row.notYet.length||'-'}</span></td>
-          <td><span class="sum-num" onclick="showStaffDetail('${escHtml(row.staff)}','late',${i})" style="color:${row.noCheckout.length?'#d97706':'#8c959f'}">${row.noCheckout.length||'-'}</span></td>
-          <td><span class="sum-num" onclick="showStaffDetail('${escHtml(row.staff)}','missing',${i})" style="color:${row.missing.length?'#cf222e':'#8c959f'}">${row.missing.length||'-'}</span></td>
-          <td>${row.extra > 0
-            ? `<span class="sum-num" onclick="showStaffDetail('${escHtml(row.staff)}','extra',${i})" style="color:#d97706">+${row.extra}</span>`
-            : `<span style="color:#8c959f">-</span>`
-          }</td>
-          <td>
-            <b style="color:${row.pct>=100?'#1a7f37':row.pct>=50?'#9a6700':'#cf222e'}">${row.pct}%</b>
-            <span class="prog-bar"><span class="prog-fill" style="width:${row.pct}%;background:${row.pct>=100?'#1a7f37':row.pct>=50?'#d4a017':'#cf222e'}"></span></span>
-          </td>
-          <td><button class="btn-sm btn-edit" onclick="showStaffDetail('${escHtml(row.staff)}','all',${i})">🔍 ดูทั้งหมด</button></td>
-        </tr>`).join('')}
-      </tbody>
-    </table>`;
-}
-
-function escHtml(s) { return (s||'').replace(/'/g,"\\'"); }
-
-function getSumDateRange() {
-  const from = document.getElementById('sum-date-from').value;
-  const to   = sumMode === 'day' ? from : (document.getElementById('sum-date-to').value || from);
-  return dateRange(from, to);
-}
-
-function showSumDetail(type) {
-  const dates = getSumDateRange();
-  const logsRange  = logData.filter(r => dates.includes(getRecordDateISO(r)));
-  const plansRange = planData.filter(t => dates.includes(normPlanDate(t.date)));
-  let title = '', rows = [];
-
-  if (type === 'checkin') {
-    title = '✅ เช็กอินแล้ว';
-    rows = logsRange;
-  } else if (type === 'completed') {
-    title = '🏁 จบงานแล้ว';
-    rows = logsRange.filter(r => (r.checkoutTime||'').trim());
-  } else if (type === 'notyet') {
-    title = '⏳ ยังไม่ถึงเวลา';
-    rows = sumData.flatMap(s => s.notYet);
-  } else if (type === 'late') {
-    title = '⏰ ล่าช้า (เลยเวลาแล้ว ยังไม่จบงาน)';
-    rows = sumData.flatMap(s => s.noCheckout);
-  } else if (type === 'missing') {
-    title = '❌ ขาดงาน (ผ่านเวลาแล้ว ไม่เช็กอิน)';
-    rows = sumData.flatMap(s => s.missing);
-  } else if (type === 'extra') {
-    title = '⭐ งานพิเศษ';
-    rows = sumData.flatMap(s => s.extraLogs);
-  }
-  const from = document.getElementById('sum-date-from').value;
-  const to   = sumMode==='day' ? from : (document.getElementById('sum-date-to').value||from);
-  const rangeLabel = from===to ? isoToDisplay(from) : `${isoToDisplay(from)} – ${isoToDisplay(to)}`;
-  document.getElementById('det-title').textContent = title;
-  document.getElementById('det-sub').textContent   = `${rangeLabel} — ${rows.length} รายการ`;
-
-  if (!rows.length) {
-    document.getElementById('det-body').innerHTML = '<div style="text-align:center;padding:20px;color:#8c959f">ไม่มีข้อมูล</div>';
-  } else if (type === 'missing' || type === 'notyet') {
-    // rows คือ plan objects
-    const bg = type === 'missing' ? '#ffebe9' : '#ddf4ff';
-    const fg = type === 'missing' ? '#cf222e'  : '#0969da';
-    document.getElementById('det-body').innerHTML = `
-      <div class="det-section" style="border-left:3px solid ${fg};padding-left:12px">
-        <h4 style="background:${bg};color:${fg};padding:8px 12px;border-radius:6px;margin-bottom:8px">${title} (${rows.length} แผน)</h4>
-        ${rows.map(t=>`<div class="det-row">
-          <span><b>${t.staffName}</b> — ${t.branch||'-'}</span>
-          <span style="font-size:12px;color:#57606a">${isoToDisplay(normPlanDate(t.date))} ${normTime(t.startTime)}–${normTime(t.endTime)}</span>
-        </div>`).join('')}
-      </div>`;
-  } else if (type === 'late') {
-    // rows คือ planDetail objects {plan, log, status}
-    document.getElementById('det-body').innerHTML = `
-      <div class="det-section" style="border-left:3px solid #d97706;padding-left:12px">
-        <h4 style="background:#fff7ed;color:#d97706;padding:8px 12px;border-radius:6px;margin-bottom:8px">⏰ ล่าช้า (${rows.length} รายการ)</h4>
-        ${rows.map(d=>`<div class="det-row">
-          <span><b>${d.plan.staffName}</b> — ${d.plan.branch||'-'}
-            ${d.log ? `<span style="font-size:10px;color:#1a7f37;margin-left:4px">✔ เช็กอินแล้ว</span>` : `<span style="font-size:10px;color:#cf222e;margin-left:4px">✘ ยังไม่เช็กอิน</span>`}
-          </span>
-          <span style="font-size:12px;color:#57606a">${isoToDisplay(normPlanDate(d.plan.date))} ${normTime(d.plan.startTime)}–${normTime(d.plan.endTime)}</span>
-        </div>`).join('')}
-      </div>`;
-  } else {
-    document.getElementById('det-body').innerHTML = `
-      <div class="det-section done">
-        <h4>${title} (${rows.length} รายการ)</h4>
-        ${rows.map(r=>`<div class="det-row">
-          <span><b>${r.name}</b> — ${r.branch||'-'} <span class="badge b-special" style="font-size:10px">${r.round||''}</span></span>
-          <span style="font-size:12px;color:#57606a">${cleanTime(r.timestamp)||'-'}${r.checkoutTime?' → '+cleanTime(r.checkoutTime):''}</span>
-        </div>`).join('')}
-      </div>`;
-  }
-  document.getElementById('det-modal').classList.add('open');
-}
-
-function showStaffDetail(staff, type, idx) {
-  const row = sumData[idx];
-  if (!row) return;
-  const from = document.getElementById('sum-date-from').value;
-  const to   = sumMode==='day' ? from : (document.getElementById('sum-date-to').value||from);
-  const rangeLabel = from===to ? isoToDisplay(from) : `${isoToDisplay(from)} – ${isoToDisplay(to)}`;
-  document.getElementById('det-title').textContent = `👤 ${staff}`;
-  document.getElementById('det-sub').textContent   = rangeLabel;
-
-  let html = '';
-
-  if (type === 'all' || type === 'plans' || type === 'completed' || type === 'checkin') {
-    // งานพิเศษ (เช็กอินเกินแผน)
-    if ((type === 'all') && row.extra > 0) {
-      const extraLogs = row.logs.slice(row.plans.length);
-      html += `<div class="det-section" style="margin-bottom:16px">
-        <h4 style="background:#fef9c3;color:#d97706">⭐ งานพิเศษ (${extraLogs.length} รายการ)</h4>
-        ${extraLogs.map(r=>`<div class="det-row">
-          <span>${r.branch||'-'} <span class="badge b-special" style="font-size:10px">${r.round||''}</span></span>
-          <span style="font-size:12px;color:#57606a">${cleanTime(r.timestamp)||'-'}${r.checkoutTime?' → '+cleanTime(r.checkoutTime):''}</span>
-        </div>`).join('')}
-      </div>`;
-    }
-    // Completed / checked-in
-    if (row.completed.length) {
-      html += `<div class="det-section done">
-        <h4>🏁 จบงานแล้ว (${row.completed.length} รายการ)</h4>
-        ${row.completed.map(r=>`<div class="det-row">
-          <span>${r.branch||'-'} <span class="badge b-special" style="font-size:10px">${r.round||''}</span></span>
-          <span style="font-size:12px;color:#57606a">${cleanTime(r.timestamp)||'-'} → ${cleanTime(r.checkoutTime)||'-'}</span>
-        </div>`).join('')}
-      </div>`;
-    }
-    // Checked in but not completed
-    const cinOnly = row.logs.filter(r=>!(r.checkoutTime||'').trim());
-    if (cinOnly.length) {
-      html += `<div class="det-section" style="margin-bottom:16px">
-        <h4 style="background:#fff8c5;color:#9a6700">⏳ เช็กอินแล้ว ยังไม่จบงาน (${cinOnly.length} รายการ)</h4>
-        ${cinOnly.map(r=>`<div class="det-row">
-          <span>${r.branch||'-'} <span class="badge b-special" style="font-size:10px">${r.round||''}</span></span>
-          <span style="font-size:12px;color:#57606a">${cleanTime(r.timestamp)||'-'}</span>
-        </div>`).join('')}
-      </div>`;
-    }
-  }
-
-  if (type === 'nocheckout' || type === 'late') {
-    html += row.noCheckout.length
-      ? `<div class="det-section" style="margin-bottom:16px">
-          <h4 style="background:#fff7ed;color:#d97706">⏰ ล่าช้า — เลยเวลาแล้ว (${row.noCheckout.length} รายการ)</h4>
-          ${row.noCheckout.map(d=>`<div class="det-row">
-            <span>${d.plan.branch||'-'} <span style="font-size:10px;color:#57606a">${normTime(d.plan.startTime)}–${normTime(d.plan.endTime)}</span>
-              ${d.log ? `<span style="font-size:10px;color:#1a7f37;margin-left:4px">✔ เช็กอิน ${cleanTime(d.log.timestamp)||''}</span>` : `<span style="font-size:10px;color:#cf222e;margin-left:4px">✘ ยังไม่เช็กอิน</span>`}
-            </span>
-          </div>`).join('')}
-        </div>`
-      : '<div style="text-align:center;padding:20px;color:#8c959f">ไม่มีรอบล่าช้า ✅</div>';
-  }
-
-  if (type === 'notyet') {
-    html += row.notYet.length
-      ? `<div class="det-section" style="margin-bottom:16px">
-          <h4 style="background:#ddf4ff;color:#0969da">⏳ ยังไม่ถึงเวลา (${row.notYet.length} แผน)</h4>
-          ${row.notYet.map(p=>`<div class="det-row">
-            <span>${p.branch||'-'}</span>
-            <span style="font-size:12px;color:#57606a">${isoToDisplay(normPlanDate(p.date))} ${normTime(p.startTime)}–${normTime(p.endTime)}</span>
-          </div>`).join('')}
-        </div>`
-      : '<div style="text-align:center;padding:20px;color:#8c959f">ไม่มีรอบที่รอดำเนินการ</div>';
-  }
-
-  if (type === 'extra') {
-    const extraLogs = row.logs.slice(row.plans.length);
-    html += extraLogs.length
-      ? `<div class="det-section" style="margin-bottom:16px">
-          <h4 style="background:#fef9c3;color:#d97706">⭐ งานพิเศษ (${extraLogs.length} รายการ)</h4>
-          ${extraLogs.map(r=>`<div class="det-row">
-            <span>${r.branch||'-'} <span class="badge b-special" style="font-size:10px">${r.round||''}</span></span>
-            <span style="font-size:12px;color:#57606a">${cleanTime(r.timestamp)||'-'}${r.checkoutTime?' → '+cleanTime(r.checkoutTime):''}</span>
-          </div>`).join('')}
-        </div>`
-      : '<div style="text-align:center;padding:20px;color:#8c959f">ไม่มีงานพิเศษ</div>';
-  }
-
-  if (type === 'all' || type === 'plans' || type === 'missing') {
-    // Plans (for reference)
-    if (row.plans.length) {
-      html += `<div class="det-section" style="margin-bottom:16px">
-        <h4 style="background:#ddf4ff;color:#0969da">📋 แผนงานทั้งหมด (${row.plans.length} แผน)</h4>
-        ${row.plans.map(p=>`<div class="det-row">
-          <span><b>${p.branch||'-'}</b>${p.taskType?' — '+p.taskType:''}</span>
-          <span style="font-size:12px;color:#57606a">${normTime(p.startTime)}–${normTime(p.endTime)}</span>
-        </div>`).join('')}
-      </div>`;
-    }
-    // Missing
-    if (row.missing.length && (type === 'all' || type === 'missing')) {
-      html += `<div class="det-section miss">
-        <h4>❌ ยังไม่มีการเช็กอิน (${row.missing.length} แผน)</h4>
-        ${row.missing.map(p=>`<div class="det-row">
-          <span><b>${p.branch||'-'}</b>${p.taskType?' — '+p.taskType:''}</span>
-          <span style="font-size:12px;color:#57606a">${normTime(p.startTime)}–${normTime(p.endTime)}</span>
-        </div>`).join('')}
-      </div>`;
-    }
-  }
-
-  if (!html) html = '<div style="text-align:center;padding:20px;color:#8c959f">ไม่มีข้อมูล</div>';
-  document.getElementById('det-body').innerHTML = html;
-  document.getElementById('det-modal').classList.add('open');
-}
-
-function closeSumDetail() { document.getElementById('det-modal').classList.remove('open'); }
-
-// ── Config ─────────────────────────────────────────
-function openCfg() {
-  document.getElementById('cfg-url').value=getUrl();
-  document.getElementById('cfg-bg').classList.add('open');
-}
-function closeCfg() { document.getElementById('cfg-bg').classList.remove('open'); }
-function saveCfg() {
-  const v=document.getElementById('cfg-url').value.trim();
-  if(v) { store.set('adminUrl',v); store.set('scriptUrl',v); }
-  closeCfg(); loadLog(); loadPlan();
-}
-
-// ── Lightbox ───────────────────────────────────────
-function openLightbox(src) { document.getElementById('lb-img').src=src; document.getElementById('lightbox').classList.add('open'); }
-function closeLightbox()    { document.getElementById('lightbox').classList.remove('open'); }
-
-// ── Time dropdowns ─────────────────────────────────
-function buildTimeOptions() {
-  const opts=[];
-  for(let h=0;h<=24;h++) {
-    const hh=String(h).padStart(2,'0');
-    if(h<24){ opts.push(`<option value="${hh}:00">${hh}:00 น.</option>`); opts.push(`<option value="${hh}:30">${hh}:30 น.</option>`); }
-    else opts.push(`<option value="24:00">24:00 น.</option>`);
-  }
-  return opts.join('');
-}
-function initTimeSelects(startVal='09:00',endVal='18:00') {
-  const html=buildTimeOptions();
-  const s=document.getElementById('t-start'), e=document.getElementById('t-end');
-  s.innerHTML=html; e.innerHTML=html;
-  s.value=startVal; e.value=endVal;
-}
-
-// ── Init ───────────────────────────────────────────
-document.getElementById('sum-date-from').value = todayStr();
-document.getElementById('det-modal').addEventListener('click', function(e){ if(e.target===this) closeSumDetail(); });
-renderCal();
-if(getUrl()) { loadLog(); loadPlan(); loadUsers(); }
-
-// ══════════════════
-//  HR TAB
-// ══════════════════
-const HR_IN  = '10:30';   // เวลาเข้างานมาตรฐาน
-const HR_OUT = '19:00';   // เวลาออกงานมาตรฐาน
+// ── HR Tab ─────────────────────────────────────────
+const HR_IN  = '10:30';
+const HR_OUT = '19:00';
+const DAYS_TH = ['อา','จ','อ','พ','พฤ','ศ','ส'];
+let hrData = [];
 
 function initHR() {
-  // populate employee dropdown
-  const sel = document.getElementById('hr-emp');
-  const cur = sel.value;
-  sel.innerHTML = '<option value="">-- เลือกพนักงาน --</option>';
-  const names = [...new Set(logData.map(r=>r.name).filter(Boolean))].sort();
-  names.forEach(n => {
-    const o = document.createElement('option');
-    o.value = o.textContent = n;
-    sel.appendChild(o);
-  });
-  if (cur) sel.value = cur;
-  // default month = current month
-  if (!document.getElementById('hr-month').value) {
-    document.getElementById('hr-month').value = todayStr().slice(0,7);
-  }
+  const sel = document.getElementById('hr-month');
+  if (!sel.value) sel.value = todayStr().slice(0,7);
+  fillHREmp();
   document.getElementById('hr-empty').style.display = 'block';
   document.getElementById('hr-table').style.display = 'none';
   document.getElementById('hr-cards').style.display = 'none';
 }
 
-function parseTimeToMin(hhmm) {
-  if (!hhmm) return null;
-  const [h,m] = hhmm.split(':').map(Number);
-  return h*60 + m;
+function fillHREmp() {
+  const sel  = document.getElementById('hr-emp');
+  const prev = sel.value;
+  const names = [...new Set([...userData.map(u=>u.name), ...logData.map(r=>r.name)].filter(Boolean))].sort();
+  sel.innerHTML = '<option value="">-- เลือกพนักงาน --</option>' + names.map(n=>`<option value="${n}">${n}</option>`).join('');
+  if (prev) sel.value = prev;
 }
 
-function minToHHMM(min) {
-  if (min <= 0) return '-';
-  const h = Math.floor(min/60), m = min%60;
-  return h > 0 ? `${h}ชม.${m>0?m+'น.':''}` : `${m}น.`;
+function toMins(t) { if(!t||!t.includes(':'))return -1; const[h,m]=(t+'').split(':').map(Number);return(h||0)*60+(m||0); }
+function minsToHM(m) { if(m<0)return'-'; return `${Math.floor(m/60)}ชม.${m%60>0?m%60+'น.':''}`; }
+
+function recToISO(r) {
+  // try date field first
+  const d=(r.date||'').toString().trim();
+  const m1=d.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})/);
+  if(m1){let y=parseInt(m1[3]);if(y>2400)y-=543;return`${y}-${m1[2].padStart(2,'0')}-${m1[1].padStart(2,'0')}`;}
+  // fallback: timestamp
+  const ts=(r.timestamp||'').toString().trim();
+  const m2=ts.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})/);
+  if(m2){let y=parseInt(m2[3]);if(y>2400)y-=543;return`${y}-${m2[2].padStart(2,'0')}-${m2[1].padStart(2,'0')}`;}
+  return '';
 }
 
-function getDayName(isoDate) {
-  const days = ['อา','จ','อ','พ','พฤ','ศ','ส'];
-  return days[new Date(isoDate).getDay()];
-}
-
-function isWeekend(isoDate) {
-  const d = new Date(isoDate).getDay();
-  return d === 0 || d === 6;
-}
-
-// แปลง timestamp string → HH:MM
 function extractTime(ts) {
-  if (!ts) return null;
-  // รูปแบบ dd/MM/yyyy HH:mm:ss หรือ HH:mm:ss หรือ HH:mm
-  const m = ts.match(/(\d{2}):(\d{2})/g);
-  if (!m) return null;
-  // ถ้ามี date part ด้วย ให้เอาตัวสุดท้าย (time)
-  return m[m.length-1];
+  if (!ts) return '';
+  const m = (ts+'').match(/(\d{2}:\d{2})(:\d{2})?$/);
+  if (m) return m[1];
+  const m2 = (ts+'').match(/\s+(\d{2}:\d{2})/);
+  return m2 ? m2[1] : '';
 }
 
-function loadHR() {
+async function loadHR() {
   const emp   = document.getElementById('hr-emp').value;
-  const month = document.getElementById('hr-month').value; // yyyy-MM
+  const month = document.getElementById('hr-month').value;
   if (!emp || !month) { alert('กรุณาเลือกพนักงานและเดือน'); return; }
 
-  // กรอง log ของพนักงานคนนี้ในเดือนที่เลือก
-  const [yr, mo] = month.split('-').map(Number);
-
-  // แปลง record เป็น iso date (รองรับทั้ง dd/MM/yyyy และ timestamp)
-  function recToISO(r) {
-    // ลอง parse จาก r.date (dd/MM/yyyy)
-    const dp = (r.date||'').split('/');
-    if (dp.length === 3 && dp[2].length === 4) {
-      return `${dp[2]}-${dp[1].padStart(2,'0')}-${dp[0].padStart(2,'0')}`;
-    }
-    // fallback: parse จาก timestamp เช่น "03/06/2026 09:32:00"
-    const tp = (r.timestamp||'').split(' ')[0].split('/');
-    if (tp.length === 3 && tp[2].length === 4) {
-      return `${tp[2]}-${tp[1].padStart(2,'0')}-${tp[0].padStart(2,'0')}`;
-    }
-    return null;
-  }
-
-  const rows = logData.filter(r => {
-    if (r.name !== emp) return false;
-    const iso = recToISO(r);
-    if (!iso) return false;
-    const [ry, rm] = iso.split('-').map(Number);
-    return rm === mo && ry === yr;
+  const [y, m] = month.split('-').map(Number);
+  const daysInMonth = new Date(y, m, 0).getDate();
+  const allDates = Array.from({length: daysInMonth}, (_,i) => {
+    return `${y}-${String(m).padStart(2,'0')}-${String(i+1).padStart(2,'0')}`;
   });
 
-  // รวมตาม date (เอา check-in แรกสุดของวัน)
+  // filter logData for this employee this month
+  const empLogs = logData.filter(r => r.name === emp && recToISO(r).startsWith(month));
+
+  // group by date (earliest check-in per day = เวลาเข้า, latest checkout = เวลาออก)
   const byDate = {};
-  rows.forEach(r => {
+  empLogs.forEach(r => {
     const iso = recToISO(r);
     if (!iso) return;
-    if (!byDate[iso] || r.timestamp < byDate[iso].timestamp) {
-      byDate[iso] = r;
-    }
+    if (!byDate[iso]) byDate[iso] = [];
+    byDate[iso].push(r);
   });
 
-  // สร้าง list ทุกวันในเดือน
-  const daysInMonth = new Date(yr, mo, 0).getDate();
-  let totalLate = 0, totalEarly = 0, totalOT = 0, totalDays = 0, noCheckout = 0;
+  const HIN  = toMins(HR_IN);
+  const HOUT = toMins(HR_OUT);
+  let totalWork=0, totalLate=0, totalEarly=0, totalOT=0, workDays=0, noOut=0;
+
   const tbody = document.getElementById('hr-body');
-  tbody.innerHTML = '';
+  let rows = '';
+  let rowIdx = 0;
 
-  for (let d = 1; d <= daysInMonth; d++) {
-    const iso = `${yr}-${String(mo).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
-    const rec = byDate[iso];
-    const dayName = getDayName(iso);
-    const weekend = isWeekend(iso);
-    const isToday = iso === todayStr();
+  allDates.forEach(iso => {
+    const dt   = new Date(iso+'T00:00:00');
+    const dow  = dt.getDay(); // 0=อา 6=ส
+    const dayLabel = DAYS_TH[dow];
+    const isWeekend = dow === 0 || dow === 6;
+    const recs = byDate[iso] || [];
 
-    if (!rec) {
-      // ไม่มีการเช็กอินวันนี้
-      const tr = document.createElement('tr');
-      tr.style.cssText = `background:${weekend?'#fff8f0':isToday?'#f0f7ff':''}`;
-      tr.innerHTML = `
-        <td style="padding:9px 14px;font-size:12px;color:#8c959f;border-bottom:1px solid #f0f2f5">${d}</td>
-        <td style="padding:9px 14px;font-size:13px;border-bottom:1px solid #f0f2f5">${iso.split('-').reverse().join('/')}</td>
-        <td style="padding:9px 14px;font-size:12px;border-bottom:1px solid #f0f2f5"><span style="color:${weekend?'#d97706':'#8c959f'}">${dayName}</span></td>
-        <td colspan="6" style="padding:9px 14px;font-size:12px;color:#8c959f;border-bottom:1px solid #f0f2f5">—</td>`;
-      tbody.appendChild(tr);
-      continue;
-    }
+    if (!recs.length && !isWeekend) return; // ข้ามวันที่ไม่มีข้อมูล (แสดงเฉพาะวันที่มีงาน + เสาร์-อาทิตย์ที่มีงาน)
+    if (!recs.length) return; // ถ้าเสาร์-อาทิตย์แต่ไม่มีงานก็ข้าม
 
-    totalDays++;
-    const inTime  = extractTime(rec.timestamp);
-    const outTime = rec.checkoutTime ? extractTime(rec.checkoutTime) : null;
-    const inMin   = parseTimeToMin(inTime);
-    const outMin  = outTime ? parseTimeToMin(outTime) : null;
-    const stdIn   = parseTimeToMin(HR_IN);
-    const stdOut  = parseTimeToMin(HR_OUT);
+    rowIdx++;
+    const inTimes  = recs.map(r=>extractTime(r.timestamp)).filter(Boolean);
+    const outTimes = recs.map(r=>extractTime(r.checkoutTime)).filter(Boolean);
+    const inStr    = inTimes.length  ? inTimes.sort()[0]  : '-';
+    const outStr   = outTimes.length ? outTimes.sort().reverse()[0] : '-';
+    const inM      = toMins(inStr);
+    const outM     = toMins(outStr);
 
-    // คำนวณสาย (เฉพาะวันธรรมดา)
-    let lateMin = 0;
-    if (!weekend && inMin !== null && inMin > stdIn) {
-      lateMin = inMin - stdIn;
-      totalLate += lateMin;
-    }
+    let lateMin=0, earlyMin=0, otMin=0, note='';
+    const hasOut = outStr !== '-';
 
-    // คำนวณออกก่อนเวลา (เฉพาะวันธรรมดา มีเวลาออก และออกก่อน 19:00)
-    let earlyMin = 0;
-    if (!weekend && outMin !== null && outMin < stdOut) {
-      earlyMin = stdOut - outMin;
-      totalEarly += earlyMin;
-    }
-
-    // คำนวณ OT
-    let otMin = 0;
-    if (weekend) {
-      // วันหยุด OT ทั้งวัน
-      if (inMin !== null && outMin !== null) {
-        otMin = outMin - inMin;
-        totalOT += otMin;
-      }
+    if (isWeekend) {
+      // เสาร์-อาทิตย์ = OT ทั้งหมด
+      if (inM >= 0 && hasOut && outM > inM) otMin = outM - inM;
+      else if (inM >= 0 && hasOut) otMin = 0;
+      note = '🎉 OT วันหยุด';
+      totalOT += otMin;
     } else {
-      // วันธรรมดา OT หลัง 19:00
-      if (outMin !== null && outMin > stdOut) {
-        otMin = outMin - stdOut;
-        totalOT += otMin;
-      }
+      workDays++;
+      if (inM >= 0 && inM > HIN)   lateMin  = inM - HIN;
+      if (hasOut && outM < HOUT)   earlyMin = HOUT - outM;
+      if (hasOut && outM > HOUT)   otMin    = outM - HOUT;
+      if (!hasOut) { note = '⚠️ ไม่มีเวลาออก — แจ้งหัวหน้า'; noOut++; }
+      totalLate  += lateMin;
+      totalEarly += earlyMin;
+      totalOT    += otMin;
+      if (inM >= 0 && hasOut && outM > inM) totalWork += outM - inM;
     }
 
-    // หมายเหตุ
-    let note = '';
-    if (!outTime) { note = `<span style="color:#cf222e;font-weight:700">⚠️ ไม่มีเวลาออก แจ้งหัวหน้า</span>`; noCheckout++; }
-    else if (weekend) { note = `<span style="color:#8250df">🌟 วันหยุด</span>`; }
+    const lateCell  = lateMin  > 0 ? `<span style="color:#d97706;font-size:12px">+${minsToHM(lateMin)}</span>` : (isWeekend?'-':'<span style="color:#1a7f37;font-size:12px">ตรงเวลา</span>');
+    const earlyCell = earlyMin > 0 ? `<span style="color:#cf222e;font-size:12px">-${minsToHM(earlyMin)}</span>` : (isWeekend||!hasOut?'-':'<span style="color:#1a7f37;font-size:12px">ปกติ</span>');
+    const otCell    = otMin    > 0 ? `<span style="color:#0969da;font-size:12px">${minsToHM(otMin)}</span>` : '-';
+    const bg = isWeekend ? '#fdf0ff' : rowIdx%2===0 ? '#f6f8fa' : '#fff';
 
-    const lateCell = lateMin > 0
-      ? `<span style="color:#cf222e;font-weight:700">+${minToHHMM(lateMin)}</span>`
-      : `<span style="color:#1a7f37">✅</span>`;
-    const earlyCell = earlyMin > 0
-      ? `<span style="color:#d97706;font-weight:700">-${minToHHMM(earlyMin)}</span>`
-      : `<span style="color:#1a7f37">✅</span>`;
-    const otCell = otMin > 0
-      ? `<span style="color:#0969da;font-weight:700">${minToHHMM(otMin)}</span>`
-      : `<span style="color:#8c959f">-</span>`;
+    rows += `<tr style="background:${bg}">
+      <td style="padding:10px 14px;font-size:12px;color:#8c959f">${rowIdx}</td>
+      <td style="padding:10px 14px;font-size:13px">${iso.split('-').reverse().join('/')}</td>
+      <td style="padding:10px 14px;font-size:13px;font-weight:700;color:${isWeekend?'#8250df':'#1f2328'}">${dayLabel}</td>
+      <td style="padding:10px 14px;font-size:13px">${inStr}</td>
+      <td style="padding:10px 14px;font-size:13px">${hasOut?outStr:'<span style="color:#cf222e">-</span>'}</td>
+      <td style="padding:10px 14px">${lateCell}</td>
+      <td style="padding:10px 14px">${earlyCell}</td>
+      <td style="padding:10px 14px">${otCell}</td>
+      <td style="padding:10px 14px;font-size:12px;color:#57606a">${note}</td>
+    </tr>`;
+  });
 
-    const tr = document.createElement('tr');
-    tr.style.cssText = `background:${weekend?'#fff8f0':isToday?'#f0f7ff':''}`;
-    tr.innerHTML = `
-      <td style="padding:9px 14px;font-size:12px;color:#8c959f;border-bottom:1px solid #f0f2f5">${d}</td>
-      <td style="padding:9px 14px;font-size:13px;border-bottom:1px solid #f0f2f5">${iso.split('-').reverse().join('/')}</td>
-      <td style="padding:9px 14px;font-size:12px;border-bottom:1px solid #f0f2f5"><span style="color:${weekend?'#d97706':'#24292f'}">${dayName}</span></td>
-      <td style="padding:9px 14px;font-size:13px;border-bottom:1px solid #f0f2f5">${inTime||'-'}</td>
-      <td style="padding:9px 14px;font-size:13px;border-bottom:1px solid #f0f2f5">${outTime||'<span style="color:#cf222e">ไม่มีเวลาออก</span>'}</td>
-      <td style="padding:9px 14px;border-bottom:1px solid #f0f2f5">${lateCell}</td>
-      <td style="padding:9px 14px;border-bottom:1px solid #f0f2f5">${earlyCell}</td>
-      <td style="padding:9px 14px;border-bottom:1px solid #f0f2f5">${otCell}</td>
-      <td style="padding:9px 14px;font-size:12px;border-bottom:1px solid #f0f2f5">${note}</td>`;
-    tbody.appendChild(tr);
-  }
+  tbody.innerHTML = rows || `<tr><td colspan="9" style="text-align:center;padding:30px;color:#8c959f">ไม่มีข้อมูล</td></tr>`;
 
   // Summary cards
   const cards = document.getElementById('hr-cards');
   cards.style.display = 'flex';
-  cards.innerHTML = `
-    <div style="background:#fff;border:1px solid #e1e4e8;border-radius:10px;padding:16px 24px;min-width:120px;text-align:center">
-      <div style="font-size:28px;font-weight:700;color:#1a7f37">${totalDays}</div>
-      <div style="font-size:12px;color:#57606a;margin-top:4px">วันทำงาน</div>
-    </div>
-    <div style="background:#fff;border:1px solid #e1e4e8;border-radius:10px;padding:16px 24px;min-width:120px;text-align:center">
-      <div style="font-size:28px;font-weight:700;color:${totalLate>0?'#cf222e':'#1a7f37'}">${totalLate>0?minToHHMM(totalLate):'✅'}</div>
-      <div style="font-size:12px;color:#57606a;margin-top:4px">สายรวม</div>
-    </div>
-    <div style="background:#fff;border:1px solid #e1e4e8;border-radius:10px;padding:16px 24px;min-width:120px;text-align:center">
-      <div style="font-size:28px;font-weight:700;color:${totalEarly>0?'#d97706':'#1a7f37'}">${totalEarly>0?minToHHMM(totalEarly):'✅'}</div>
-      <div style="font-size:12px;color:#57606a;margin-top:4px">ออกก่อนรวม</div>
-    </div>
-    <div style="background:#fff;border:1px solid #e1e4e8;border-radius:10px;padding:16px 24px;min-width:120px;text-align:center">
-      <div style="font-size:28px;font-weight:700;color:${totalOT>0?'#0969da':'#8c959f'}">${totalOT>0?minToHHMM(totalOT):'-'}</div>
-      <div style="font-size:12px;color:#57606a;margin-top:4px">OT รวม</div>
-    </div>
-    ${noCheckout>0?`<div style="background:#fff;border:1px solid #ffcdd2;border-radius:10px;padding:16px 24px;min-width:120px;text-align:center">
-      <div style="font-size:28px;font-weight:700;color:#cf222e">${noCheckout}</div>
-      <div style="font-size:12px;color:#57606a;margin-top:4px">ไม่มีเวลาออก</div>
-    </div>`:''}`;
+  const cardData = [
+    { n: workDays,                     l: 'วันทำงาน',      c: '#0969da' },
+    { n: minsToHM(totalWork),          l: 'ชั่วโมงรวม',    c: '#1a7f37' },
+    { n: minsToHM(totalLate),          l: 'สาย (รวม)',      c: '#d97706' },
+    { n: minsToHM(totalEarly),         l: 'ออกก่อนเวลา',   c: '#cf222e' },
+    { n: minsToHM(totalOT),            l: 'OT (รวม)',       c: '#8250df' },
+    { n: noOut > 0 ? `${noOut} วัน` : '0', l: 'ไม่มีเวลาออก', c: noOut>0?'#cf222e':'#1a7f37' },
+  ];
+  cards.innerHTML = cardData.map(c=>`
+    <div style="background:#fff;border-radius:10px;padding:12px 18px;border:1px solid #d0d7de;flex:1;min-width:120px">
+      <div style="font-size:22px;font-weight:700;color:${c.c}">${c.n}</div>
+      <div style="font-size:11px;color:#57606a;margin-top:2px">${c.l}</div>
+    </div>`).join('');
 
-  document.getElementById('hr-table').style.display = 'table';
-  document.getElementById('hr-empty').style.display = 'none';
+  document.getElementById('hr-table').style.display = rowIdx ? '' : 'none';
+  document.getElementById('hr-empty').style.display = rowIdx ? 'none' : 'block';
 }
 
 function exportHRCSV() {
   const emp   = document.getElementById('hr-emp').value;
   const month = document.getElementById('hr-month').value;
   if (!emp || !month) { alert('กรุณาโหลดรายงานก่อน'); return; }
-
-  const rows = [['วันที่','วัน','เวลาเข้า','เวลาออก','สาย','ออกก่อนเวลา','OT','หมายเหตุ']];
-  document.querySelectorAll('#hr-body tr').forEach(tr => {
-    const tds = tr.querySelectorAll('td');
-    if (tds.length < 7) return;
-    rows.push([
-      tds[1].textContent.trim(),
-      tds[2].textContent.trim(),
-      tds[3].textContent.trim(),
-      tds[4].textContent.trim(),
-      tds[5].textContent.trim(),
-      tds[6].textContent.trim(),
-      tds[7] ? tds[7].textContent.trim() : '',
-      tds[8] ? tds[8].textContent.trim() : ''
-    ]);
-  });
-
-  const csv = rows.map(r => r.map(c => `"${c}"`).join(',')).join('\n');
-  const blob = new Blob(['﻿'+csv], {type:'text/csv;charset=utf-8'});
-  const url  = URL.createObjectURL(blob);
-  const a    = document.createElement('a');
-  a.href = url; a.download = `HR_${emp}_${month}.csv`;
-  a.click(); URL.revokeObjectURL(url);
+  const rows = [...document.querySelectorAll('#hr-body tr')];
+  if (!rows.length) { alert('ไม่มีข้อมูล'); return; }
+  const headers = ['#','วันที่','วัน','เวลาเข้า','เวลาออก','สาย','ออกก่อนเวลา','OT','หมายเหตุ'];
+  const data = rows.map(tr => [...tr.querySelectorAll('td')].map(td => td.innerText.replace(/\n/g,' ').trim()));
+  const csv = [headers, ...data].map(r=>r.map(v=>`"${v.replace(/"/g,'""')}"`).join(',')).join('\n');
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob(['﻿'+csv],{type:'text/csv;charset=utf-8'}));
+  a.download = `hr_${emp}_${month}.csv`; a.click();
 }
 
+// ── Lightbox ───────────────────────────────────────
+function openLightbox(url) { document.getElementById('lb-img').src=url; document.getElementById('lightbox').classList.add('open'); }
+function closeLightbox()   { document.getElementById('lightbox').classList.remove('open'); }
+
+// ── Config ─────────────────────────────────────────
+function openCfg()  { document.getElementById('cfg-url').value = store.get('adminUrl')||store.get('scriptUrl')||SCRIPT_URL||''; document.getElementById('cfg-bg').classList.add('open'); }
+function closeCfg() { document.getElementById('cfg-bg').classList.remove('open'); }
+function saveCfg()  { const v=document.getElementById('cfg-url').value.trim(); if(v) store.set('adminUrl',v); closeCfg(); loadLog(); }
+
 // ── Init ───────────────────────────────────────────
-document.getElementById('sum-date-from').value = todayStr();
-document.getElementById('det-modal').addEventListener('click', function(e){ if(e.target===this) closeSumDetail(); });
-renderCal();
-if(getUrl()) { loadLog(); loadPlan(); loadUsers(); }
+setLogRange('today', true);
 </script>
 </body>
 </html>

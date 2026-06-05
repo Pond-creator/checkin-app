@@ -9,7 +9,6 @@
 * { box-sizing: border-box; margin: 0; padding: 0; }
 body { font-family: 'Sarabun', sans-serif; background: #f0f2f5; min-height: 100vh; }
 
-/* Header */
 .header {
   background: #0d1117; color: #58a6ff;
   padding: 12px 16px; display: flex; justify-content: space-between; align-items: center;
@@ -23,21 +22,7 @@ body { font-family: 'Sarabun', sans-serif; background: #f0f2f5; min-height: 100v
   background: rgba(255,255,255,0.1); border: none; color: #e6edf3;
   font-size: 18px; padding: 6px 10px; border-radius: 8px; cursor: pointer;
 }
-.btn-menu:hover { background: rgba(255,255,255,0.2); }
 
-/* Test banner */
-.test-banner {
-  display: none; background: #7f1d1d; color: #fecaca;
-  padding: 6px 16px; font-size: 12px; font-weight: 700;
-  justify-content: space-between; align-items: center;
-}
-.test-banner.show { display: flex; }
-.test-banner button {
-  background: rgba(255,255,255,0.2); border: none; color: #fff;
-  padding: 2px 10px; border-radius: 20px; font-size: 11px; cursor: pointer;
-}
-
-/* User + task bar */
 .user-bar {
   background: #fff; border-bottom: 1px solid #e1e4e8;
   padding: 8px 16px; display: flex; justify-content: space-between; align-items: center;
@@ -50,7 +35,97 @@ body { font-family: 'Sarabun', sans-serif; background: #f0f2f5; min-height: 100v
 }
 .task-counter.all-done { background: #dafbe1; border-color: #a3f0b5; color: #1a7f37; }
 
-/* Extra round popup */
+/* Nav Drawer */
+.nav-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 500; }
+.nav-overlay.open { display: block; }
+.nav-drawer {
+  position: fixed; top: 0; right: -300px; width: 280px; height: 100%;
+  background: #fff; z-index: 501; transition: right .25s ease;
+  display: flex; flex-direction: column; box-shadow: -4px 0 20px rgba(0,0,0,0.2);
+}
+.nav-drawer.open { right: 0; }
+.nav-header { background: #0d1117; padding: 20px 16px; color: #e6edf3; }
+.nav-header .nav-name { font-size: 16px; font-weight: 700; }
+.nav-header .nav-role { font-size: 11px; margin-top: 3px; color: #58a6ff; text-transform: uppercase; letter-spacing: 1px; }
+.nav-items { padding: 8px 0; border-bottom: 1px solid #e1e4e8; }
+.nav-item {
+  display: flex; align-items: center; gap: 12px;
+  padding: 12px 20px; font-size: 14px; color: #1f2328; cursor: pointer;
+  border-bottom: 1px solid #f6f8fa; text-decoration: none;
+}
+.nav-item:hover { background: #f6f8fa; }
+.nav-item .ni-icon { font-size: 18px; width: 26px; text-align: center; }
+.nav-logout {
+  padding: 14px 20px; border-top: 1px solid #e1e4e8;
+  display: flex; align-items: center; gap: 12px;
+  font-size: 14px; color: #cf222e; cursor: pointer;
+}
+.nav-logout:hover { background: #ffebe9; }
+
+/* Rounds */
+.section-title { padding: 14px 20px 8px; font-size: 13px; color: #57606a; font-weight: 600; }
+.rounds { padding: 0 16px 8px; display: flex; flex-direction: column; gap: 10px; }
+
+.round-card {
+  background: #fff; border-radius: 12px; padding: 14px 16px;
+  display: flex; align-items: center; gap: 14px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.08); border: 2px solid transparent;
+}
+.round-card.open   { border-color: #0969da; background: #f0f7ff; cursor: pointer; }
+.round-card.open:active { transform: scale(0.98); }
+.round-card.done   { border-color: #1a7f37; background: #f0fff4; }
+.round-card.locked { opacity: 0.5; }
+.round-card.early  { border-color: #ea580c; background: #fff7ed; cursor: pointer; }
+.round-card.early:active { transform: scale(0.98); }
+
+.round-num {
+  width: 36px; height: 36px; border-radius: 50%; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+  font-weight: 700; font-size: 14px; background: #f6f8fa; color: #57606a;
+}
+.round-card.open  .round-num { background: #0969da; color: #fff; }
+.round-card.done  .round-num { background: #1a7f37; color: #fff; }
+.round-card.early .round-num { background: #ea580c; color: #fff; }
+
+.round-info { flex: 1; }
+.round-name { font-size: 15px; font-weight: 700; color: #1f2328; }
+.round-time { font-size: 12px; color: #57606a; margin-top: 1px; }
+.round-done-time     { font-size: 11px; color: #1a7f37; margin-top: 2px; }
+.round-checkout-time { font-size: 11px; color: #9a3412; margin-top: 1px; }
+.btn-checkout {
+  padding: 5px 12px; border-radius: 20px; border: 1.5px solid #fdba74;
+  background: #fff7ed; color: #ea580c; font-size: 12px; font-weight: 700;
+  cursor: pointer; white-space: nowrap; font-family: inherit;
+}
+.badge { font-size: 11px; font-weight: 700; padding: 3px 9px; border-radius: 20px; white-space: nowrap; }
+.badge-locked { background: #f6f8fa; color: #8c959f; }
+.badge-open   { background: #ddf4ff; color: #0969da; animation: blink 2s infinite; }
+.badge-done   { background: #dafbe1; color: #1a7f37; }
+.badge-early  { background: #ffedd5; color: #ea580c; animation: blink 2s infinite; }
+@keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.5} }
+
+.btn-early {
+  margin-top: 8px; padding: 6px 12px; border-radius: 20px;
+  border: 1.5px solid #d0d7de; background: #f6f8fa;
+  color: #57606a; font-size: 12px; font-weight: 600;
+  cursor: pointer; font-family: inherit;
+}
+.btn-del-extra {
+  padding: 3px 8px; border-radius: 6px; border: 1px solid #fca5a5;
+  background: #ffebe9; color: #cf222e; font-size: 12px; cursor: pointer;
+}
+
+/* Extra round button */
+.extra-round-wrap { padding: 4px 16px 20px; }
+.btn-extra {
+  width: 100%; padding: 12px; border-radius: 10px;
+  border: 2px dashed #d0d7de; background: transparent;
+  color: #57606a; font-size: 14px; font-weight: 600; cursor: pointer;
+  font-family: inherit; transition: all .2s;
+}
+.btn-extra:hover { border-color: #0969da; color: #0969da; background: #f0f7ff; }
+
+/* Extra Modal */
 .extra-modal-bg {
   display: none; position: fixed; inset: 0; background: rgba(0,0,0,.55);
   z-index: 300; align-items: center; justify-content: center; padding: 20px;
@@ -74,213 +149,7 @@ body { font-family: 'Sarabun', sans-serif; background: #f0f2f5; min-height: 100v
 .ex-actions { display: flex; gap: 8px; margin-top: 16px; }
 .ex-actions button { flex: 1; padding: 12px; border-radius: 10px; border: none; cursor: pointer; font-size: 14px; font-weight: 700; font-family: inherit; }
 
-/* Action bar */
-.action-bar {
-  background: #161b22; padding: 8px 16px; display: flex; gap: 8px;
-}
-.btn-test {
-  flex: 1; padding: 9px; border-radius: 10px; border: none;
-  background: #450a0a; color: #fca5a5; font-size: 13px; font-weight: 700;
-  cursor: pointer;
-}
-.btn-test.on { background: #14532d; color: #86efac; }
-.btn-settings {
-  padding: 9px 14px; border-radius: 10px; border: none;
-  background: #21262d; color: #8b949e; font-size: 13px; cursor: pointer;
-}
-
-/* Settings panel */
-.settings-panel {
-  display: none; background: #0d1117; padding: 14px 16px;
-  border-bottom: 1px solid #30363d;
-}
-.settings-panel.open { display: block; }
-.settings-panel label { color: #8b949e; font-size: 12px; display: block; margin-bottom: 4px; }
-.settings-panel input {
-  width: 100%; padding: 9px 12px; background: #161b22;
-  border: 1px solid #30363d; color: #e6edf3; border-radius: 8px;
-  font-size: 13px; margin-bottom: 10px; outline: none; font-family: inherit;
-}
-.settings-panel .save-btn {
-  background: #238636; color: #fff; border: none; padding: 9px;
-  border-radius: 8px; font-size: 13px; cursor: pointer; width: 100%;
-  font-weight: 700; font-family: inherit;
-}
-
-/* Plan card */
-.plan-item {
-  background: #fff; border-radius: 10px; padding: 10px 14px;
-  border-left: 4px solid #0969da; display: flex; gap: 12px; align-items: flex-start;
-  box-shadow: 0 1px 3px rgba(0,0,0,.07);
-}
-.plan-item .pi-time { font-size: 12px; font-weight: 700; color: #0969da; white-space: nowrap; }
-.plan-item .pi-loc  { font-size: 14px; font-weight: 700; color: #1f2328; }
-.plan-item .pi-type { font-size: 12px; color: #57606a; }
-.plan-item .pi-note { font-size: 11px; color: #8c959f; margin-top: 2px; }
-
-.warn-box {
-  background: #fff8ec; border: 1.5px solid #f97316; border-radius: 10px;
-  padding: 10px 14px; margin-bottom: 12px; font-size: 13px; color: #9a3412;
-  display: flex; gap: 8px; align-items: flex-start;
-}
-.warn-box .wi { font-size: 18px; flex-shrink: 0; }
-
-/* Manage modal */
-.mgr-overlay {
-  display: none; position: fixed; inset: 0;
-  background: rgba(0,0,0,0.55); z-index: 200; align-items: flex-end; justify-content: center;
-}
-.mgr-overlay.open { display: flex; }
-.mgr-box {
-  background: #fff; border-radius: 20px 20px 0 0;
-  padding: 22px 20px 40px; width: 100%; max-width: 500px;
-  animation: slideUp .25s ease; max-height: 80vh; overflow-y: auto;
-}
-.mgr-box h3 { font-size: 16px; font-weight: 700; margin-bottom: 4px; }
-.mgr-box p  { font-size: 12px; color: #57606a; margin-bottom: 16px; }
-.mgr-section-title {
-  font-size: 12px; font-weight: 700; color: #57606a;
-  text-transform: uppercase; letter-spacing: .5px;
-  margin: 16px 0 8px; padding-bottom: 6px; border-bottom: 1px solid #e1e4e8;
-}
-.mgr-section-title:first-of-type { margin-top: 0; }
-.tag-list { display: flex; flex-wrap: wrap; gap: 8px; min-height: 32px; }
-.tag {
-  display: flex; align-items: center; gap: 6px;
-  background: #f0f7ff; border: 1px solid #b6d4fe;
-  color: #1f2328; border-radius: 20px; padding: 5px 10px 5px 12px;
-  font-size: 13px;
-}
-.tag-del {
-  background: none; border: none; cursor: pointer;
-  color: #cf222e; font-size: 16px; line-height: 1; padding: 0; font-weight: 700;
-}
-.mgr-close {
-  width: 100%; padding: 13px; border-radius: 10px; border: 1px solid #d0d7de;
-  background: #f6f8fa; color: #57606a; font-size: 15px; font-weight: 700;
-  cursor: pointer; margin-top: 20px; font-family: inherit;
-}
-
-/* Nav Drawer */
-.nav-overlay {
-  display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 500;
-}
-.nav-overlay.open { display: block; }
-.nav-drawer {
-  position: fixed; top: 0; right: -300px; width: 280px; height: 100%;
-  background: #fff; z-index: 501; transition: right .25s ease;
-  display: flex; flex-direction: column; box-shadow: -4px 0 20px rgba(0,0,0,0.2);
-}
-.nav-drawer.open { right: 0; }
-.nav-header {
-  background: #0d1117; padding: 20px 16px; color: #e6edf3; flex-shrink: 0;
-}
-.nav-header .nav-name { font-size: 16px; font-weight: 700; }
-.nav-header .nav-role {
-  font-size: 11px; margin-top: 3px;
-  color: #58a6ff; text-transform: uppercase; letter-spacing: 1px;
-}
-.nav-items { padding: 8px 0; flex-shrink: 0; border-bottom: 1px solid #e1e4e8; }
-.nav-item {
-  display: flex; align-items: center; gap: 12px;
-  padding: 12px 20px; font-size: 14px; color: #1f2328; cursor: pointer;
-  border-bottom: 1px solid #f6f8fa; text-decoration: none;
-}
-.nav-item:hover { background: #f6f8fa; }
-.nav-item .ni-icon { font-size: 18px; width: 26px; text-align: center; }
-.nav-logout {
-  padding: 14px 20px; margin: 0; border-top: 1px solid #e1e4e8; flex-shrink: 0;
-  display: flex; align-items: center; gap: 12px;
-  font-size: 14px; color: #cf222e; cursor: pointer;
-}
-.nav-logout:hover { background: #ffebe9; }
-
-/* Nav future plans */
-.nav-plans { flex: 1; overflow-y: auto; background: #f6f8fa; }
-.nav-plans-header {
-  padding: 10px 16px 6px; font-size: 11px; font-weight: 700;
-  color: #57606a; text-transform: uppercase; letter-spacing: .5px;
-  background: #fff; border-bottom: 1px solid #e1e4e8; position: sticky; top: 0;
-}
-.nav-day-group { margin-bottom: 2px; }
-.nav-day-label {
-  padding: 7px 16px; font-size: 12px; font-weight: 700;
-  color: #0550ae; background: #ddf4ff; border-left: 3px solid #0969da;
-}
-.nav-plan-item {
-  background: #fff; padding: 9px 16px; border-bottom: 1px solid #f0f2f5;
-}
-.nav-plan-branch { font-size: 13px; font-weight: 700; color: #1f2328; }
-.nav-plan-time   { font-size: 11px; color: #57606a; margin-top: 1px; }
-.nav-plan-note   { font-size: 11px; color: #8c959f; margin-top: 1px; }
-.nav-plans-empty { padding: 24px 16px; text-align: center; font-size: 13px; color: #8c959f; }
-
-/* Rounds */
-.section-title { padding: 14px 20px 8px; font-size: 13px; color: #57606a; font-weight: 600; }
-.rounds { padding: 0 16px 8px; display: flex; flex-direction: column; gap: 10px; }
-
-.round-card {
-  background: #fff; border-radius: 12px; padding: 14px 16px;
-  display: flex; align-items: center; gap: 14px;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.08); border: 2px solid transparent;
-}
-.round-card.open   { border-color: #0969da; background: #f0f7ff; cursor: pointer; }
-.round-card.open:active { transform: scale(0.98); }
-.round-card.done   { border-color: #1a7f37; background: #f0fff4; }
-.round-card.locked { opacity: 0.5; }
-/* เข้างานก่อนเวลา — สีส้ม (ยังไม่จบงาน) */
-.round-card.early  { border-color: #ea580c; background: #fff7ed; cursor: pointer; }
-.round-card.early:active { transform: scale(0.98); }
-/* รอบพิเศษ (extra) — สีเหลือง */
-.round-card.open.extra  { border-color: #d97706; background: #fffbeb; }
-.round-card.early.extra { border-color: #d97706; background: #fffbeb; }
-
-.round-num {
-  width: 36px; height: 36px; border-radius: 50%; flex-shrink: 0;
-  display: flex; align-items: center; justify-content: center;
-  font-weight: 700; font-size: 14px;
-  background: #f6f8fa; color: #57606a;
-}
-.round-card.open   .round-num { background: #0969da; color: #fff; }
-.round-card.done   .round-num { background: #1a7f37; color: #fff; }
-.round-card.early  .round-num { background: #ea580c; color: #fff; }
-.round-card.open.extra  .round-num { background: #d97706; color: #fff; }
-.round-card.early.extra .round-num { background: #ea580c; color: #fff; }
-
-.round-info { flex: 1; }
-.round-name { font-size: 15px; font-weight: 700; color: #1f2328; }
-.round-time { font-size: 12px; color: #57606a; margin-top: 1px; }
-.round-done-time     { font-size: 11px; color: #1a7f37; margin-top: 2px; }
-.round-checkout-time { font-size: 11px; color: #9a3412; margin-top: 1px; }
-.btn-checkout {
-  padding: 5px 12px; border-radius: 20px; border: 1.5px solid #fdba74;
-  background: #fff7ed; color: #ea580c; font-size: 12px; font-weight: 700;
-  cursor: pointer; white-space: nowrap; font-family: inherit;
-}
-
-.badge {
-  font-size: 11px; font-weight: 700; padding: 3px 9px;
-  border-radius: 20px; white-space: nowrap;
-}
-.badge-locked { background: #f6f8fa; color: #8c959f; }
-.badge-open   { background: #ddf4ff; color: #0969da; animation: blink 2s infinite; }
-.badge-test   { background: #fef9c3; color: #854d0e; animation: blink 2s infinite; }
-.badge-done   { background: #dafbe1; color: #1a7f37; }
-.badge-early  { background: #ffedd5; color: #ea580c; animation: blink 2s infinite; }
-.badge-extra  { background: #fef9c3; color: #d97706; animation: blink 2s infinite; }
-@keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.5} }
-
-/* Extra round button */
-.extra-round-wrap { padding: 4px 16px 20px; }
-.btn-extra {
-  width: 100%; padding: 12px; border-radius: 10px;
-  border: 2px dashed #d0d7de; background: transparent;
-  color: #57606a; font-size: 14px; font-weight: 600; cursor: pointer;
-  font-family: inherit; transition: all .2s;
-}
-.btn-extra:hover { border-color: #0969da; color: #0969da; background: #f0f7ff; }
-
-/* Modal */
+/* Check-in Modal */
 .overlay {
   display: none; position: fixed; inset: 0;
   background: rgba(0,0,0,0.6); z-index: 100; align-items: flex-end; justify-content: center;
@@ -292,19 +161,15 @@ body { font-family: 'Sarabun', sans-serif; background: #f0f2f5; min-height: 100v
   animation: slideUp .25s ease;
 }
 @keyframes slideUp { from{transform:translateY(100%)} to{transform:translateY(0)} }
-
 .modal-title    { font-size: 18px; font-weight: 700; color: #1f2328; margin-bottom: 2px; }
 .modal-subtitle { font-size: 13px; color: #57606a; margin-bottom: 16px; }
-
 .steps { display: flex; gap: 6px; margin-bottom: 20px; }
 .step-dot { flex: 1; height: 4px; border-radius: 2px; background: #e1e4e8; }
 .step-dot.active { background: #0969da; }
 .step-dot.done   { background: #1a7f37; }
-
 .pane { display: none; }
 .pane.show { display: block; }
 
-/* GPS pane */
 .gps-box {
   background: #f6f8fa; border-radius: 12px; padding: 24px;
   text-align: center; margin-bottom: 16px;
@@ -313,15 +178,6 @@ body { font-family: 'Sarabun', sans-serif; background: #f0f2f5; min-height: 100v
 .gps-text { font-size: 14px; color: #57606a; }
 .gps-coords { font-size: 12px; color: #0969da; font-family: monospace; margin-top: 6px; }
 
-/* Geofence warning */
-.geo-warn {
-  display: none; background: #fff8ec; border: 1.5px solid #f97316;
-  border-radius: 10px; padding: 10px 14px; margin-top: 10px;
-  font-size: 13px; color: #9a3412;
-}
-.geo-warn.show { display: block; }
-
-/* Camera pane */
 .cam-wrap {
   position: relative; border-radius: 12px; overflow: hidden;
   background: #000; margin-bottom: 14px;
@@ -336,7 +192,6 @@ body { font-family: 'Sarabun', sans-serif; background: #f0f2f5; min-height: 100v
   display: flex; justify-content: space-between;
 }
 
-/* Confirm pane */
 .summary {
   background: #f6f8fa; border-radius: 12px; padding: 14px; margin-bottom: 16px;
 }
@@ -344,7 +199,6 @@ body { font-family: 'Sarabun', sans-serif; background: #f0f2f5; min-height: 100v
 .summary-row .lbl { color: #57606a; }
 .summary-row .val { font-weight: 700; color: #1f2328; text-align: right; max-width: 60%; }
 
-/* Loading / Success */
 .center-pane { text-align: center; padding: 24px 0; }
 .spinner {
   width: 40px; height: 40px; border: 3px solid #e1e4e8; border-top-color: #0969da;
@@ -355,33 +209,13 @@ body { font-family: 'Sarabun', sans-serif; background: #f0f2f5; min-height: 100v
 .success-title { font-size: 20px; font-weight: 700; color: #1a7f37; }
 .success-sub   { font-size: 13px; color: #57606a; margin-top: 6px; }
 
-/* Buttons */
-.btn {
-  width: 100%; padding: 14px; border-radius: 10px; border: none;
-  font-size: 16px; font-weight: 700; cursor: pointer; margin-top: 8px;
-  font-family: inherit;
-}
+.btn { width: 100%; padding: 14px; border-radius: 10px; border: none; font-size: 16px; font-weight: 700; cursor: pointer; margin-top: 8px; font-family: inherit; }
 .btn:first-child { margin-top: 0; }
-.btn-blue   { background: #0969da; color: #fff; }
-.btn-blue:active  { background: #0550ae; }
-.btn-green  { background: #1a7f37; color: #fff; }
+.btn-blue  { background: #0969da; color: #fff; }
+.btn-blue:active { background: #0550ae; }
+.btn-green { background: #1a7f37; color: #fff; }
 .btn-green:active { background: #116329; }
-.btn-ghost  { background: #f6f8fa; color: #57606a; border: 1px solid #d0d7de; }
-
-/* ปุ่มเข้างานก่อนเวลา */
-.btn-early {
-  margin-top: 8px; padding: 6px 12px; border-radius: 20px;
-  border: 1.5px solid #d0d7de; background: #f6f8fa;
-  color: #57606a; font-size: 12px; font-weight: 600;
-  cursor: pointer; font-family: inherit;
-}
-.btn-early:active { background: #e1e4e8; }
-
-/* ปุ่มลบรอบพิเศษ */
-.btn-del-extra {
-  padding: 3px 8px; border-radius: 6px; border: 1px solid #fca5a5;
-  background: #ffebe9; color: #cf222e; font-size: 12px; cursor: pointer;
-}
+.btn-ghost { background: #f6f8fa; color: #57606a; border: 1px solid #d0d7de; }
 </style>
 </head>
 <body>
@@ -400,26 +234,10 @@ body { font-family: 'Sarabun', sans-serif; background: #f0f2f5; min-height: 100v
   </div>
 </div>
 
-<div class="test-banner" id="test-banner">
-  🧪 TEST MODE — กดได้ทุกรอบ
-  <button onclick="setTestMode(false)">ปิด</button>
-</div>
-
-<!-- User bar -->
 <div class="user-bar">
   <div class="user-name">👤 <span id="display-name">—</span></div>
   <div class="task-counter" id="task-counter">0 / 0 งานวันนี้</div>
 </div>
-
-
-<!-- plan-card ซ่อนแล้ว (แสดงในรอบการ์ดแทน) -->
-<div id="plan-card" style="display:none"><div id="plan-list"></div></div>
-
-<div style="display:none">
-  <button id="btn-test" onclick="toggleTest()">Test</button>
-  <div id="settings-panel"><input id="inp-url" type="url"></div>
-</div>
-
 
 <!-- Nav Drawer -->
 <div class="nav-overlay" id="nav-overlay" onclick="closeNav()"></div>
@@ -435,11 +253,9 @@ body { font-family: 'Sarabun', sans-serif; background: #f0f2f5; min-height: 100v
     <div class="nav-item" id="nav-admin-link" style="display:none" onclick="location.href='admin.html'">
       <span class="ni-icon">⚡</span> Admin Dashboard
     </div>
-  </div>
-  <!-- Future plans -->
-  <div class="nav-plans">
-    <div class="nav-plans-header">📅 แผนงานที่กำลังจะมาถึง</div>
-    <div id="nav-plans-list"><div class="nav-plans-empty">กด ☰ เพื่อโหลด</div></div>
+    <div class="nav-item" onclick="clearTodayData()">
+      <span class="ni-icon">🗑️</span> ล้างข้อมูลวันนี้
+    </div>
   </div>
   <div class="nav-logout" onclick="logout()">
     <span class="ni-icon">🚪</span> ออกจากระบบ
@@ -482,10 +298,10 @@ body { font-family: 'Sarabun', sans-serif; background: #f0f2f5; min-height: 100v
   </div>
 </div>
 
-<!-- Check-in Modal -->
+<!-- Check-in / Checkout Modal -->
 <div class="overlay" id="overlay">
   <div class="modal">
-    <div class="modal-title"   id="m-title"></div>
+    <div class="modal-title"    id="m-title"></div>
     <div class="modal-subtitle" id="m-sub"></div>
     <div class="steps" id="m-steps"></div>
 
@@ -495,7 +311,6 @@ body { font-family: 'Sarabun', sans-serif; background: #f0f2f5; min-height: 100v
         <div class="gps-icon">📍</div>
         <div class="gps-text">กำลังระบุตำแหน่ง GPS...</div>
       </div>
-      <div class="geo-warn" id="geo-warn"></div>
       <button class="btn btn-blue" id="btn-next-cam" onclick="showCam()" disabled>📷 ถัดไป: ถ่ายรูป</button>
       <button class="btn btn-ghost" onclick="closeModal()">ยกเลิก</button>
     </div>
@@ -533,20 +348,19 @@ body { font-family: 'Sarabun', sans-serif; background: #f0f2f5; min-height: 100v
     <!-- Success -->
     <div class="pane" id="pane-success">
       <div class="center-pane">
-        <div class="success-icon" id="m-success-icon">✅</div>
+        <div class="success-icon"  id="m-success-icon">✅</div>
         <div class="success-title" id="m-success-title">Check-In สำเร็จ!</div>
-        <div class="success-sub" id="m-success-sub"></div>
+        <div class="success-sub"   id="m-success-sub"></div>
       </div>
-      <button class="btn btn-ghost" onclick="closeModal()" style="margin-top:20px">ปิด</button>
+      <button class="btn btn-ghost" id="btn-success-close" onclick="closeModal()" style="margin-top:20px">ปิด</button>
     </div>
   </div>
 </div>
 
 <script>
-// ── Script URL (ฝังถาวร) ──────────────────────────
 const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxst_UC3w1zJJ_1gc3aBthvRnEhYbdX76E0z7hDV8nWEKh2tVlWV2YEpQMiCVzMOhuv/exec';
 
-// ── Safe storage ───────────────────────────────────
+// ── Storage ────────────────────────────────────────
 const mem = {};
 const store = {
   get: k => { try { return localStorage.getItem(k); } catch(e) { return mem[k]||null; } },
@@ -555,138 +369,30 @@ const store = {
 
 // ── Auth ───────────────────────────────────────────
 const session = (() => { try { return JSON.parse(store.get('session')||'null'); } catch { return null; } })();
-if (!session) { location.href = 'index.html'; }
+if (!session) location.href = 'index.html';
 
 const MY_NAME = session ? session.name : '';
 const MY_ROLE = session ? session.role : 'staff';
 
-// Fill UI with session info
 document.getElementById('display-name').textContent = MY_NAME;
 document.getElementById('nav-name').textContent = MY_NAME;
 document.getElementById('nav-role').textContent = MY_ROLE === 'admin' ? 'ผู้ดูแลระบบ' : 'พนักงาน';
 if (MY_ROLE === 'admin') document.getElementById('nav-admin-link').style.display = 'flex';
 
-// Nav drawer
-function openNav()  {
-  document.getElementById('nav-overlay').classList.add('open');
-  document.getElementById('nav-drawer').classList.add('open');
-  fetchFuturePlans();
-}
+// ── Nav ────────────────────────────────────────────
+function openNav()  { document.getElementById('nav-overlay').classList.add('open'); document.getElementById('nav-drawer').classList.add('open'); }
 function closeNav() { document.getElementById('nav-overlay').classList.remove('open'); document.getElementById('nav-drawer').classList.remove('open'); }
+function logout()   { store.set('session',''); location.href = 'index.html'; }
 
-// ── Future plans in nav drawer ─────────────────────
-function normPlanDateCI(raw) {
-  if (!raw) return '';
-  raw = raw.toString().trim();
-  if (/^\d{4}-\d{2}-\d{2}$/.test(raw)) return raw;
-  const m1 = raw.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})/);
-  if (m1) return `${m1[3]}-${m1[2].padStart(2,'0')}-${m1[1].padStart(2,'0')}`;
-  const dt = new Date(raw);
-  if (!isNaN(dt) && dt.getFullYear() > 2000) {
-    return dt.getFullYear()+'-'+String(dt.getMonth()+1).padStart(2,'0')+'-'+String(dt.getDate()).padStart(2,'0');
-  }
-  return raw;
-}
-function normTimeCI(raw) {
-  if (!raw) return '';
-  raw = raw.toString().trim();
-  if (/^\d{1,2}:\d{2}/.test(raw)) return raw.substring(0,5);
-  const m = raw.match(/(\d{2}:\d{2}):\d{2}/);
-  return m ? m[1] : raw;
-}
+// ── Date key ───────────────────────────────────────
+function todayKey() { return new Date().toISOString().slice(0,10); }
 
-async function fetchFuturePlans() {
-  const list = document.getElementById('nav-plans-list');
-  list.innerHTML = '<div class="nav-plans-empty">⏳ กำลังโหลด...</div>';
-  const url = SCRIPT_URL || store.get('scriptUrl');
-  if (!url || !MY_NAME) { list.innerHTML = '<div class="nav-plans-empty">ไม่พบข้อมูล</div>'; return; }
-  try {
-    const r = await fetch(`${url}?action=getPlan&name=${encodeURIComponent(MY_NAME)}&t=${Date.now()}`);
-    const j = await r.json();
-    const todayISO = new Date().toISOString().slice(0,10);
-    const plans = (j.data || [])
-      .filter(t => t.staffName === MY_NAME && normPlanDateCI(t.date) > todayISO)
-      .sort((a,b) => normPlanDateCI(a.date).localeCompare(normPlanDateCI(b.date)));
-
-    if (!plans.length) { list.innerHTML = '<div class="nav-plans-empty">ไม่มีแผนงานที่กำลังจะมาถึง</div>'; return; }
-
-    const MONTHS = ['ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'];
-    const DAYS   = ['อา.','จ.','อ.','พ.','พฤ.','ศ.','ส.'];
-    const groups = {};
-    plans.forEach(p => {
-      const d = normPlanDateCI(p.date);
-      if (!groups[d]) groups[d] = [];
-      groups[d].push(p);
-    });
-
-    list.innerHTML = Object.keys(groups).sort().map(iso => {
-      const dt = new Date(iso+'T00:00:00');
-      const label = `${DAYS[dt.getDay()]} ${dt.getDate()} ${MONTHS[dt.getMonth()]} ${dt.getFullYear()}`;
-      const isToday = iso === todayISO;
-      const items = groups[iso].map(p => `
-        <div class="nav-plan-item">
-          <div class="nav-plan-branch">📍 ${p.branch||'-'}</div>
-          <div class="nav-plan-time">${normTimeCI(p.startTime)}${p.endTime?' – '+normTimeCI(p.endTime):''} ${p.taskType||''}</div>
-          ${p.note?`<div class="nav-plan-note">📝 ${p.note}</div>`:''}
-        </div>`).join('');
-      return `<div class="nav-day-group">
-        <div class="nav-day-label">${isToday?'🔵 ':''}งานวันที่ ${label}</div>
-        ${items}</div>`;
-    }).join('');
-  } catch(e) {
-    list.innerHTML = '<div class="nav-plans-empty">โหลดไม่สำเร็จ</div>';
-  }
-}
-function logout() { store.set('session',''); location.href = 'index.html'; }
-
-function clearTodayData() {
-  if (!confirm('ล้างข้อมูลรอบวันนี้ทั้งหมดใช่ไหมครับ?\n(เช็กอิน / จบงาน / รอบพิเศษ)')) return;
-  const today = new Date();
-  // ครอบคลุมทุกรูปแบบวันที่ที่อาจเป็น key
-  const todayFmts = [
-    todayKey(),
-    today.toLocaleDateString('th-TH'),
-    today.toLocaleDateString('en-US'),
-    `${today.getDate()}/${today.getMonth()+1}/${today.getFullYear()}`,
-    `${today.getDate()}/${today.getMonth()+1}/${today.getFullYear()+543}`,
-    String(today.getDate()).padStart(2,'0')+'/'+String(today.getMonth()+1).padStart(2,'0')+'/'+today.getFullYear(),
-  ];
-  try {
-    const keys = [...Object.keys(localStorage)];
-    keys.forEach(k => {
-      if (!k.startsWith('done_') && !k.startsWith('checkout_') && !k.startsWith('extraRounds_') && !k.startsWith('earlyCI_')) return;
-      if (todayFmts.some(fmt => fmt && k.includes(fmt))) localStorage.removeItem(k);
-    });
-  } catch(e) {}
-  todayPlan = []; planFetched = false;
-  renderRounds();
-  fetchTodayPlan();
-  alert('ล้างข้อมูลวันนี้เรียบร้อยแล้ว ✓');
-}
-
-// ── Rounds config ──────────────────────────────────
-// ไม่มี BASE_ROUNDS แล้ว — รอบมาจาก admin plan เท่านั้น
-
-function getPlanRounds() {
-  return todayPlan.map((p, i) => ({
-    name:     p.round || `งาน ${i+1}`,
-    start:    normTimeCI(p.startTime) || '00:00',
-    end:      normTimeCI(p.endTime)   || '23:59',
-    location: p.branch   || '',
-    taskType: p.taskType || '',
-    note:     p.note     || ''
-  }));
-}
-
-function todayKey() { return new Date().toISOString().slice(0,10); } // yyyy-MM-dd, consistent all browsers
-
-// Migrate extra rounds จาก key รูปแบบเก่า (Thai locale) → key ใหม่ (ISO)
+// ── localStorage key migration (old format → ISO) ─
 (function migrateKeys() {
   const newKey = todayKey();
   const d = new Date();
   const oldFmts = [
-    d.toLocaleDateString('th-TH'),
-    d.toLocaleDateString('en-US'),
+    d.toLocaleDateString('th-TH'), d.toLocaleDateString('en-US'),
     `${d.getDate()}/${d.getMonth()+1}/${d.getFullYear()}`,
     `${d.getDate()}/${d.getMonth()+1}/${d.getFullYear()+543}`,
   ];
@@ -696,7 +402,6 @@ function todayKey() { return new Date().toISOString().slice(0,10); } // yyyy-MM-
       if (prefix === 'extraRounds_') {
         const v = store.get(prefix+old);
         if (v && !store.get(prefix+newKey)) store.set(prefix+newKey, v);
-        // ลบ key เก่าทิ้งหลัง migrate แล้ว (ป้องกัน restore กลับมา)
         try { localStorage.removeItem(prefix+old); } catch(e) {}
       } else {
         for (let i=0; i<20; i++) {
@@ -709,221 +414,87 @@ function todayKey() { return new Date().toISOString().slice(0,10); } // yyyy-MM-
   });
 })();
 
+// ── Rounds ─────────────────────────────────────────
 function getExtraRounds() {
   try { return JSON.parse(store.get('extraRounds_'+todayKey())||'[]'); } catch { return []; }
 }
-function getAllRounds() { return [...getPlanRounds(), ...getExtraRounds()]; }
+function getAllRounds() { return getExtraRounds(); }
 
-let curRound = null, gps = null, photo = null, stream = null, ovTimer = null;
-let geofenceWarning = null; // เก็บ warning geofence ล่าสุด
+function doneKey(r)     { return 'done_'     + todayKey() + '_' + r.start + '_' + (r.name||r); }
+function checkoutKey(r) { return 'checkout_' + todayKey() + '_' + r.start + '_' + (r.name||r); }
 
-// ── Today's Plan (ต้องประกาศก่อน tick() เรียกใช้) ──────
-let todayPlan = [];
-let planFetched = false;
+function toMins(t)  { if(!t||!t.includes(':')) return -1; const [h,m]=(t+'').split(':').map(Number); return (h||0)*60+(m||0); }
+function nowMins()  { const n=new Date(); return n.getHours()*60+n.getMinutes(); }
+
+// ── Clear today ────────────────────────────────────
+function clearTodayData() {
+  if (!confirm('ล้างข้อมูลรอบวันนี้ทั้งหมดใช่ไหมครับ?')) return;
+  const todayFmts = [todayKey(), new Date().toLocaleDateString('th-TH'), new Date().toLocaleDateString('en-US')];
+  try {
+    Object.keys(localStorage).forEach(k => {
+      if (!k.startsWith('done_') && !k.startsWith('checkout_') && !k.startsWith('extraRounds_') && !k.startsWith('earlyCI_') && !k.startsWith('gps_ci_')) return;
+      if (todayFmts.some(fmt => fmt && k.includes(fmt))) localStorage.removeItem(k);
+    });
+  } catch(e) {}
+  closeNav();
+  renderRounds();
+  alert('ล้างข้อมูลวันนี้เรียบร้อยแล้ว ✓');
+}
 
 // ── Clock ──────────────────────────────────────────
 function tick() {
   const n = new Date();
-  document.getElementById('htime').textContent =
-    n.toLocaleTimeString('th-TH', { hour:'2-digit', minute:'2-digit', second:'2-digit' });
-  document.getElementById('hdate').textContent =
-    n.toLocaleDateString('th-TH', { weekday:'long', day:'numeric', month:'long', year:'numeric' });
+  document.getElementById('htime').textContent = n.toLocaleTimeString('th-TH', { hour:'2-digit', minute:'2-digit', second:'2-digit' });
+  document.getElementById('hdate').textContent = n.toLocaleDateString('th-TH', { weekday:'long', day:'numeric', month:'long', year:'numeric' });
   renderRounds();
 }
-setInterval(tick, 1000);
-tick();
+setInterval(tick, 1000); tick();
 
-async function fetchTodayPlan() {
-  const url = SCRIPT_URL || store.get('scriptUrl');
-  if (!url || !MY_NAME) return;
-  const today = new Date().toISOString().split('T')[0];
+// ── Branches from log history ──────────────────────
+let _branches = [];
+async function fetchBranches() {
   try {
-    const r = await fetch(`${url}?action=getPlan&name=${encodeURIComponent(MY_NAME)}&date=${today}&t=${Date.now()}`);
+    const r = await fetch(`${SCRIPT_URL}?action=getEmp&name=${encodeURIComponent(MY_NAME)}&t=${Date.now()}`);
     const j = await r.json();
-    todayPlan = (j.data || []).filter(t => t.staffName === MY_NAME);
-    planFetched = true;
-    renderPlanCard();
-    renderRounds(); // re-render with geofence data
-  } catch(e) { todayPlan = []; planFetched = true; }
+    _branches = [...new Set((j.data||[]).map(l=>l.branch).filter(Boolean))].sort();
+  } catch(e) { _branches = []; }
+}
+fetchBranches();
+
+// ── GPS ────────────────────────────────────────────
+function haversine(lat1,lon1,lat2,lon2) {
+  const R=6371000, toRad=x=>x*Math.PI/180;
+  const dLat=toRad(lat2-lat1), dLon=toRad(lon2-lon1);
+  const a=Math.sin(dLat/2)**2+Math.cos(toRad(lat1))*Math.cos(toRad(lat2))*Math.sin(dLon/2)**2;
+  return R*2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a));
 }
 
-function renderPlanCard() {
-  const card = document.getElementById('plan-card');
-  const list = document.getElementById('plan-list');
-  if (!todayPlan.length) { card.style.display = 'none'; return; }
-  // แสดงเฉพาะแผนที่ยังไม่ได้เช็กอิน
-  const pending = todayPlan.filter(p => !store.get(doneKey({ start: normTimeCI(p.startTime)||'00:00', name: p.round||p.staffName })));
-  if (!pending.length) { card.style.display = 'none'; return; }
-  list.innerHTML = pending.map(t => `
-    <div class="plan-item">
-      <div class="pi-time">${t.startTime||''}${t.endTime?' – '+t.endTime:''}</div>
-      <div style="flex:1">
-        <div class="pi-loc">📍 ${t.branch||'-'}</div>
-        <div class="pi-type">${t.taskType||''}</div>
-        ${t.note ? `<div class="pi-note">📝 ${t.note}</div>` : ''}
-      </div>
-    </div>`).join('');
-  card.style.display = 'block';
-}
-
-function getPlanForRound(roundIdx) {
-  // หา plan ที่ตรงกับ round นี้โดยเปรียบ startTime
-  const allRounds = getAllRounds();
-  const r = allRounds[roundIdx];
-  if (!r) return null;
-  // รอบพิเศษ (extra) ไม่มี plan ของ admin
-  const planCount = getPlanRounds().length;
-  if (roundIdx >= planCount) return null;
-  // match โดย startTime
-  return todayPlan.find(t => normTimeCI(t.startTime) === r.start) || todayPlan[roundIdx] || null;
-}
-
-function checkBranchMismatch(enteredBranch, roundIdx) {
-  if (!enteredBranch) return null;
-  const plan = getPlanForRound(roundIdx != null ? roundIdx : curRound);
-  if (!plan) return null; // รอบพิเศษ — ไม่ต้อง match
-  const assigned = plan.branch || '';
-  if (!assigned) return null;
-  return enteredBranch.trim() !== assigned.trim() ? assigned : null;
-}
-
-// ── Geofence helpers ───────────────────────────────
-function haversine(lat1, lon1, lat2, lon2) {
-  const R = 6371000;
-  const toRad = x => x * Math.PI / 180;
-  const dLat = toRad(lat2 - lat1);
-  const dLon = toRad(lon2 - lon1);
-  const a = Math.sin(dLat/2)**2 + Math.cos(toRad(lat1))*Math.cos(toRad(lat2))*Math.sin(dLon/2)**2;
-  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
-}
-
-function checkGeofence(userLat, userLng, roundIdx) {
-  const plan = getPlanForRound(roundIdx);
-  if (!plan || !plan.lat || !plan.lng) return null;
-  const dist = haversine(parseFloat(userLat), parseFloat(userLng), parseFloat(plan.lat), parseFloat(plan.lng));
-  return dist > 500 ? Math.round(dist) : null;
-}
-
-// ── Branch จากแผนงาน ──────────────────────────────
-function getBranch(roundIdx) {
-  const allRounds = getAllRounds();
-  const r = allRounds[roundIdx];
-  // extra round มี location เก็บไว้
-  if (r && r.location) return r.location;
-  // ดึงจาก plan ที่ตรงกับ round นี้
-  const plan = getPlanForRound(roundIdx);
-  if (plan) return plan.branch || '';
-  return store.get('branch') || '';
-}
-
-// โหลดแผนและรายชื่อสาขาจาก Admin เมื่อเริ่ม
-fetchTodayPlan();
-fetchAllBranches();
-
-async function fetchAllBranches() {
-  const url = SCRIPT_URL || store.get('scriptUrl');
-  if (!url) return;
-  try {
-    // ดึงทั้งจาก Plans + Log ทุก user
-    const [rPlan, rLog] = await Promise.all([
-      fetch(`${url}?action=getPlans&t=${Date.now()}`),
-      fetch(`${url}?action=getAll&t=${Date.now()}`)
-    ]);
-    const plans = (await rPlan.json()).data || [];
-    const logs  = (await rLog.json()).data  || [];
-    const fromPlans = plans.map(p => p.branch);
-    const fromLogs  = logs.map(l => l.branch);
-    window._allPlanBranches = [...new Set([...fromPlans, ...fromLogs].filter(Boolean))].sort();
-  } catch(e) { window._allPlanBranches = []; }
-}
-
-// ── Test Mode ──────────────────────────────────────
-function isTest() { return store.get('testMode') === '1'; }
-function setTestMode(on) {
-  store.set('testMode', on ? '1' : '0');
-  document.getElementById('test-banner').classList.toggle('show', on);
-  const b = document.getElementById('btn-test');
-  b.textContent = on ? '✅ Test ON' : '🧪 Test Mode';
-  b.classList.toggle('on', on);
-  renderRounds();
-}
-function toggleTest() { setTestMode(!isTest()); }
-
-// ── Settings ───────────────────────────────────────
-function toggleSettings() {
-  const p = document.getElementById('settings-panel');
-  p.classList.toggle('open');
-  if (p.classList.contains('open'))
-    document.getElementById('inp-url').value = store.get('scriptUrl') || '';
-}
-function saveUrl() {
-  const v = document.getElementById('inp-url').value.trim();
-  if (v) store.set('scriptUrl', v);
-  document.getElementById('settings-panel').classList.remove('open');
-  alert('บันทึกแล้ว ✓');
-  fetchTodayPlan();
-}
-
-// ── Autocomplete ───────────────────────────────────
-function getList(key) { try { return JSON.parse(store.get(key)||'[]'); } catch { return []; } }
-function addToList(key, val) {
-  if (!val) return;
-  let arr = getList(key);
-  arr = [val, ...arr.filter(x => x !== val)].slice(0, 20);
-  store.set(key, JSON.stringify(arr));
-  renderDatalist(key);
-}
-function renderDatalist(key) {
-  const dl = document.getElementById('dl-branch');
-  if (!dl) return;
-  dl.innerHTML = getList('branchList').map(v => `<option value="${v}">`).join('');
-}
-
-// ── Timestamp (Gregorian ค.ศ. เสมอ) ───────────────────
+// ── Timestamp helpers ──────────────────────────────
 function nowTS() {
-  const n = new Date();
-  const p = v => String(v).padStart(2,'0');
+  const n=new Date(), p=v=>String(v).padStart(2,'0');
   return `${p(n.getDate())}/${p(n.getMonth()+1)}/${n.getFullYear()} ${p(n.getHours())}:${p(n.getMinutes())}:${p(n.getSeconds())}`;
 }
 function nowDateStr() {
-  const n = new Date();
-  const p = v => String(v).padStart(2,'0');
+  const n=new Date(), p=v=>String(v).padStart(2,'0');
   return `${p(n.getDate())}/${p(n.getMonth()+1)}/${n.getFullYear()}`;
 }
 
-// ── Rounds ─────────────────────────────────────────
-function toMins(t)  { if(!t||!t.includes(':')) return -1; const [h,m]=(t+'').split(':').map(Number); return (h||0)*60+(m||0); }
-function nowMins()  { const n=new Date(); return n.getHours()*60+n.getMinutes(); }
-function doneKey(r)     { return 'done_'     + todayKey() + '_' + r.start + '_' + (r.name||r); }
-function checkoutKey(r) { return 'checkout_' + todayKey() + '_' + r.start + '_' + (r.name||r); }
-
-function countDone() {
-  const all = getAllRounds();
-  return all.filter(r => store.get(doneKey(r))).length;
-}
-
+// ── Task Counter ───────────────────────────────────
 function updateTaskCounter() {
-  const total = getAllRounds().length;
-  const done  = countDone();
+  const all = getAllRounds();
+  const done = all.filter(r => store.get(doneKey(r))).length;
   const el = document.getElementById('task-counter');
-  el.textContent = `${done} / ${total} งานวันนี้`;
-  el.classList.toggle('all-done', done === total && total > 0);
+  el.textContent = `${done} / ${all.length} งานวันนี้`;
+  el.classList.toggle('all-done', done === all.length && all.length > 0);
 }
 
+// ── Render Rounds ──────────────────────────────────
 function renderRounds() {
-  const nm = nowMins(), test = isTest();
+  const nm = nowMins();
   const allRounds = getAllRounds();
   const el = document.getElementById('rounds');
+
   if (!allRounds.length) {
-    if (!planFetched) {
-      // ยังโหลดอยู่ — แสดง spinner แทน
-      el.innerHTML = `<div style="text-align:center;padding:32px 16px;color:#8c959f;">
-        <div style="width:28px;height:28px;border:3px solid #e1e4e8;border-top-color:#0969da;border-radius:50%;animation:spin .8s linear infinite;margin:0 auto 10px;"></div>
-        <div style="font-size:13px;">กำลังโหลดแผนงาน...</div>
-      </div>`;
-      updateTaskCounter();
-      return;
-    }
     el.innerHTML = `<div style="text-align:center;padding:32px 16px;color:#8c959f;">
       <div style="font-size:36px;margin-bottom:8px;">📋</div>
       <div style="font-size:14px;font-weight:700;">ไม่มีงานวันนี้</div>
@@ -932,6 +503,7 @@ function renderRounds() {
     updateTaskCounter();
     return;
   }
+
   el.innerHTML = allRounds.map((r, i) => {
     const done     = store.get(doneKey(r));
     const checkout = store.get(checkoutKey(r));
@@ -939,51 +511,29 @@ function renderRounds() {
     const prevDone     = i > 0 ? store.get(doneKey(allRounds[i-1])) : null;
     const prevCheckout = i > 0 ? store.get(checkoutKey(allRounds[i-1])) : null;
     const prevFinished = prevDone && prevCheckout;
-    const canOpen  = (test || inTime || prevFinished) && !done;
-
-    // ตรวจว่าเป็นรอบพิเศษหรือไม่
-    const planCount = getPlanRounds().length;
-    const isExtra   = i >= planCount;
-    const extraIdx  = i - planCount;
-
-    // ตรวจว่ากดเข้างานก่อนเวลาหรือไม่
+    const canOpen  = (inTime || prevFinished) && !done;
     const isEarlyCheckin = done && !!store.get('earlyCI_' + todayKey() + '_' + r.start);
 
-    // กำหนด class หลัก
-    let cls;
-    if (done) {
-      cls = isEarlyCheckin && !checkout ? 'early' : 'done';
-    } else {
-      cls = canOpen ? 'open' : 'locked';
-    }
-    // เพิ่ม class extra สำหรับรอบพิเศษที่ยังไม่จบ
-    if (isExtra && cls !== 'done') cls += ' extra';
+    let cls = done ? (isEarlyCheckin && !checkout ? 'early' : 'done') : canOpen ? 'open' : 'locked';
 
     const badge = done
       ? (isEarlyCheckin && !checkout
           ? `<span class="badge badge-early">⏰ ก่อนเวลา</span>`
           : `<span class="badge badge-done">✓ เช็กแล้ว</span>`)
       : canOpen
-        ? `<span class="badge ${test ? 'badge-test' : isExtra ? 'badge-extra' : 'badge-open'}">${test ? 'TEST' : isExtra ? 'พิเศษ' : 'OPEN'}</span>`
+        ? `<span class="badge badge-open">OPEN</span>`
         : `<span class="badge badge-locked">LOCKED</span>`;
 
     const doneRow     = done     ? `<div class="round-done-time">📥 เช็กอิน ${done}</div>` : '';
     const checkoutRow = checkout ? `<div class="round-checkout-time">📤 จบงาน ${checkout}</div>` : '';
     const checkoutBtn = done && !checkout
       ? `<button class="btn-checkout" onclick="event.stopPropagation();confirmCheckout(${i})">🏁 จบงาน</button>` : '';
-
-    // ปุ่มลบเฉพาะรอบพิเศษที่ยังไม่ได้เช็กอิน
-    const deleteBtn = isExtra && !done
-      ? `<button class="btn-del-extra" onclick="event.stopPropagation();deleteExtraRound(${extraIdx})">🗑️</button>` : '';
-
-    // ปุ่มเข้างานก่อนเวลา (เฉพาะรอบที่ล็อค)
-    const earlyBtn = cls.includes('locked') && !done
+    const deleteBtn = !done
+      ? `<button class="btn-del-extra" onclick="event.stopPropagation();deleteExtraRound(${i})">🗑️</button>` : '';
+    const earlyBtn = cls === 'locked'
       ? `<button class="btn-early" onclick="event.stopPropagation();openEarlyRound(${i})">⏰ เข้างานก่อนเวลา</button>` : '';
 
-    // แสดงรายละเอียดงาน
-    const locRow  = r.location ? `<div style="font-size:12px;color:#0969da;margin-top:2px;">📍 ${r.location}</div>` : '';
-    const typeRow = r.taskType ? `<div style="font-size:11px;color:#57606a;margin-top:1px;">🗂 ${r.taskType}</div>` : '';
-    const noteRow = r.note     ? `<div style="font-size:11px;color:#8c959f;margin-top:1px;">📝 ${r.note}</div>` : '';
+    const locRow = r.location ? `<div style="font-size:12px;color:#0969da;margin-top:2px;">📍 ${r.location}</div>` : '';
 
     const click = canOpen ? `onclick="openRound(${i})"` : '';
     return `
@@ -992,23 +542,27 @@ function renderRounds() {
         <div class="round-info">
           <div class="round-name">${r.name}</div>
           <div class="round-time">${r.start} – ${r.end} น.</div>
-          ${locRow}${typeRow}${noteRow}${doneRow}${checkoutRow}
-          ${earlyBtn}
+          ${locRow}${doneRow}${checkoutRow}${earlyBtn}
         </div>
         <div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px">
-          ${badge}
-          ${checkoutBtn}
-          ${deleteBtn}
+          ${badge}${checkoutBtn}${deleteBtn}
         </div>
       </div>`;
   }).join('');
   updateTaskCounter();
-  renderPlanCard(); // ซ่อนแผนที่เช็กแล้วออกจากด้านบน
 }
 
-// ── Extra round modal ──────────────────────────────
+// ── Extra Round Modal ──────────────────────────────
+function getUsedMinutes() {
+  const used = new Set();
+  getAllRounds().forEach(r => {
+    const s = toMins(r.start), e = toMins(r.end);
+    for (let m = s; m < e; m += 30) used.add(m);
+  });
+  return used;
+}
+
 function buildTimeOpts(disabledMins = new Set()) {
-  // disabledMins = Set of minute-values that are inside existing rounds
   const nowM = nowMins();
   let html = '';
   for (let h = 0; h <= 23; h++) {
@@ -1019,81 +573,51 @@ function buildTimeOpts(disabledMins = new Set()) {
       const busy = disabledMins.has(mins);
       const past = mins < nowM;
       const dis  = busy || past;
-      const label = busy ? ` 🔒` : past ? ` ผ่านแล้ว` : '';
-      html += `<option value="${val}" ${dis ? 'disabled style="color:#ccc;background:#f6f8fa"' : ''}>${val}${label}</option>`;
+      const label = busy ? ' 🔒' : past ? ' ผ่านแล้ว' : '';
+      html += `<option value="${val}" ${dis?'disabled style="color:#ccc;background:#f6f8fa"':''}>${val}${label}</option>`;
     }
   }
   html += `<option value="24:00">24:00</option>`;
   return html;
 }
 
-// อัปเดต dropdown เวลาสิ้นสุด ให้แสดงเฉพาะเวลา > start และไม่ทับกับ round อื่น
 function updateExtraEndOpts() {
-  const startVal  = document.getElementById('ex-start').value;
-  const startMins = toMins(startVal);
+  const startMins = toMins(document.getElementById('ex-start').value);
   const used      = getUsedMinutes();
   const prevEnd   = document.getElementById('ex-end').value;
-
   let html = '';
   for (let h = 0; h <= 23; h++) {
     for (const m of [0, 30]) {
       const mins = h * 60 + m;
-      if (mins <= startMins) continue;          // ต้องหลัง start
-      if (used.has(mins - 30) && mins > startMins + 30) continue; // ข้ามช่วงที่ถูกจอง (ยกเว้น slot แรกหลัง start)
-      const hh  = String(h).padStart(2,'0');
-      const val = `${hh}:${m===0?'00':'30'}`;
-      html += `<option value="${val}">${val}</option>`;
+      if (mins <= startMins) continue;
+      if (used.has(mins - 30) && mins > startMins + 30) continue;
+      const hh = String(h).padStart(2,'0');
+      html += `<option value="${hh}:${m===0?'00':'30'}">${hh}:${m===0?'00':'30'}</option>`;
     }
   }
-  // 24:00 — ถ้าไม่มี round ทับ
   if (!used.has(23*60+30)) html += `<option value="24:00">24:00</option>`;
-
   const sel = document.getElementById('ex-end');
   sel.innerHTML = html;
-  // คืนค่าเดิมถ้ายังอยู่ใน options
   if ([...sel.options].some(o => o.value === prevEnd)) sel.value = prevEnd;
-}
-
-// คืน Set ของนาทีที่ถูกใช้งานโดยรอบที่มีอยู่แล้ว (ทุก 30 นาทีในช่วง start-end)
-function getUsedMinutes() {
-  const rounds = getAllRounds();
-  const used   = new Set();
-  rounds.forEach(r => {
-    const s = toMins(r.start), e = toMins(r.end);
-    for (let m = s; m < e; m += 30) used.add(m);
-  });
-  return used;
 }
 
 function openExtraModal() {
   const now  = new Date();
   const hh   = String(now.getHours()).padStart(2,'0');
   const mm   = now.getMinutes() < 30 ? '00' : '30';
-  const endH = String(now.getHours()+1 < 24 ? now.getHours()+1 : 23).padStart(2,'0');
   const used = getUsedMinutes();
-  const opts = buildTimeOpts(used);
-  document.getElementById('ex-start').innerHTML = opts;
+  document.getElementById('ex-start').innerHTML = buildTimeOpts(used);
   document.getElementById('ex-start').value = `${hh}:${mm}`;
-
-  // end time: อัปเดตให้ตรงกับ start ที่เลือก
   updateExtraEndOpts();
-  const endH2 = String(now.getHours()+1 < 24 ? now.getHours()+1 : 23).padStart(2,'0');
-  document.getElementById('ex-end').value = `${endH2}:${mm}` || document.getElementById('ex-end').options[0]?.value;
+  const endH = String(now.getHours()+1 < 24 ? now.getHours()+1 : 23).padStart(2,'0');
+  document.getElementById('ex-end').value = `${endH}:${mm}` || document.getElementById('ex-end').options[0]?.value;
 
-  // สร้าง choices จากแผนงานของ Admin เท่านั้น (todayPlan + allPlanBranches)
-  const choices = [];
-  // ดึงจากแผนวันนี้ก่อน
-  todayPlan.forEach(t => { if (t.branch && !choices.includes(t.branch)) choices.push(t.branch); });
-  // ดึงจากแผนงานทั้งหมดที่ cache ไว้ (ถ้ามี)
-  if (window._allPlanBranches) {
-    window._allPlanBranches.forEach(b => { if (!choices.includes(b)) choices.push(b); });
-  }
-
+  // choices จาก log history + พิมพ์เอง
+  const choices = [..._branches];
   const sel = document.getElementById('ex-location-sel');
   sel.innerHTML = choices.map(c => `<option value="${c}">${c}</option>`).join('') +
     `<option value="__other__">✏️ อื่นๆ (พิมพ์เอง)</option>`;
   sel.value = choices.length ? choices[0] : '__other__';
-
   document.getElementById('ex-location-other').style.display = sel.value === '__other__' ? '' : 'none';
   document.getElementById('ex-location-other').value = '';
   document.getElementById('extra-modal-bg').classList.add('open');
@@ -1105,20 +629,15 @@ function onLocationSelChange() {
   if (isOther) document.getElementById('ex-location-other').focus();
 }
 
-function closeExtraModal() {
-  document.getElementById('extra-modal-bg').classList.remove('open');
-}
+function closeExtraModal() { document.getElementById('extra-modal-bg').classList.remove('open'); }
 
 function confirmAddExtra() {
-  const start = document.getElementById('ex-start').value;
-  const end   = document.getElementById('ex-end').value;
-  const sel   = document.getElementById('ex-location-sel').value;
-  const location = sel === '__other__'
-    ? document.getElementById('ex-location-other').value.trim()
-    : sel;
+  const start    = document.getElementById('ex-start').value;
+  const end      = document.getElementById('ex-end').value;
+  const sel      = document.getElementById('ex-location-sel').value;
+  const location = sel === '__other__' ? document.getElementById('ex-location-other').value.trim() : sel;
   if (!location) { alert('กรุณาเลือกหรือพิมพ์สถานที่'); return; }
 
-  // ตรวจสอบเวลาชนกับรอบที่มีอยู่แล้ว
   const startM = toMins(start), endM = toMins(end);
   const conflict = getAllRounds().find(r => {
     const s = toMins(r.start), e = toMins(r.end||r.start);
@@ -1130,38 +649,37 @@ function confirmAddExtra() {
   }
 
   const extra = getExtraRounds();
-  const num   = extra.length + 1;  // รีเซ็ตทุกวัน: 1, 2, 3...
+  const num   = extra.length + 1;
   extra.push({ name: `งาน ${num}`, start, end, location });
   store.set('extraRounds_'+todayKey(), JSON.stringify(extra));
   closeExtraModal();
   renderRounds();
   // เปิด check-in flow ทันที
-  const newIdx = getPlanRounds().length + extra.length - 1;
-  openRound(newIdx);
+  openRound(extra.length - 1);
 }
 
-function deleteExtraRound(extraIdx) {
-  if (!confirm('ลบรอบพิเศษนี้?')) return;
+function deleteExtraRound(idx) {
+  if (!confirm('ลบรอบนี้?')) return;
   const extra = getExtraRounds();
-  extra.splice(extraIdx, 1);
+  extra.splice(idx, 1);
   store.set('extraRounds_'+todayKey(), JSON.stringify(extra));
   renderRounds();
 }
 
-// ── Check-in flow ──────────────────────────────────
+// ── Check-in Flow ──────────────────────────────────
+let curRound = null, gps = null, photo = null, stream = null, ovTimer = null;
+let checkoutIdx = null;
+
 function openRound(i) {
-  const rounds = getAllRounds();
-  curRound = i; gps = null; photo = null; geofenceWarning = null;
-  document.getElementById('m-title').textContent = 'เช็กอิน: ' + rounds[i].name;
-  document.getElementById('m-sub').textContent   = rounds[i].start + ' – ' + rounds[i].end + ' น.';
-  setStep(0);
-  showPane('gps');
-  document.getElementById('geo-warn').classList.remove('show');
+  const r = getAllRounds()[i];
+  curRound = i; gps = null; photo = null;
+  document.getElementById('m-title').textContent = 'เช็กอิน: ' + r.name;
+  document.getElementById('m-sub').textContent   = r.start + ' – ' + r.end + ' น.';
+  setStep(0); showPane('gps');
   document.getElementById('overlay').classList.add('open');
   getGPS();
 }
 
-// เปิดเช็กอินก่อนเวลา — บันทึก flag แล้วเปิดปกติ
 function openEarlyRound(i) {
   const r = getAllRounds()[i];
   store.set('earlyCI_' + todayKey() + '_' + r.start, '1');
@@ -1176,9 +694,8 @@ function setStep(active) {
 }
 
 function showPane(name) {
-  ['gps','cam','confirm','loading','success'].forEach(n => {
-    document.getElementById('pane-'+n).classList.remove('show');
-  });
+  ['gps','cam','confirm','loading','success'].forEach(n =>
+    document.getElementById('pane-'+n).classList.remove('show'));
   document.getElementById('pane-'+name).classList.add('show');
 }
 
@@ -1187,9 +704,8 @@ function getGPS() {
   document.getElementById('btn-next-cam').disabled = true;
   const box = document.getElementById('gps-box');
   if (!navigator.geolocation) {
-    box.innerHTML = `<div class="gps-icon">❌</div>
-      <div class="gps-text" style="color:#cf222e"><b>อุปกรณ์ไม่รองรับ GPS</b><br>ไม่สามารถเช็กอินได้</div>`;
-    return; // ปุ่มยังคง disabled
+    box.innerHTML = `<div class="gps-icon">❌</div><div class="gps-text" style="color:#cf222e"><b>อุปกรณ์ไม่รองรับ GPS</b></div>`;
+    return;
   }
   box.innerHTML = `<div class="gps-icon">📡</div><div class="gps-text">กำลังระบุตำแหน่ง…</div>`;
 
@@ -1201,17 +717,6 @@ function getGPS() {
           <div class="gps-icon">✅</div>
           <div class="gps-text">ระบุตำแหน่งสำเร็จ (±${gps.acc}m)</div>
           <div class="gps-coords">${gps.lat}, ${gps.lng}</div>`;
-        // Geofence check
-        if (gps.lat && todayPlan.length) {
-          const distOver = checkGeofence(gps.lat, gps.lng, curRound);
-          if (distOver) {
-            geofenceWarning = distOver;
-            const plan = todayPlan.find(t => t.lat && t.lng) || todayPlan[0];
-            const warnEl = document.getElementById('geo-warn');
-            warnEl.innerHTML = `⚠️ <b>คุณอยู่ห่างจากสาขาที่กำหนด ${distOver} เมตร</b><br>แผน: ${plan.branch||''} — กรุณาตรวจสอบตำแหน่ง`;
-            warnEl.classList.add('show');
-          }
-        }
         document.getElementById('btn-next-cam').disabled = false;
       },
       err => {
@@ -1222,7 +727,7 @@ function getGPS() {
           box.innerHTML = `
             <div class="gps-icon">❌</div>
             <div class="gps-text" style="color:#cf222e"><b>รับ GPS ไม่ได้</b><br>กรุณาเปิด Location แล้วลองใหม่</div>
-            <button onclick="showGps()" style="margin-top:10px;padding:8px 20px;background:#0969da;color:#fff;border:none;border-radius:8px;font-size:13px;cursor:pointer">🔄 ลองใหม่</button>`;
+            <button onclick="getGPS()" style="margin-top:10px;padding:8px 20px;background:#0969da;color:#fff;border:none;border-radius:8px;font-size:13px;cursor:pointer">🔄 ลองใหม่</button>`;
         }
       },
       { timeout: 15000, enableHighAccuracy: true }
@@ -1239,37 +744,34 @@ function showCam() {
   document.getElementById('canvas').style.display = 'none';
   document.getElementById('btn-snap').style.display   = '';
   document.getElementById('btn-retake').style.display = 'none';
-  startCamera();
-}
-function startCamera() {
   navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user' }, audio: false })
-    .then(s => { stream = s; document.getElementById('video').srcObject = s; })
+    .then(s => { stream = s; document.getElementById('video').srcObject = s; startOverlay(); })
     .catch(e => { alert('เปิดกล้องไม่ได้: ' + e.message); showPane('gps'); setStep(0); });
-  startOverlay();
 }
+
 function startOverlay() {
   clearInterval(ovTimer);
+  const r = getAllRounds()[checkoutIdx != null ? checkoutIdx : curRound];
+  const br = r ? r.location : '';
   ovTimer = setInterval(() => {
-    const branch = getBranch(curRound);
-    document.getElementById('ov-name').textContent = MY_NAME + ' | ' + branch;
+    document.getElementById('ov-name').textContent = MY_NAME + (br ? ' | ' + br : '');
     document.getElementById('ov-time').textContent = nowTS();
   }, 500);
 }
+
 function snap() {
   const vid = document.getElementById('video');
   const cvs = document.getElementById('canvas');
   const ctx = cvs.getContext('2d');
-  cvs.width  = vid.videoWidth  || 640;
-  cvs.height = vid.videoHeight || 480;
+  cvs.width = vid.videoWidth || 640; cvs.height = vid.videoHeight || 480;
   ctx.save(); ctx.scale(-1,1); ctx.drawImage(vid, -cvs.width, 0, cvs.width, cvs.height); ctx.restore();
-  const rounds = getAllRounds();
-  const r    = rounds[curRound];
-  const br   = getBranch(curRound);
-  const ts   = nowTS();
-  const h    = Math.max(40, cvs.height * 0.09);
+  const r  = getAllRounds()[checkoutIdx != null ? checkoutIdx : curRound];
+  const br = r ? r.location : '';
+  const ts = nowTS();
+  const h  = Math.max(40, cvs.height * 0.09);
   ctx.fillStyle = 'rgba(0,0,0,0.65)'; ctx.fillRect(0, cvs.height-h, cvs.width, h);
   ctx.fillStyle = '#fff'; ctx.font = `bold ${h*.32}px monospace`;
-  ctx.fillText(`${MY_NAME} | ${br} | ${r.name}`, 10, cvs.height - h*.55);
+  ctx.fillText(`${MY_NAME}${br?' | '+br:''} | ${r?r.name:''}`, 10, cvs.height - h*.55);
   ctx.font = `${h*.28}px monospace`;
   ctx.fillText(ts, 10, cvs.height - h*.18);
   photo = cvs.toDataURL('image/jpeg', 0.75);
@@ -1279,137 +781,75 @@ function snap() {
   clearInterval(ovTimer); stopStream();
   setStep(2); showConfirm();
 }
+
 function retake() { showCam(); }
 function stopStream() { if (stream) { stream.getTracks().forEach(t=>t.stop()); stream=null; } }
 
-// Confirm
 function showConfirm() {
   showPane('confirm');
-  const rounds = getAllRounds();
   const idx = checkoutIdx != null ? checkoutIdx : curRound;
-  const r  = rounds[idx];
-  const br = getBranch(idx);
-  const mismatch = checkBranchMismatch(br, idx);
-  const geoHtml  = geofenceWarning ? `
-    <div class="warn-box">
-      <div class="wi">🚨</div>
-      <div><b>ตำแหน่งไม่ตรงสาขา (${geofenceWarning}m)</b><br>
-      <span style="font-size:11px">Admin จะเห็นการแจ้งเตือนนี้</span></div>
-    </div>` : '';
-  const branchWarn = mismatch ? `
-    <div class="warn-box">
-      <div class="wi">⚠️</div>
-      <div><b>สาขาไม่ตรงกับแผนงาน</b><br>
-      แผน: <b>${mismatch}</b> → กรอก: <b>${br}</b><br>
-      <span style="font-size:11px">กด ยืนยัน หากถูกโยกงานแล้ว</span></div>
-    </div>` : '';
-
+  const r   = getAllRounds()[idx];
+  const br  = r ? r.location : '';
   document.getElementById('m-summary').innerHTML = `
-    ${geoHtml}${branchWarn}
     <div class="summary-row"><span class="lbl">ชื่อ</span><span class="val">${MY_NAME}</span></div>
-    <div class="summary-row"><span class="lbl">สาขา</span>
-      <span class="val" style="${mismatch?'color:#ea580c':''}">${br}${mismatch?' ⚠️':''}</span></div>
-    <div class="summary-row"><span class="lbl">รอบ</span><span class="val">${r.name}</span></div>
+    <div class="summary-row"><span class="lbl">สาขา</span><span class="val">${br||'-'}</span></div>
+    <div class="summary-row"><span class="lbl">รอบ</span><span class="val">${r?r.name:'-'}</span></div>
     <div class="summary-row"><span class="lbl">เวลา</span><span class="val">${nowTS().split(' ')[1]}</span></div>
-    <div class="summary-row"><span class="lbl">GPS</span><span class="val" style="font-size:11px">${gps ? (gps.lat||'ไม่มี') : 'ไม่มี'}</span></div>
-    ${geofenceWarning?`<div class="summary-row"><span class="lbl">ระยะห่างสาขา</span><span class="val" style="color:#cf222e">${geofenceWarning}m ⚠️</span></div>`:''}`;
-  // เปลี่ยนข้อความปุ่มตามโหมด
-  document.getElementById('btn-confirm-submit').textContent =
-    checkoutIdx != null ? '🏁 ยืนยันจบงาน' : '✅ ยืนยัน Check-In';
+    <div class="summary-row"><span class="lbl">GPS</span><span class="val" style="font-size:11px">${gps?gps.lat:'ไม่มี'}</span></div>`;
+  document.getElementById('btn-confirm-submit').textContent = checkoutIdx != null ? '🏁 ยืนยันจบงาน' : '✅ ยืนยัน Check-In';
 }
+
 function backToGps() { stopStream(); clearInterval(ovTimer); setStep(0); showPane('gps'); }
 function backToCam() { showCam(); }
 
-// Submit
+// Submit check-in
 async function submit() {
   showPane('loading');
-  const rounds = getAllRounds();
-  const r  = rounds[curRound];
-  const br = getBranch(curRound);
+  const r  = getAllRounds()[curRound];
+  const br = r ? r.location : '';
   const ts = nowTS();
   const payload = {
     name: MY_NAME, branch: br, round: r.name, roundTime: `${r.start}-${r.end}`,
     timestamp: ts, lat: gps.lat, lng: gps.lng, accuracy: gps.acc,
-    mapsLink: gps.lat ? `https://maps.google.com/?q=${gps.lat},${gps.lng}` : '',
-    photo: photo || '',
-    geofenceAlert: geofenceWarning ? `ห่าง ${geofenceWarning}m` : ''
+    mapsLink: `https://maps.google.com/?q=${gps.lat},${gps.lng}`,
+    photo: photo || ''
   };
-  const url = SCRIPT_URL || store.get('scriptUrl');
-  if (url) {
-    try {
-      await fetch(url, { method:'POST', mode:'no-cors',
-        headers:{'Content-Type':'application/json'}, body:JSON.stringify(payload) });
-    } catch(e) { console.warn('send failed:', e); }
-  }
-  // บันทึกพิกัดเช็กอินไว้เปรียบเทียบตอนจบงาน
-  if (gps && gps.lat) {
-    store.set('gps_ci_' + todayKey() + '_' + r.start, JSON.stringify({ lat: gps.lat, lng: gps.lng }));
-  }
+  if (gps) store.set('gps_ci_' + todayKey() + '_' + r.start, JSON.stringify({ lat: gps.lat, lng: gps.lng }));
+  try { await fetch(SCRIPT_URL, { method:'POST', mode:'no-cors', headers:{'Content-Type':'application/json'}, body:JSON.stringify(payload) }); } catch(e) {}
   store.set(doneKey(r), ts);
   renderRounds();
   document.getElementById('m-success-icon').textContent  = '✅';
   document.getElementById('m-success-title').textContent = 'Check-In สำเร็จ!';
-  document.getElementById('m-success-sub').textContent   = `${MY_NAME} | ${br} | ${r.name}`;
+  document.getElementById('m-success-sub').textContent   = `${MY_NAME}${br?' | '+br:''} | ${r.name}`;
   showPane('success');
 }
 
-// ── Checkout (ต้องถ่ายรูปก่อน) ─────────────────────
-let checkoutIdx = null; // เก็บ index รอบที่กำลังจบงาน
-
-function confirmCheckout(i) {
-  checkoutIdx = i;
-  const rounds = getAllRounds();
-  const r = rounds[i];
-  // เปิด overlay กล้องในโหมด checkout
-  curRound = i; photo = null; geofenceWarning = null;
-  document.getElementById('m-title').textContent = '🏁 จบงาน: ' + r.name;
-  document.getElementById('m-sub').textContent   = 'ถ่ายรูปเพื่อยืนยันจบงาน';
-  document.getElementById('overlay').classList.add('open');
-  setStep(1); showCam();
-}
-
+// Submit checkout
 async function submitCheckout() {
-  const rounds = getAllRounds();
-  const r  = rounds[checkoutIdx];
-  const br = getBranch(checkoutIdx);
-  const ts   = nowTS();
-  const date = nowDateStr();
-
+  const r  = getAllRounds()[checkoutIdx];
+  const br = r ? r.location : '';
+  const ts = nowTS(), date = nowDateStr();
   showPane('loading');
 
-  // ── GPS recheck — บังคับ ต้องได้พิกัดก่อนจบงาน ────────
-  let checkoutGeofenceAlert = '';
-  let checkoutLat = '', checkoutLng = '';
-
-  showPane('loading');
-  document.getElementById('loading-text') && (document.getElementById('loading-text').textContent = '📡 กำลังระบุตำแหน่ง…');
-
-  const getGpsWithRetry = (attempt = 1) => new Promise((res, rej) => {
+  const getGpsWithRetry = (attempt=1) => new Promise((res,rej) => {
     navigator.geolocation.getCurrentPosition(res,
-      err => attempt < 3
-        ? setTimeout(() => getGpsWithRetry(attempt + 1).then(res).catch(rej), 1000)
-        : rej(err),
-      { timeout: 15000, enableHighAccuracy: true }
+      err => attempt < 3 ? setTimeout(()=>getGpsWithRetry(attempt+1).then(res).catch(rej),1000) : rej(err),
+      { timeout:15000, enableHighAccuracy:true }
     );
   });
 
+  let checkoutLat='', checkoutLng='', checkoutGeofenceAlert='';
   try {
     const pos = await getGpsWithRetry();
     checkoutLat = pos.coords.latitude.toFixed(6);
     checkoutLng = pos.coords.longitude.toFixed(6);
-
-    // เปรียบเทียบกับพิกัดตอนเช็กอิน
-    const ciGpsRaw = store.get('gps_ci_' + todayKey() + '_' + r.start);
-    if (ciGpsRaw) {
-      const ciGps = JSON.parse(ciGpsRaw);
-      const dist  = Math.round(haversine(
-        parseFloat(checkoutLat), parseFloat(checkoutLng),
-        parseFloat(ciGps.lat),   parseFloat(ciGps.lng)
-      ));
+    const ciRaw = store.get('gps_ci_' + todayKey() + '_' + r.start);
+    if (ciRaw) {
+      const ci   = JSON.parse(ciRaw);
+      const dist = Math.round(haversine(parseFloat(checkoutLat),parseFloat(checkoutLng),parseFloat(ci.lat),parseFloat(ci.lng)));
       if (dist > 100) checkoutGeofenceAlert = `ห่างจุดเช็กอิน ${dist}m`;
     }
   } catch(e) {
-    // GPS ไม่ได้หลังลอง 3 ครั้ง → บล็อก ไม่ให้จบงาน
     document.getElementById('m-success-icon').textContent  = '❌';
     document.getElementById('m-success-title').textContent = 'รับ GPS ไม่ได้';
     document.getElementById('m-success-sub').textContent   = 'กรุณาเปิด Location แล้วลองใหม่';
@@ -1417,33 +857,24 @@ async function submitCheckout() {
     document.getElementById('btn-success-close').onclick = () => {
       document.getElementById('btn-success-close').textContent = 'ปิด';
       document.getElementById('btn-success-close').onclick = closeModal;
-      checkoutIdx = null;
-      closeModal();
+      checkoutIdx = null; closeModal();
     };
-    showPane('success');
-    return; // หยุด ไม่บันทึก
+    showPane('success'); return;
   }
 
-  // อัปโหลดรูป + ส่งข้อมูล
-  let checkoutPhoto = photo || '';
-  const url = SCRIPT_URL || store.get('scriptUrl');
-  if (url) {
-    try {
-      await fetch(url, {
-        method: 'POST', mode: 'no-cors',
-        headers: {'Content-Type':'application/json'},
-        body: JSON.stringify({ action:'checkout', name:MY_NAME, branch:br, round:r.name,
-          date, checkoutTime:ts, photo: checkoutPhoto,
-          checkoutLat, checkoutLng, checkoutGeofenceAlert })
-      });
-    } catch(e) { console.warn('checkout send failed:', e); }
-  }
+  try {
+    await fetch(SCRIPT_URL, {
+      method:'POST', mode:'no-cors', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ action:'checkout', name:MY_NAME, branch:br, round:r.name,
+        date, checkoutTime:ts, photo: photo||'',
+        checkoutLat, checkoutLng, checkoutGeofenceAlert })
+    });
+  } catch(e) {}
 
   store.set(checkoutKey(r), ts);
   renderRounds();
   document.getElementById('m-success-icon').textContent  = '🏁';
-  document.getElementById('m-success-title').textContent = checkoutGeofenceAlert
-    ? `จบงานสำเร็จ ⚠️` : 'จบงานสำเร็จ!';
+  document.getElementById('m-success-title').textContent = checkoutGeofenceAlert ? 'จบงานสำเร็จ ⚠️' : 'จบงานสำเร็จ!';
   document.getElementById('m-success-sub').textContent   = checkoutGeofenceAlert
     ? `${MY_NAME} | ${r.name} | ${ts.split(' ')[1]}\nตำแหน่ง${checkoutGeofenceAlert}`
     : `${MY_NAME} | ${r.name} | ${ts.split(' ')[1]}`;
@@ -1451,14 +882,22 @@ async function submitCheckout() {
   checkoutIdx = null;
 }
 
+function confirmCheckout(i) {
+  checkoutIdx = i;
+  const r = getAllRounds()[i];
+  curRound = i; photo = null;
+  document.getElementById('m-title').textContent = '🏁 จบงาน: ' + r.name;
+  document.getElementById('m-sub').textContent   = 'ถ่ายรูปเพื่อยืนยันจบงาน';
+  document.getElementById('overlay').classList.add('open');
+  setStep(1); showCam();
+}
+
 function closeModal() {
   stopStream(); clearInterval(ovTimer);
   document.getElementById('overlay').classList.remove('open');
+  checkoutIdx = null;
 }
 
-
-// ── Init ───────────────────────────────────────────
-setTestMode(isTest());
 window.addEventListener('beforeunload', () => { stopStream(); clearInterval(ovTimer); });
 </script>
 </body>
