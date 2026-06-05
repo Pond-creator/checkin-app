@@ -185,7 +185,7 @@ tr:hover td { background:#f6f8fa; }
       <option value="gps">🚨 แจ้งเตือน GPS</option>
     </select>
     <button class="btn btn-success" onclick="exportCSV()">📊 Export CSV</button>
-    <button class="btn btn-outline" onclick="openCfg()">⚙ ตั้งค่า</button>
+    <button class="btn btn-outline" id="btn-cfg" style="display:none" onclick="openCfg()">⚙ ตั้งค่า</button>
     <button class="btn" id="btn-edit-mode" style="display:none;background:#6e40c9;color:#fff" onclick="toggleEditMode()">✏️ แก้ไข</button>
     <button class="btn btn-danger"  id="btn-delete-sel" style="display:none" onclick="deleteSelected()">🗑️ ลบที่เลือก (<span id="sel-count">0</span>)</button>
   </div>
@@ -361,6 +361,7 @@ if (IS_ADMIN) {
   document.getElementById('tab-deleted-btn').style.display = '';
   document.getElementById('tab-users-btn').style.display   = '';
   document.getElementById('btn-edit-mode').style.display   = '';
+  document.getElementById('btn-cfg').style.display         = '';
 }
 
 // ── Tab ────────────────────────────────────────────
