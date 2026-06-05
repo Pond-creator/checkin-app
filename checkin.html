@@ -385,7 +385,7 @@ function closeNav() { document.getElementById('nav-overlay').classList.remove('o
 function logout()   { store.set('session',''); location.href = 'index.html'; }
 
 // ── Date key ───────────────────────────────────────
-function todayKey() { return new Date().toISOString().slice(0,10); }
+function todayKey() { const n=new Date(); return `${n.getFullYear()}-${String(n.getMonth()+1).padStart(2,'0')}-${String(n.getDate()).padStart(2,'0')}`; }
 
 // ── localStorage key migration (old format → ISO) ─
 (function migrateKeys() {
