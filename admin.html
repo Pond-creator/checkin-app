@@ -1053,7 +1053,7 @@ function updateStats(rows) {
   document.getElementById('s-all').textContent        = rows.length;
   document.getElementById('s-total').textContent      = normalCin;
   document.getElementById('s-special').textContent    = rows.length;
-  document.getElementById('s-missing').textContent    = missingCnt;
+  // s-missing removed
   document.getElementById('s-alert').textContent      = rows.filter(r=>r.geofenceAlert||r.checkoutGeofenceAlert).length;
   document.getElementById('s-nocheckout').textContent = rows.filter(r=>!(r.checkoutTime||'').trim()).length;
 }
