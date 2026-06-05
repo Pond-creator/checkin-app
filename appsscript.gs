@@ -32,11 +32,26 @@ const DELETED_HEADERS = [
 // ──────────────────────────────────────────────────
 // POST
 // ──────────────────────────────────────────────────
+const LINE_TOKEN    = 'kUEQye3hUx6Wtr4DIqz+mp8K9y9xQmPCEOhi7F4Zh8t6tslNG0aMalVKHPkeEbr7hI4TukGnA9mWnTjsw6p3a+JvwEmCEWsKCnGZOVyiYXPpL3T6KFT0ZVmrEue78uraP2RpfPuJjpdY1WFFUYByHAdB04t89/1O/w1cDnyilFU=';
+const LINE_GROUP_ID_KEY = 'LINE_GROUP_ID'; // เก็บใน PropertiesService
+
 function doPost(e) {
   try {
-    const data   = JSON.parse(e.postData.contents);
-    const action = data.action || 'checkin';
+    const raw  = e.postData.contents;
+    const data = JSON.parse(raw);
 
+    // รับ LINE Webhook (มี events array)
+    if (data.events) {
+      data.events.forEach(ev => {
+        // บันทึก Group ID อัตโนมัติ
+        if (ev.source && ev.source.type === 'group' && ev.source.groupId) {
+          PropertiesService.getScriptProperties().setProperty(LINE_GROUP_ID_KEY, ev.source.groupId);
+        }
+      });
+      return jsonOK({ ok: true });
+    }
+
+    const action = data.action || 'checkin';
     if (action === 'savePlan')   return savePlan(data);
     if (action === 'deletePlan') return deletePlan(data);
     if (action === 'checkout')   return saveCheckout(data);
@@ -48,6 +63,26 @@ function doPost(e) {
   } catch(err) {
     return jsonOK({ success: false, error: err.message });
   }
+}
+
+// ── LINE Notify ────────────────────────────────────
+function sendLineNotify(msg) {
+  const groupId = PropertiesService.getScriptProperties().getProperty(LINE_GROUP_ID_KEY);
+  if (!groupId) return;
+  try {
+    UrlFetchApp.fetch('https://api.line.me/v2/bot/message/push', {
+      method: 'post',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer ' + LINE_TOKEN
+      },
+      payload: JSON.stringify({
+        to: groupId,
+        messages: [{ type: 'text', text: msg }]
+      }),
+      muteHttpExceptions: true
+    });
+  } catch(e) {}
 }
 
 // ── Check-in ───────────────────────────────────────
@@ -78,6 +113,11 @@ function saveCheckin(data) {
 
   appendRow(MASTER_SHEET, LOG_HEADERS, row);
   if (data.name) appendRow('👤 '+data.name.trim(), LOG_HEADERS, row);
+
+  // แจ้งเตือน LINE
+  const mapsLine = mapsUrl ? `\n📍 GPS: ${mapsUrl}` : '';
+  const alertLine = data.geofenceAlert ? `\n🚨 ${data.geofenceAlert}` : '';
+  sendLineNotify(`🏁 เช็กอิน\n👤 ${data.name||''}\n📍 ${data.branch||''} (${data.round||''})\n🕐 ${timeStr}${mapsLine}${alertLine}`);
 
   return jsonOK({ success: true });
 }
@@ -133,6 +173,12 @@ function saveCheckout(data) {
       }
     }
   });
+
+  // แจ้งเตือน LINE จบงาน
+  const mapsOutLine = (data.checkoutLat && data.checkoutLng)
+    ? `\n📍 GPS จบงาน: https://maps.google.com/?q=${data.checkoutLat},${data.checkoutLng}` : '';
+  const alertOutLine = data.checkoutGeofenceAlert ? `\n🚨 ${data.checkoutGeofenceAlert}` : '';
+  sendLineNotify(`✅ จบงาน\n👤 ${data.name||''}\n📍 ${data.branch||''} (${data.round||''})\n🕐 ${timeStr}${mapsOutLine}${alertOutLine}`);
 
   return jsonOK({ success: true });
 }
