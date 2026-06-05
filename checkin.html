@@ -430,7 +430,7 @@ const MY_ROLE = session ? session.role : 'staff';
 document.getElementById('display-name').textContent = MY_NAME;
 document.getElementById('nav-name').textContent = MY_NAME;
 document.getElementById('nav-role').textContent = MY_ROLE === 'admin' ? 'ผู้ดูแลระบบ' : 'พนักงาน';
-if (MY_ROLE === 'admin') document.getElementById('nav-admin-link').style.display = 'flex';
+if (MY_ROLE === 'admin' || MY_ROLE === 'support') document.getElementById('nav-admin-link').style.display = 'flex';
 
 // ── Nav ────────────────────────────────────────────
 function openNav()  { document.getElementById('nav-overlay').classList.add('open'); document.getElementById('nav-drawer').classList.add('open'); }
