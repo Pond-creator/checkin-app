@@ -180,7 +180,8 @@ tr:hover td { background:#f6f8fa; }
     <select id="f-branch" onchange="renderLog(true)"><option value="">📍 ทุกสาขา</option></select>
     <select id="f-status" onchange="renderLog(true)">
       <option value="">🔖 ทุกสถานะ</option>
-      <option value="จบงาน">✅ จบงาน</option>
+      <option value="จบงาน">✅ จบงานปกติ</option>
+      <option value="จบงานผิดปกติ">⚠️ จบงานผิดปกติ</option>
       <option value="ไม่จบงาน">❌ ไม่จบงาน</option>
     </select>
     <button class="btn btn-success" onclick="exportCSV()">📊 Export CSV</button>
@@ -470,9 +471,9 @@ function getFiltered() {
     if (branch && r.branch !== branch) return false;
     if (from) { const d = getRecordDateISO(r); if (d < from || d > toDate) return false; }
     const co = (r.checkoutTime||'').trim();
-    if (status === 'gps')       { if (!r.geofenceAlert && !r.checkoutGeofenceAlert) return false; }
-    else if (status === 'จบงาน')   { if (!co) return false; }
-    else if (status === 'ไม่จบงาน') { if (co)  return false; }
+    if      (status === 'จบงาน')          { if (!co || r.checkoutGeofenceAlert) return false; }
+    else if (status === 'จบงานผิดปกติ')   { if (!co || !r.checkoutGeofenceAlert) return false; }
+    else if (status === 'ไม่จบงาน')       { if (co) return false; }
     if (activeStatCard === 'nocheckout' && co)  return false;
     if (activeStatCard === 'alert' && !r.geofenceAlert && !r.checkoutGeofenceAlert) return false;
     return true;
