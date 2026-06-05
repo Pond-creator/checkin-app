@@ -257,14 +257,16 @@ function doGet(e) {
 
   // Login
   if (action === 'login') {
-    const id   = (p.id   || '').toString().trim();
-    const pass = (p.pass || '').toString().trim();
+    const id   = (p.id   || '').toString().trim().toLowerCase();
+    const pass = (p.pass || '').toString().trim().toLowerCase();
     const ss   = SpreadsheetApp.getActiveSpreadsheet();
     const sheet = ss.getSheetByName(USER_SHEET);
     if (!sheet) return jsonOK({ success: false, error: 'no user sheet' });
     const rows = sheet.getDataRange().getValues();
     for (let i=1; i<rows.length; i++) {
-      if (rows[i][0].toString().trim() === id && rows[i][1].toString().trim() === pass) {
+      const rowId   = rows[i][0].toString().trim().toLowerCase();
+      const rowPass = rows[i][1].toString().trim().toLowerCase();
+      if (rowId === id && rowPass === pass) {
         return jsonOK({ success: true, name: rows[i][2]+'', role: rows[i][3]+'' });
       }
     }

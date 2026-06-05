@@ -137,8 +137,8 @@ cfgEl.value = store.get('scriptUrl') || '';
 document.addEventListener('keydown', e => { if (e.key === 'Enter') doLogin(); });
 
 async function doLogin() {
-  const id   = document.getElementById('inp-id').value.trim();
-  const pass = document.getElementById('inp-pass').value;
+  const id   = document.getElementById('inp-id').value.trim().toLowerCase();
+  const pass = document.getElementById('inp-pass').value.trim().toLowerCase();
   if (!id || !pass) { showErr('กรุณากรอก ID และรหัสผ่าน'); return; }
 
   hideErr();
