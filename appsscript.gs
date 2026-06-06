@@ -177,12 +177,30 @@ function saveCheckout(data) {
     }
   });
 
+  // ดึง taskType จากชีท
+  let savedTaskType = '';
+  try {
+    const ss2 = SpreadsheetApp.getActiveSpreadsheet();
+    const m2  = ss2.getSheetByName(MASTER_SHEET);
+    if (m2) {
+      const rows2 = m2.getDataRange().getValues();
+      for (let i = rows2.length - 1; i >= 1; i--) {
+        if (rows2[i][2] === data.name && rows2[i][4] === data.round &&
+            rows2[i][0].toString().includes(dateStr.split('/')[0])) {
+          savedTaskType = rows2[i][18] + '';
+          break;
+        }
+      }
+    }
+  } catch(e) {}
+
   // แจ้งเตือน LINE จบงาน
-  const mapsOutLine = (data.checkoutLat && data.checkoutLng)
+  const mapsOutLine  = (data.checkoutLat && data.checkoutLng)
     ? `\n📍 GPS จบงาน: https://maps.google.com/?q=${data.checkoutLat},${data.checkoutLng}` : '';
   const alertOutLine = data.checkoutGeofenceAlert ? `\n🚨 ${data.checkoutGeofenceAlert}` : '';
+  const taskOutLine  = savedTaskType ? `\n📋 ${savedTaskType}` : '';
   const checkoutStatus = data.checkoutGeofenceAlert ? '⚠️ จบงานผิดปกติ' : '✅ จบงานแล้ว';
-  sendLineNotify(`${checkoutStatus}\n👤 ${data.name||''}\n📍 ${data.branch||''} (${data.round||''})\n🕐 ${timeStr}${mapsOutLine}${alertOutLine}`);
+  sendLineNotify(`${checkoutStatus}\n👤 ${data.name||''}\n📍 ${data.branch||''} (${data.round||''})\n🕐 ${timeStr}${taskOutLine}${mapsOutLine}${alertOutLine}`);
 
   return jsonOK({ success: true });
 }
