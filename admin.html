@@ -164,6 +164,12 @@ tr:hover td { background:#f6f8fa; }
 <div class="tab-content active" id="tab-log">
   <div class="toolbar">
     <button class="btn btn-primary" onclick="loadLog()">🔄 โหลดข้อมูล</button>
+    <select id="f-status" onchange="renderLog(true)">
+      <option value="">🔖 ทุกสถานะ</option>
+      <option value="จบงาน">✅ จบงานปกติ</option>
+      <option value="จบงานผิดปกติ">⚠️ จบงานผิดปกติ</option>
+      <option value="ไม่จบงาน">❌ ไม่จบงาน</option>
+    </select>
     <div style="display:flex;gap:4px;align-items:center;flex-wrap:wrap">
       <div class="view-toggle">
         <button id="qf-today"     class="on" onclick="setLogRange('today')">วันนี้</button>
@@ -180,12 +186,6 @@ tr:hover td { background:#f6f8fa; }
     </div>
     <select id="f-user"   onchange="renderLog(true)"><option value="">👤 ทุกคน</option></select>
     <select id="f-branch" onchange="renderLog(true)"><option value="">📍 ทุกสาขา</option></select>
-    <select id="f-status" onchange="renderLog(true)">
-      <option value="">🔖 ทุกสถานะ</option>
-      <option value="จบงาน">✅ จบงานปกติ</option>
-      <option value="จบงานผิดปกติ">⚠️ จบงานผิดปกติ</option>
-      <option value="ไม่จบงาน">❌ ไม่จบงาน</option>
-    </select>
     <button class="btn btn-success" onclick="exportCSV()">📊 Export CSV</button>
     <button class="btn btn-outline" id="btn-cfg" style="display:none" onclick="openCfg()">⚙ ตั้งค่า</button>
     <button class="btn" id="btn-edit-mode" style="display:none;background:#6e40c9;color:#fff" onclick="toggleEditMode()">✏️ แก้ไข</button>
