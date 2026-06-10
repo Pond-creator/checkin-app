@@ -32,7 +32,7 @@ const DELETED_HEADERS = [
 // ──────────────────────────────────────────────────
 // POST
 // ──────────────────────────────────────────────────
-const LINE_TOKEN    = 'kUEQye3hUx6Wtr4DIqz+mp8K9y9xQmPCEOhi7F4Zh8t6tslNG0aMalVKHPkeEbr7hI4TukGnA9mWnTjsw6p3a+JvwEmCEWsKCnGZOVyiYXPpL3T6KFT0ZVmrEue78uraP2RpfPuJjpdY1WFFUYByHAdB04t89/1O/w1cDnyilFU=';
+const LINE_TOKEN    = 'sA52oitU5GHUm1CGTKh33tEbvKgCdiWJoDWO+6JpIoZF1JOVeQWTdu684ULcqqn2xqGENQP7o6E90jfuPU2n1+5twlE7UA1HkGdmo3VswLbOsMgYT2wWtBnqranC9ux06693SJCoi51euwWybXG/TQdB04t89/1O/w1cDnyilFU=';
 const LINE_GROUP_ID_KEY = 'LINE_GROUP_ID'; // เก็บใน PropertiesService
 
 function doPost(e) {
