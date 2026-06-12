@@ -290,6 +290,8 @@ tr:hover td { background:#f6f8fa; }
     <div class="form-row"><label>รหัสผู้ใช้ (ID) *</label><input id="u-id" placeholder="เช่น S001"></div>
     <div class="form-row"><label>ชื่อ-นามสกุล *</label><input id="u-name" placeholder="ชื่อพนักงาน"></div>
     <div class="form-row"><label>รหัสผ่าน *</label><input id="u-pass" type="password" placeholder="••••••"></div>
+    <div class="form-row"><label>เวลาเข้างาน</label><input id="u-schedule-in" type="time" placeholder="10:00"></div>
+    <div class="form-row"><label>เวลาออกงาน</label><input id="u-schedule-out" type="time" placeholder="19:00"></div>
     <div class="form-row">
       <label>Role *</label>
       <select id="u-role">
@@ -750,20 +752,22 @@ function renderUsers() {
   tbody.innerHTML = userData.map(u => `<tr>
     <td><b>${u.id}</b></td>
     <td>${u.name}</td>
+    <td style="font-size:12px;color:#57606a">${u.scheduleIn||'-'} – ${u.scheduleOut||'-'}</td>
     <td><span class="role-badge ${u.role==='admin'?'role-admin':u.role==='support'?'role-support':'role-staff'}">${u.role==='admin'?'Admin':u.role==='support'?'Support':'Staff'}</span></td>
-    <td><button class="btn-sm btn-edit" onclick="editUser('${u.id}','${u.name}','${u.role}')">✏️ แก้ไข</button></td>
+    <td><button class="btn-sm btn-edit" onclick="editUser('${u.id}','${u.name}','${u.role}','${u.scheduleIn||''}','${u.scheduleOut||''}')">✏️ แก้ไข</button></td>
   </tr>`).join('');
 }
-function openUserModal()  { editingUserId=null; document.getElementById('user-modal-title').textContent='➕ เพิ่มผู้ใช้'; ['u-id','u-name','u-pass'].forEach(id=>document.getElementById(id).value=''); document.getElementById('u-role').value='staff'; document.getElementById('btn-del-user').style.display='none'; document.getElementById('user-modal').classList.add('open'); }
-function editUser(id,name,role) { editingUserId=id; document.getElementById('user-modal-title').textContent='✏️ แก้ไขผู้ใช้'; document.getElementById('u-id').value=id; document.getElementById('u-name').value=name; document.getElementById('u-pass').value=''; document.getElementById('u-role').value=role; document.getElementById('btn-del-user').style.display=''; document.getElementById('user-modal').classList.add('open'); }
+function openUserModal()  { editingUserId=null; document.getElementById('user-modal-title').textContent='➕ เพิ่มผู้ใช้'; ['u-id','u-name','u-pass','u-schedule-in','u-schedule-out'].forEach(id=>document.getElementById(id).value=''); document.getElementById('u-role').value='staff'; document.getElementById('btn-del-user').style.display='none'; document.getElementById('user-modal').classList.add('open'); }
+function editUser(id,name,role,sin,sout) { editingUserId=id; document.getElementById('user-modal-title').textContent='✏️ แก้ไขผู้ใช้'; document.getElementById('u-id').value=id; document.getElementById('u-name').value=name; document.getElementById('u-pass').value=''; document.getElementById('u-role').value=role; document.getElementById('u-schedule-in').value=sin||''; document.getElementById('u-schedule-out').value=sout||''; document.getElementById('btn-del-user').style.display=''; document.getElementById('user-modal').classList.add('open'); }
 function closeUserModal() { document.getElementById('user-modal').classList.remove('open'); }
 async function saveUser() {
   const id=document.getElementById('u-id').value.trim(), name=document.getElementById('u-name').value.trim(), pass=document.getElementById('u-pass').value, role=document.getElementById('u-role').value;
+  const scheduleIn=document.getElementById('u-schedule-in').value, scheduleOut=document.getElementById('u-schedule-out').value;
   if (!id||!name) { alert('กรุณากรอก ID และชื่อ'); return; }
   const url=getUrl(); if (!url) return;
   showLoad(true);
   try {
-    const res=await fetch(url,{method:'POST',mode:'no-cors',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'saveUser',id,name,pass,role})});
+    const res=await fetch(url,{method:'POST',mode:'no-cors',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'saveUser',id,name,pass,role,scheduleIn,scheduleOut})});
     closeUserModal(); await loadUsers();
   } catch(e) { alert('บันทึกไม่สำเร็จ'); }
   showLoad(false);
@@ -849,8 +853,12 @@ async function loadHR() {
     byDate[iso].push(r);
   });
 
-  const HIN  = toMins(HR_IN);
-  const HOUT = toMins(HR_OUT);
+  // ใช้เวลาของพนักงานแต่ละคน ถ้าไม่มีใช้ค่า default
+  const empUser = userData.find(u => u.name === emp);
+  const empIn  = (empUser && empUser.scheduleIn)  ? empUser.scheduleIn  : HR_IN;
+  const empOut = (empUser && empUser.scheduleOut) ? empUser.scheduleOut : HR_OUT;
+  const HIN  = toMins(empIn);
+  const HOUT = toMins(empOut);
   let totalWork=0, totalLate=0, totalEarly=0, totalOT=0, workDays=0, noOut=0;
 
   const tbody = document.getElementById('hr-body');

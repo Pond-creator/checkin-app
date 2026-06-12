@@ -19,7 +19,7 @@ const PLAN_HEADERS = [
   'ID','ชื่อพนักงาน','วันที่','เวลาเริ่ม','เวลาสิ้นสุด',
   'สาขา','ประเภทงาน','หมายเหตุ','สร้างเมื่อ','Latitude','Longitude'
 ];
-const USER_HEADERS    = ['ID','Password','ชื่อ','Role'];
+const USER_HEADERS    = ['ID','Password','ชื่อ','Role','เวลาเข้างาน','เวลาออกงาน'];
 const DELETED_SHEET   = "🗑️ Deleted Log";
 const DELETED_HEADERS = [
   'วันที่','เวลา Check-in','ชื่อ','สาขา',
@@ -294,13 +294,13 @@ function saveUser(data) {
   for (let i=1; i<rows.length; i++) {
     if (rows[i][0].toString() === data.id) {
       const pass = data.pass || rows[i][1]; // ถ้าไม่ส่ง pass ให้ใช้เดิม
-      sheet.getRange(i+1, 1, 1, 4).setValues([[data.id, pass, data.name||'', data.role||'staff']]);
+      sheet.getRange(i+1, 1, 1, 6).setValues([[data.id, pass, data.name||'', data.role||'staff', data.scheduleIn||rows[i][4]||'', data.scheduleOut||rows[i][5]||'']]);
       return jsonOK({ success: true });
     }
   }
   // เพิ่มใหม่
   if (!data.pass) return jsonOK({ success: false, error: 'password required' });
-  sheet.appendRow([data.id, data.pass, data.name||'', data.role||'staff']);
+  sheet.appendRow([data.id, data.pass, data.name||'', data.role||'staff', data.scheduleIn||'', data.scheduleOut||'']);
   return jsonOK({ success: true });
 }
 
@@ -445,7 +445,7 @@ function readUsers() {
   if (rows.length<=1) return [];
   // ไม่ส่ง password กลับมา
   return rows.slice(1).map(r => ({
-    id:r[0]+'', name:r[2]+'', role:r[3]+''
+    id:r[0]+'', name:r[2]+'', role:r[3]+'', scheduleIn:r[4]+'', scheduleOut:r[5]+''
   }));
 }
 
