@@ -34,7 +34,7 @@ const DELETED_HEADERS = [
 // ──────────────────────────────────────────────────
 const LINE_TOKEN        = 'sA52oitU5GHUm1CGTKh33tEbvKgCdiWJoDWO+6JpIoZF1JOVeQWTdu684ULcqqn2xqGENQP7o6E90jfuPU2n1+5twlE7UA1HkGdmo3VswLbOsMgYT2wWtBnqranC9ux06693SJCoi51euwWybXG/TQdB04t89/1O/w1cDnyilFU=';
 const LINE_GROUP_ID_KEY = 'LINE_GROUP_ID';
-const FIXED_GROUP_ID    = 'C30af8eb827762a0acab29c1f6aaa0211'; // FOLIO Check in (hardcoded)
+const FIXED_GROUP_ID    = 'C30af8eb827762a0acab29c1f6aaa0211'; // ✅ FOLIO Check in (hardcoded)
 
 function doPost(e) {
   try {
@@ -68,7 +68,7 @@ function doPost(e) {
 
 // ── LINE Notify ────────────────────────────────────
 function sendLineNotify(msg) {
-  const groupId = FIXED_GROUP_ID;
+  const groupId = FIXED_GROUP_ID; // ✅ ใช้ค่า hardcoded แทน PropertiesService
   if (!groupId) return;
   try {
     UrlFetchApp.fetch('https://api.line.me/v2/bot/message/push', {
@@ -110,14 +110,13 @@ function saveCheckin(data) {
     dateStr, timeStr, data.name||'', data.branch||'',
     data.round||'', data.roundTime||'', data.lat||'', data.lng||'',
     data.accuracy||'', mapsUrl, photoUrl, '', data.geofenceAlert||'',
-    '', '', '', '', '',   // placeholder cols 14-18 (checkout fields)
-    data.taskType||''     // col 19 = ประเภทงาน
+    '', '', '', '', '',
+    data.taskType||''
   ];
 
   appendRow(MASTER_SHEET, LOG_HEADERS, row);
   if (data.name) appendRow('👤 '+data.name.trim(), LOG_HEADERS, row);
 
-  // แจ้งเตือน LINE
   const mapsLine   = mapsUrl ? `\n📍 GPS: ${mapsUrl}` : '';
   const alertLine  = data.geofenceAlert ? `\n🚨 ${data.geofenceAlert}` : '';
   const taskLine   = data.taskType ? `\n📋 ${data.taskType}` : '';
@@ -131,14 +130,13 @@ function saveCheckout(data) {
   const now      = new Date();
   const timeStr  = data.checkoutTime || Utilities.formatDate(now, 'Asia/Bangkok', 'dd/MM/yyyy HH:mm:ss');
   const dateStr  = data.date || Utilities.formatDate(now, 'Asia/Bangkok', 'dd/MM/yyyy');
-  const colCheckout = 12; // เวลาจบงาน
-  const colPhoto    = 14; // รูปภาพจบงาน (คอลัมน์ N)
-  const colGeoOut   = 15; // แจ้งเตือน GPS จบงาน (คอลัมน์ O)
-  const colLatOut   = 16; // Lat จบงาน (คอลัมน์ P)
-  const colLngOut   = 17; // Lng จบงาน (คอลัมน์ Q)
-  const colMapsOut  = 18; // Google Maps จบงาน (คอลัมน์ R)
+  const colCheckout = 12;
+  const colPhoto    = 14;
+  const colGeoOut   = 15;
+  const colLatOut   = 16;
+  const colLngOut   = 17;
+  const colMapsOut  = 18;
 
-  // อัปโหลดรูปจบงาน (ถ้ามี)
   let photoUrl = '';
   if (data.photo && data.photo.startsWith('data:image')) {
     try {
@@ -178,7 +176,6 @@ function saveCheckout(data) {
     }
   });
 
-  // ดึง taskType จากชีท
   let savedTaskType = '';
   try {
     const ss2 = SpreadsheetApp.getActiveSpreadsheet();
@@ -195,7 +192,6 @@ function saveCheckout(data) {
     }
   } catch(e) {}
 
-  // แจ้งเตือน LINE จบงาน
   const mapsOutLine  = (data.checkoutLat && data.checkoutLng)
     ? `\n📍 GPS จบงาน: https://maps.google.com/?q=${data.checkoutLat},${data.checkoutLng}` : '';
   const alertOutLine = data.checkoutGeofenceAlert ? `\n🚨 ${data.checkoutGeofenceAlert}` : '';
@@ -206,10 +202,8 @@ function saveCheckout(data) {
   return jsonOK({ success: true });
 }
 
-// ── Delete Rows (ย้ายไป Deleted Log) ──────────────
+// ── Delete Rows ────────────────────────────────────
 function deleteRows(data) {
-  // data.keys = array of "timestamp|name" เพื่อ identify แต่ละ row
-  // data.deletedBy = ชื่อ admin ที่ลบ
   const keys      = data.keys || [];
   const deletedBy = data.deletedBy || '';
   const deletedAt = Utilities.formatDate(new Date(), 'Asia/Bangkok', 'dd/MM/yyyy HH:mm:ss');
@@ -219,25 +213,21 @@ function deleteRows(data) {
 
   const delSheet = getOrCreateSheet(DELETED_SHEET, DELETED_HEADERS);
   const rows     = master.getDataRange().getValues();
-  const toDelete = []; // row indices (1-based) in master to delete
+  const toDelete = [];
 
-  // หา rows ที่ตรงกับ keys
   for (let i = rows.length - 1; i >= 1; i--) {
     const ts   = rows[i][1] + '';
     const name = rows[i][2] + '';
     const key  = ts + '|' + name;
     if (keys.includes(key)) {
-      // copy ไป Deleted Log
       const newRow = [...rows[i], deletedAt, deletedBy];
       delSheet.appendRow(newRow);
-      toDelete.push(i + 1); // 1-based
+      toDelete.push(i + 1);
     }
   }
 
-  // ลบจาก master (จากล่างขึ้นบน ป้องกัน index เลื่อน)
   toDelete.sort((a,b) => b - a).forEach(r => master.deleteRow(r));
 
-  // ลบจากชีทพนักงานด้วย
   ss.getSheets().filter(s => s.getName().startsWith('👤 ')).forEach(empSheet => {
     const empRows = empSheet.getDataRange().getValues();
     const empDel  = [];
@@ -291,15 +281,13 @@ function saveUser(data) {
   const sheet  = getOrCreateSheet(USER_SHEET, USER_HEADERS);
   const rows   = sheet.getDataRange().getValues();
 
-  // อัปเดตถ้ามี id อยู่แล้ว
   for (let i=1; i<rows.length; i++) {
     if (rows[i][0].toString() === data.id) {
-      const pass = data.pass || rows[i][1]; // ถ้าไม่ส่ง pass ให้ใช้เดิม
+      const pass = data.pass || rows[i][1];
       sheet.getRange(i+1, 1, 1, 6).setValues([[data.id, pass, data.name||'', data.role||'staff', data.scheduleIn||rows[i][4]||'', data.scheduleOut||rows[i][5]||'']]);
       return jsonOK({ success: true });
     }
   }
-  // เพิ่มใหม่
   if (!data.pass) return jsonOK({ success: false, error: 'password required' });
   sheet.appendRow([data.id, data.pass, data.name||'', data.role||'staff', data.scheduleIn||'', data.scheduleOut||'']);
   return jsonOK({ success: true });
@@ -324,7 +312,6 @@ function doGet(e) {
   const p      = e.parameter || {};
   const action = p.action || '';
 
-  // Login
   if (action === 'login') {
     const id   = (p.id   || '').toString().trim().toLowerCase();
     const pass = (p.pass || '').toString().trim().toLowerCase();
@@ -345,8 +332,8 @@ function doGet(e) {
   if (action === 'getAll')     return jsonOK({ data: readLog(MASTER_SHEET) });
   if (action === 'getEmp')     return jsonOK({ data: readLog('👤 '+(p.name||'').trim()) });
   if (action === 'getDeleted') return jsonOK({ data: readDeleted() });
-  if (action === 'getPlans') return jsonOK({ data: readPlans() });
-  if (action === 'getUsers') return jsonOK({ data: readUsers() });
+  if (action === 'getPlans')   return jsonOK({ data: readPlans() });
+  if (action === 'getUsers')   return jsonOK({ data: readUsers() });
 
   if (action === 'getPlan') {
     const name  = p.name || '';
@@ -444,10 +431,9 @@ function readUsers() {
   if (!sheet) return [];
   const rows = sheet.getDataRange().getValues();
   if (rows.length<=1) return [];
-  // ไม่ส่ง password กลับมา
   return rows.slice(1).map(r => ({
     id:r[0]+'', name:r[2]+'', role:r[3]+'',
-    scheduleIn:  r[4] instanceof Date ? Utilities.formatDate(r[4],'Asia/Bangkok','HH:mm') : r[4]+'',
+    scheduleIn: r[4] instanceof Date ? Utilities.formatDate(r[4],'Asia/Bangkok','HH:mm') : r[4]+'',
     scheduleOut: r[5] instanceof Date ? Utilities.formatDate(r[5],'Asia/Bangkok','HH:mm') : r[5]+''
   }));
 }
@@ -460,7 +446,6 @@ function getOrCreateSheet(name, headers) {
     sheet.setFrozenRows(1);
     sheet.setColumnWidth(2, 160);
   }
-  // อัปเดต header เสมอ (รองรับคอลัมน์ใหม่หลัง deploy)
   const hr = sheet.getRange(1, 1, 1, headers.length);
   hr.setValues([headers]).setBackground(HDR_BG).setFontColor(HDR_FG).setFontWeight('bold');
   return sheet;
@@ -474,4 +459,18 @@ function getFolder() {
 function jsonOK(obj) {
   return ContentService.createTextOutput(JSON.stringify(obj))
     .setMimeType(ContentService.MimeType.JSON);
+}
+
+function checkGroupId() {
+  const id = PropertiesService.getScriptProperties().getProperty('LINE_GROUP_ID');
+  Logger.log('Group ID: ' + id);
+}
+
+function clearGroupId() {
+  PropertiesService.getScriptProperties().deleteProperty('LINE_GROUP_ID');
+  Logger.log('Cleared!');
+}
+
+function testLine() {
+  sendLineNotify('🔔 ทดสอบระบบแจ้งเตือน LINE ✅');
 }
