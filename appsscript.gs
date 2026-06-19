@@ -32,8 +32,9 @@ const DELETED_HEADERS = [
 // ──────────────────────────────────────────────────
 // POST
 // ──────────────────────────────────────────────────
-const LINE_TOKEN    = 'sA52oitU5GHUm1CGTKh33tEbvKgCdiWJoDWO+6JpIoZF1JOVeQWTdu684ULcqqn2xqGENQP7o6E90jfuPU2n1+5twlE7UA1HkGdmo3VswLbOsMgYT2wWtBnqranC9ux06693SJCoi51euwWybXG/TQdB04t89/1O/w1cDnyilFU=';
-const LINE_GROUP_ID_KEY = 'LINE_GROUP_ID'; // เก็บใน PropertiesService
+const LINE_TOKEN        = 'sA52oitU5GHUm1CGTKh33tEbvKgCdiWJoDWO+6JpIoZF1JOVeQWTdu684ULcqqn2xqGENQP7o6E90jfuPU2n1+5twlE7UA1HkGdmo3VswLbOsMgYT2wWtBnqranC9ux06693SJCoi51euwWybXG/TQdB04t89/1O/w1cDnyilFU=';
+const LINE_GROUP_ID_KEY = 'LINE_GROUP_ID';
+const FIXED_GROUP_ID    = 'C30af8eb827762a0acab29c1f6aaa0211'; // FOLIO Check in (hardcoded)
 
 function doPost(e) {
   try {
@@ -67,7 +68,7 @@ function doPost(e) {
 
 // ── LINE Notify ────────────────────────────────────
 function sendLineNotify(msg) {
-  const groupId = PropertiesService.getScriptProperties().getProperty(LINE_GROUP_ID_KEY);
+  const groupId = FIXED_GROUP_ID;
   if (!groupId) return;
   try {
     UrlFetchApp.fetch('https://api.line.me/v2/bot/message/push', {
@@ -445,7 +446,9 @@ function readUsers() {
   if (rows.length<=1) return [];
   // ไม่ส่ง password กลับมา
   return rows.slice(1).map(r => ({
-    id:r[0]+'', name:r[2]+'', role:r[3]+'', scheduleIn:r[4]+'', scheduleOut:r[5]+''
+    id:r[0]+'', name:r[2]+'', role:r[3]+'',
+    scheduleIn:  r[4] instanceof Date ? Utilities.formatDate(r[4],'Asia/Bangkok','HH:mm') : r[4]+'',
+    scheduleOut: r[5] instanceof Date ? Utilities.formatDate(r[5],'Asia/Bangkok','HH:mm') : r[5]+''
   }));
 }
 
