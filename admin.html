@@ -969,6 +969,13 @@ async function loadHR() {
     const hasOut = outStr !== '-';
     const firstRec = recs.find(r => extractTime(r.timestamp) === inStr);
     const taskType = firstRec ? (firstRec.taskType||'') : '';
+    const closedRec = recs.find(r => r.adminClosed && r.adminClosed !== 'undefined' && r.adminClosed.trim());
+    let adminNote = '';
+    if (closedRec) {
+      const parts  = closedRec.adminClosed.split('•').map(s => s.trim());
+      const reason = parts.length >= 3 ? parts.slice(2).join(' • ') : '';
+      adminNote = `<span style="color:#6e40c9;font-weight:700">👮 แอดมินจบให้${reason?': '+reason:''}</span>`;
+    }
 
     workDays++;
     if (hasSchedule) {
@@ -980,6 +987,7 @@ async function loadHR() {
       totalOT    += otMin;
     }
     if (!hasOut) { note = '⚠️ ไม่มีเวลาออก — แจ้งหัวหน้า'; noOut++; }
+    if (adminNote) note = adminNote + (note ? ` | ${note}` : '');
     if (taskType) note = taskType + (note ? ` | ${note}` : '');
     if (inM >= 0 && hasOut && outM > inM) totalWork += outM - inM;
 
