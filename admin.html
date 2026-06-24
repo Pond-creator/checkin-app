@@ -319,8 +319,13 @@ tr:hover td { background:#f6f8fa; }
       <div><span style="color:#57606a">📅 วันที่:</span> <b id="ac-date">—</b></div>
     </div>
     <div class="form-row">
-      <label>🕐 เวลาจบงาน</label>
-      <input id="ac-time" type="time">
+      <label>🕐 เวลาจบงาน (แบบ 24 ชม.)</label>
+      <div style="display:flex;gap:8px;align-items:center">
+        <select id="ac-hour" style="flex:1;padding:9px 12px;border:1.5px solid #d0d7de;border-radius:8px;font-size:15px;font-family:inherit;outline:none"></select>
+        <span style="font-size:18px;font-weight:700;color:#57606a">:</span>
+        <select id="ac-min" style="flex:1;padding:9px 12px;border:1.5px solid #d0d7de;border-radius:8px;font-size:15px;font-family:inherit;outline:none"></select>
+        <span style="font-size:14px;color:#57606a">น.</span>
+      </div>
       <div style="font-size:11px;color:#8c959f;margin-top:4px">ดึงเวลาออกงานปกติของพนักงานให้อัตโนมัติ (แก้ได้)</div>
     </div>
     <div class="form-row">
@@ -694,7 +699,22 @@ function adminCloseJob(name, round, dateISO) {
   document.getElementById('ac-name').textContent  = name;
   document.getElementById('ac-round').textContent = round || '-';
   document.getElementById('ac-date').textContent  = dateTh;
-  document.getElementById('ac-time').value = /^\d{1,2}:\d{2}$/.test(outTime) ? outTime : '19:00';
+
+  let [hh, mm] = /^\d{1,2}:\d{2}$/.test(outTime) ? outTime.split(':') : ['19','00'];
+  hh = String(parseInt(hh)).padStart(2,'0');
+  mm = String(parseInt(mm)).padStart(2,'0');
+  // ชั่วโมง 00–23
+  let hOpts = '';
+  for (let i = 0; i < 24; i++) { const v = String(i).padStart(2,'0'); hOpts += `<option value="${v}">${v}</option>`; }
+  // นาที ทุก 5 นาที + เพิ่มนาทีของ schedule ถ้าไม่อยู่ในชุด
+  const mins = ['00','05','10','15','20','25','30','35','40','45','50','55'];
+  if (!mins.includes(mm)) mins.push(mm);
+  mins.sort();
+  const mOpts = mins.map(v => `<option value="${v}">${v}</option>`).join('');
+  document.getElementById('ac-hour').innerHTML = hOpts;
+  document.getElementById('ac-min').innerHTML  = mOpts;
+  document.getElementById('ac-hour').value = hh;
+  document.getElementById('ac-min').value  = mm;
   document.getElementById('ac-note').value = '';
   document.getElementById('admin-close-modal').classList.add('open');
 }
@@ -706,9 +726,9 @@ function closeAdminCloseModal() {
 
 async function submitAdminClose() {
   if (!acPending) return;
-  const outTime = document.getElementById('ac-time').value.trim();
+  const outTime = document.getElementById('ac-hour').value + ':' + document.getElementById('ac-min').value;
   const note    = document.getElementById('ac-note').value.trim();
-  if (!/^\d{1,2}:\d{2}/.test(outTime)) { alert('กรุณาระบุเวลาจบงาน'); return; }
+  if (!/^\d{2}:\d{2}$/.test(outTime)) { alert('กรุณาระบุเวลาจบงาน'); return; }
 
   const { name, round, dateTh } = acPending;
   const checkoutTime = `${dateTh} ${outTime}`;
