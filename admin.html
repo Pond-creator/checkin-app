@@ -469,12 +469,14 @@ async function loadLog() {
     document.getElementById('f-status').value = '';
     renderLog();
     document.getElementById('last-sync').textContent = 'อัปเดต ' + new Date().toLocaleTimeString('th-TH');
-    // load users silently for HR tab
-    const ures = await fetch(`${url}?action=getUsers&t=${Date.now()}`);
+  } catch(e) { alert('โหลดไม่สำเร็จ: '+e.message); }
+  // load users silently for HR tab (non-fatal — ข้อมูลหลักโหลดแล้ว)
+  try {
+    const ures  = await fetch(`${url}?action=getUsers&t=${Date.now()}`);
     const ujson = await ures.json();
     userData = ujson.data || [];
     fillHREmp();
-  } catch(e) { alert('โหลดไม่สำเร็จ: '+e.message); }
+  } catch(e) { /* เงียบไว้ — ไม่กระทบข้อมูลหลัก */ }
   showLoad(false);
 }
 
