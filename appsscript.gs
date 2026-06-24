@@ -426,7 +426,7 @@ function readLog(sheetName) {
     accuracy:r[8]+'', mapsLink:r[9]+'', photo:r[10]+'',
     checkoutTime:r[11]+'', geofenceAlert:r[12]+'', checkoutPhoto:r[13]+'',
     checkoutGeofenceAlert:r[14]+'', checkoutLat:r[15]+'', checkoutLng:r[16]+'',
-    checkoutMapsLink:r[17]+'', taskType:r[18]+'', adminClosed:r[19]+''
+    checkoutMapsLink:r[17]+'', taskType:r[18]+'', adminClosed:(r[19]||'')+''
   })).reverse();
 }
 
