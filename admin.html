@@ -540,11 +540,19 @@ function renderLog(fromFilter) {
       : co ? `<span style="color:#1a7f37;font-size:16px">✅</span>`
            : `<span style="color:#d97706;font-size:14px">🕐</span>`;
 
+    const adminClosed = (r.adminClosed||'').trim();
+    const adminTag = adminClosed
+      ? `<div style="margin-top:3px;font-size:10px;color:#8250df;font-weight:700" title="${adminClosed.replace(/"/g,'')}">👮 แอดมินจบให้</div>`
+      : '';
+    const dateISO = getRecordDateISO(r);
+    const closeBtn = (IS_ADMIN && dateISO)
+      ? `<div style="margin-top:4px"><button onclick="adminCloseJob('${(r.name||'').replace(/'/g,'')}','${(r.round||'').replace(/'/g,'')}','${dateISO}')" style="padding:3px 9px;border-radius:14px;border:1px solid #c8a8f0;background:#f7f0ff;color:#6e40c9;font-size:11px;font-weight:700;cursor:pointer;font-family:inherit">✓ จบงานให้</button></div>`
+      : '';
     const statusCell = co
       ? (r.checkoutGeofenceAlert
-          ? `<span style="background:#ffebe9;color:#cf222e;padding:3px 10px;border-radius:20px;font-size:12px;font-weight:700">⚠️ จบงานผิดปกติ</span>`
-          : `<span style="background:#dafbe1;color:#1a7f37;padding:3px 10px;border-radius:20px;font-size:12px;font-weight:700">✅ จบงานแล้ว</span>`)
-      : `<span style="background:#fff7ed;color:#d97706;padding:3px 10px;border-radius:20px;font-size:12px;font-weight:700">⏰ ยังไม่จบงาน</span>`;
+          ? `<span style="background:#ffebe9;color:#cf222e;padding:3px 10px;border-radius:20px;font-size:12px;font-weight:700">⚠️ จบงานผิดปกติ</span>${adminTag}`
+          : `<span style="background:#dafbe1;color:#1a7f37;padding:3px 10px;border-radius:20px;font-size:12px;font-weight:700">✅ จบงานแล้ว</span>${adminTag}`)
+      : `<span style="background:#fff7ed;color:#d97706;padding:3px 10px;border-radius:20px;font-size:12px;font-weight:700">⏰ ยังไม่จบงาน</span>${closeBtn}`;
 
     const timeInOut = `<div style="font-size:12px;line-height:1.8">
       <span style="color:#1a7f37">▲ ${cleanTime(r.timestamp)||'-'}</span><br>
@@ -644,6 +652,41 @@ function exportCSV() {
   const a = document.createElement('a');
   a.href = URL.createObjectURL(new Blob(['﻿'+csv],{type:'text/csv;charset=utf-8'}));
   a.download = `checkin_${todayStr()}.csv`; a.click();
+}
+
+// ── Admin Checkout (จบงานแทนพนักงาน) ───────────────
+async function adminCloseJob(name, round, dateISO) {
+  if (!dateISO) { alert('ไม่พบวันที่ของรายการนี้'); return; }
+  const user = userData.find(u => u.name === name);
+  let outTime = user && user.scheduleOut ? user.scheduleOut.trim() : '';
+  if (!outTime) {
+    outTime = prompt(`ไม่พบเวลาออกงานของ "${name}"\nกรุณาระบุเวลาจบงาน (เช่น 19:00)`, '19:00');
+    if (!outTime) return;
+    outTime = outTime.trim();
+  }
+  if (!/^\d{1,2}:\d{2}/.test(outTime)) { alert('รูปแบบเวลาไม่ถูกต้อง (เช่น 19:00)'); return; }
+
+  const note = prompt(`📝 ระบุหมายเหตุการจบงานแทน "${name}"\n(เช่น ป่วย โทรแจ้งแล้ว / ลืมกดจบงาน)`, '');
+  if (note === null) return; // กดยกเลิก
+
+  const [y, m, d] = dateISO.split('-');
+  const dateTh = `${d}/${m}/${y}`;
+  const checkoutTime = `${dateTh} ${outTime}`;
+
+  if (!confirm(`จบงานให้พนักงาน\n\n👤 ${name}\n📋 รอบ: ${round}\n📅 วันที่: ${dateTh}\n🕐 เวลาจบงาน: ${outTime} น.${note?`\n📝 ${note}`:''}\n\n⚠️ แอดมินจบงานแทน — จะบันทึกเป็นหลักฐาน`)) return;
+
+  const url = getUrl(); if (!url) return;
+  showLoad(true);
+  try {
+    await fetch(url, {
+      method: 'POST', mode: 'no-cors',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ action:'adminCheckout', name, round, date: dateTh, checkoutTime, note, adminBy: session.name })
+    });
+    await new Promise(r => setTimeout(r, 1500));
+    await loadLog();
+  } catch(e) { alert('ไม่สำเร็จ: '+e.message); }
+  showLoad(false);
 }
 
 // ── Edit Mode & Delete ─────────────────────────────

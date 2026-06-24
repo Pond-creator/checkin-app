@@ -13,7 +13,7 @@ const LOG_HEADERS = [
   'วันที่','เวลา Check-in','ชื่อ','สาขา',
   'รอบ','ช่วงเวลา','Latitude','Longitude',
   'ความแม่นยำ (m)','Google Maps','รูปภาพ URL','เวลาจบงาน','แจ้งเตือน GPS','รูปภาพจบงาน',
-  'แจ้งเตือน GPS จบงาน','Lat จบงาน','Lng จบงาน','Google Maps จบงาน','ประเภทงาน'
+  'แจ้งเตือน GPS จบงาน','Lat จบงาน','Lng จบงาน','Google Maps จบงาน','ประเภทงาน','จบงานโดยแอดมิน'
 ];
 const PLAN_HEADERS = [
   'ID','ชื่อพนักงาน','วันที่','เวลาเริ่ม','เวลาสิ้นสุด',
@@ -25,7 +25,7 @@ const DELETED_HEADERS = [
   'วันที่','เวลา Check-in','ชื่อ','สาขา',
   'รอบ','ช่วงเวลา','Latitude','Longitude',
   'ความแม่นยำ (m)','Google Maps','รูปภาพ URL','เวลาจบงาน','แจ้งเตือน GPS','รูปภาพจบงาน',
-  'แจ้งเตือน GPS จบงาน','Lat จบงาน','Lng จบงาน','Google Maps จบงาน','ประเภทงาน',
+  'แจ้งเตือน GPS จบงาน','Lat จบงาน','Lng จบงาน','Google Maps จบงาน','ประเภทงาน','จบงานโดยแอดมิน',
   'ลบเมื่อ','ลบโดย'
 ];
 
@@ -56,6 +56,7 @@ function doPost(e) {
     if (action === 'savePlan')   return savePlan(data);
     if (action === 'deletePlan') return deletePlan(data);
     if (action === 'checkout')   return saveCheckout(data);
+    if (action === 'adminCheckout') return adminCheckout(data);
     if (action === 'saveUser')   return saveUser(data);
     if (action === 'deleteUser') return deleteUser(data);
     if (action === 'deleteRows') return deleteRows(data);
@@ -111,7 +112,7 @@ function saveCheckin(data) {
     data.round||'', data.roundTime||'', data.lat||'', data.lng||'',
     data.accuracy||'', mapsUrl, photoUrl, '', data.geofenceAlert||'',
     '', '', '', '', '',
-    data.taskType||''
+    data.taskType||'', ''
   ];
 
   appendRow(MASTER_SHEET, LOG_HEADERS, row);
@@ -200,6 +201,46 @@ function saveCheckout(data) {
   sendLineNotify(`${checkoutStatus}\n👤 ${data.name||''}\n📍 ${data.branch||''} (${data.round||''})\n🕐 ${timeStr}${taskOutLine}${mapsOutLine}${alertOutLine}`);
 
   return jsonOK({ success: true });
+}
+
+// ── Admin Checkout (จบงานแทนพนักงาน) ───────────────
+function adminCheckout(data) {
+  const colCheckout = 12; // เวลาจบงาน
+  const colAdmin    = 20; // จบงานโดยแอดมิน
+  const timeStr = data.checkoutTime || '';
+  const dateTh  = data.date || '';   // dd/MM/yyyy
+  const note    = (data.note || '').toString().trim();
+  const marker  = `${data.adminBy || 'แอดมิน'} • ${dateTh}` + (note ? ` • ${note}` : '');
+
+  const sheets = [MASTER_SHEET];
+  if (data.name) sheets.push('👤 ' + data.name.trim());
+
+  let found = false;
+  sheets.forEach(sheetName => {
+    const ss    = SpreadsheetApp.getActiveSpreadsheet();
+    const sheet = ss.getSheetByName(sheetName);
+    if (!sheet) return;
+    const rows = sheet.getDataRange().getValues();
+    for (let i = rows.length - 1; i >= 1; i--) {
+      const rowDate = rows[i][0] instanceof Date
+        ? Utilities.formatDate(rows[i][0], 'Asia/Bangkok', 'dd/MM/yyyy')
+        : (rows[i][0] + '').trim();
+      if (rows[i][2] === data.name &&
+          rows[i][4] === data.round &&
+          rowDate === dateTh &&
+          !(rows[i][11] + '').trim()) {        // เฉพาะแถวที่ยังไม่จบงาน
+        sheet.getRange(i + 1, colCheckout).setValue(timeStr);
+        sheet.getRange(i + 1, colAdmin).setValue(marker);
+        found = true;
+        break;
+      }
+    }
+  });
+
+  const noteLine = note ? `\n📝 ${note}` : '';
+  sendLineNotify(`✅ จบงานแล้ว (แอดมินจบให้)\n👤 ${data.name||''} (${data.round||''})\n🕐 ${timeStr}${noteLine}\n👮 โดย ${data.adminBy||''}`);
+
+  return jsonOK({ success: true, found });
 }
 
 // ── Delete Rows ────────────────────────────────────
@@ -385,7 +426,7 @@ function readLog(sheetName) {
     accuracy:r[8]+'', mapsLink:r[9]+'', photo:r[10]+'',
     checkoutTime:r[11]+'', geofenceAlert:r[12]+'', checkoutPhoto:r[13]+'',
     checkoutGeofenceAlert:r[14]+'', checkoutLat:r[15]+'', checkoutLng:r[16]+'',
-    checkoutMapsLink:r[17]+'', taskType:r[18]+''
+    checkoutMapsLink:r[17]+'', taskType:r[18]+'', adminClosed:r[19]+''
   })).reverse();
 }
 
@@ -421,7 +462,8 @@ function readDeleted() {
     accuracy:r[8]+'', mapsLink:r[9]+'', photo:r[10]+'',
     checkoutTime:r[11]+'', geofenceAlert:r[12]+'', checkoutPhoto:r[13]+'',
     checkoutGeofenceAlert:r[14]+'', checkoutLat:r[15]+'', checkoutLng:r[16]+'',
-    checkoutMapsLink:r[17]+'', deletedAt:r[18]+'', deletedBy:r[19]+''
+    checkoutMapsLink:r[17]+'', taskType:r[18]+'', adminClosed:r[19]+'',
+    deletedAt:r[20]+'', deletedBy:r[21]+''
   })).reverse();
 }
 
