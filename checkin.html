@@ -428,6 +428,7 @@ body { font-family: 'Sarabun', sans-serif; background: #f0f2f5; min-height: 100v
 
 <script>
 const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxst_UC3w1zJJ_1gc3aBthvRnEhYbdX76E0z7hDV8nWEKh2tVlWV2YEpQMiCVzMOhuv/exec';
+const API_TOKEN  = 'FLO-ckn-8Kq2Wm7Zx4Rp9Nv3Ts6Yb1Ha'; // 🔐 ต้องตรงกับ GAS
 
 // ── Storage ────────────────────────────────────────
 const mem = {};
@@ -438,6 +439,7 @@ const store = {
 
 // ── fetch + auto-retry (กัน GAS cold start ตอบช้า/ตอบ HTML) ─
 async function fetchJSON(url, tries = 3) {
+  url += (url.includes('?') ? '&' : '?') + 'token=' + encodeURIComponent(API_TOKEN);
   let lastErr;
   for (let i = 0; i < tries; i++) {
     try {
@@ -916,6 +918,7 @@ async function submit() {
   const br = r ? r.location : '';
   const ts = nowTS();
   const payload = {
+    token: API_TOKEN,
     name: MY_NAME, branch: br, round: r.name, roundTime: `${r.start}-${r.end}`,
     timestamp: ts, lat: gps.lat, lng: gps.lng, accuracy: gps.acc,
     mapsLink: `https://maps.google.com/?q=${gps.lat},${gps.lng}`,
@@ -975,7 +978,7 @@ async function submitCheckout() {
   try {
     await fetch(SCRIPT_URL, {
       method:'POST', mode:'no-cors', headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({ action:'checkout', name:MY_NAME, branch:br, round:r.name,
+      body: JSON.stringify({ token:API_TOKEN, action:'checkout', name:MY_NAME, branch:br, round:r.name,
         date, checkoutTime:ts, photo: photo||'',
         checkoutLat, checkoutLng, checkoutGeofenceAlert })
     });

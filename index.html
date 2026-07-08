@@ -116,6 +116,7 @@ body {
 
 <script>
 const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxst_UC3w1zJJ_1gc3aBthvRnEhYbdX76E0z7hDV8nWEKh2tVlWV2YEpQMiCVzMOhuv/exec';
+const API_TOKEN  = 'FLO-ckn-8Kq2Wm7Zx4Rp9Nv3Ts6Yb1Ha'; // 🔐 ต้องตรงกับ GAS
 
 const mem = {};
 const store = {
@@ -125,6 +126,7 @@ const store = {
 
 // ── fetch + auto-retry (กัน GAS cold start ตอบช้า/ตอบ HTML) ─
 async function fetchJSON(url, tries = 3) {
+  url += (url.includes('?') ? '&' : '?') + 'token=' + encodeURIComponent(API_TOKEN);
   let lastErr;
   for (let i = 0; i < tries; i++) {
     try {

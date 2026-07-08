@@ -387,6 +387,7 @@ let activeStatCard = 'all';
 let logRangeMode = 'today';
 
 const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxst_UC3w1zJJ_1gc3aBthvRnEhYbdX76E0z7hDV8nWEKh2tVlWV2YEpQMiCVzMOhuv/exec';
+const API_TOKEN  = 'FLO-ckn-8Kq2Wm7Zx4Rp9Nv3Ts6Yb1Ha'; // 🔐 ต้องตรงกับ GAS
 function getUrl()    { return SCRIPT_URL || store.get('adminUrl') || store.get('scriptUrl') || ''; }
 function showLoad(v) { document.getElementById('loading').classList.toggle('show', v); }
 function fmtDate(d)  { return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
@@ -394,6 +395,7 @@ function todayStr()  { return fmtDate(new Date()); }
 
 // ── fetch + auto-retry (กัน GAS cold start ตอบช้า/ตอบ HTML) ─
 async function fetchJSON(url, tries = 3) {
+  url += (url.includes('?') ? '&' : '?') + 'token=' + encodeURIComponent(API_TOKEN);
   let lastErr;
   for (let i = 0; i < tries; i++) {
     try {
@@ -757,7 +759,7 @@ async function submitAdminClose() {
     await fetch(url, {
       method: 'POST', mode: 'no-cors',
       headers: {'Content-Type':'application/json'},
-      body: JSON.stringify({ action:'adminCheckout', name, round, date: dateTh, checkoutTime, note, adminBy: session.name })
+      body: JSON.stringify({ token:API_TOKEN, action:'adminCheckout', name, round, date: dateTh, checkoutTime, note, adminBy: session.name })
     });
     await new Promise(r => setTimeout(r, 1500));
     await loadLog();
@@ -803,7 +805,7 @@ async function deleteSelected() {
     await fetch(url, {
       method: 'POST', mode: 'no-cors',
       headers: {'Content-Type':'application/json'},
-      body: JSON.stringify({ action:'deleteRows', keys, deletedBy: session.name })
+      body: JSON.stringify({ token:API_TOKEN, action:'deleteRows', keys, deletedBy: session.name })
     });
     // รอสักครู่แล้ว reload
     await new Promise(r => setTimeout(r, 1500));
@@ -885,7 +887,7 @@ async function saveUser() {
   const url=getUrl(); if (!url) return;
   showLoad(true);
   try {
-    const res=await fetch(url,{method:'POST',mode:'no-cors',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'saveUser',id,name,pass,role,scheduleIn,scheduleOut})});
+    const res=await fetch(url,{method:'POST',mode:'no-cors',headers:{'Content-Type':'application/json'},body:JSON.stringify({token:API_TOKEN,action:'saveUser',id,name,pass,role,scheduleIn,scheduleOut})});
     closeUserModal(); await loadUsers();
   } catch(e) { alert('บันทึกไม่สำเร็จ'); }
   showLoad(false);
@@ -895,7 +897,7 @@ async function deleteUser() {
   const url=getUrl(); if (!url) return;
   showLoad(true);
   try {
-    await fetch(url,{method:'POST',mode:'no-cors',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'deleteUser',id:editingUserId})});
+    await fetch(url,{method:'POST',mode:'no-cors',headers:{'Content-Type':'application/json'},body:JSON.stringify({token:API_TOKEN,action:'deleteUser',id:editingUserId})});
     closeUserModal(); await loadUsers();
   } catch(e) { alert('ลบไม่สำเร็จ'); }
   showLoad(false);
