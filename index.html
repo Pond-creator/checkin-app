@@ -123,6 +123,23 @@ const store = {
   set: (k,v) => { try { localStorage.setItem(k,v); } catch(e) { mem[k]=v; } }
 };
 
+// ── fetch + auto-retry (กัน GAS cold start ตอบช้า/ตอบ HTML) ─
+async function fetchJSON(url, tries = 3) {
+  let lastErr;
+  for (let i = 0; i < tries; i++) {
+    try {
+      const res  = await fetch(url);
+      const text = await res.text();
+      if (text.trim().startsWith('<')) throw new Error('GAS ยังตื่นไม่เต็มที่');
+      return JSON.parse(text);
+    } catch(e) {
+      lastErr = e;
+      if (i < tries - 1) await new Promise(r => setTimeout(r, 1500));
+    }
+  }
+  throw lastErr;
+}
+
 // Auto-redirect if already logged in
 const sess = (() => { try { return JSON.parse(store.get('session')||'null'); } catch { return null; } })();
 if (sess && sess.name) {
@@ -146,8 +163,7 @@ async function doLogin() {
 
   const url = SCRIPT_URL;
   try {
-    const r = await fetch(`${url}?action=login&id=${encodeURIComponent(id)}&pass=${encodeURIComponent(pass)}&t=${Date.now()}`);
-    const j = await r.json();
+    const j = await fetchJSON(`${url}?action=login&id=${encodeURIComponent(id)}&pass=${encodeURIComponent(pass)}&t=${Date.now()}`);
     if (j.success) {
       store.set('session', JSON.stringify({ id, name: j.name, role: j.role }));
       location.href = j.role === 'admin' ? 'admin.html' : 'checkin.html';
