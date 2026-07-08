@@ -380,6 +380,15 @@ function openNav()  { document.getElementById('nav-overlay').classList.add('open
 function closeNav() { document.getElementById('nav-overlay').classList.remove('open'); document.getElementById('nav-drawer').classList.remove('open'); }
 function logout()   { store.set('session',''); location.href = 'index.html'; }
 
+// 🛡️ ต้องมีรหัสใน session (login หลังอัปเดต) ถึงจะสั่งคำสั่งอันตรายได้
+function requireAdminCreds() {
+  if (!session || !session.pass) {
+    alert('กรุณาออกจากระบบแล้วเข้าสู่ระบบใหม่ 1 ครั้ง เพื่อยืนยันสิทธิ์แอดมิน');
+    return false;
+  }
+  return true;
+}
+
 // ── State ──────────────────────────────────────────
 let logData  = [];
 let userData = [];
@@ -745,6 +754,7 @@ function closeAdminCloseModal() {
 
 async function submitAdminClose() {
   if (!acPending) return;
+  if (!requireAdminCreds()) return;
   const outTime = document.getElementById('ac-hour').value + ':' + document.getElementById('ac-min').value;
   const note    = document.getElementById('ac-note').value.trim();
   if (!/^\d{2}:\d{2}$/.test(outTime)) { alert('กรุณาระบุเวลาจบงาน'); return; }
@@ -759,7 +769,7 @@ async function submitAdminClose() {
     await fetch(url, {
       method: 'POST', mode: 'no-cors',
       headers: {'Content-Type':'application/json'},
-      body: JSON.stringify({ token:API_TOKEN, action:'adminCheckout', name, round, date: dateTh, checkoutTime, note, adminBy: session.name })
+      body: JSON.stringify({ token:API_TOKEN, actorId:session.id, actorPass:session.pass, action:'adminCheckout', name, round, date: dateTh, checkoutTime, note, adminBy: session.name })
     });
     await new Promise(r => setTimeout(r, 1500));
     await loadLog();
@@ -797,6 +807,7 @@ function updateSelCount() {
 async function deleteSelected() {
   const checked = [...document.querySelectorAll('.row-chk:checked')];
   if (!checked.length) { alert('กรุณาเลือกรายการที่ต้องการลบ'); return; }
+  if (!requireAdminCreds()) return;
   if (!confirm(`ยืนยันลบ ${checked.length} รายการ?\nข้อมูลจะย้ายไป Deleted Log`)) return;
   const keys = checked.map(el => el.dataset.key);
   const url  = getUrl();
@@ -805,7 +816,7 @@ async function deleteSelected() {
     await fetch(url, {
       method: 'POST', mode: 'no-cors',
       headers: {'Content-Type':'application/json'},
-      body: JSON.stringify({ token:API_TOKEN, action:'deleteRows', keys, deletedBy: session.name })
+      body: JSON.stringify({ token:API_TOKEN, actorId:session.id, actorPass:session.pass, action:'deleteRows', keys, deletedBy: session.name })
     });
     // รอสักครู่แล้ว reload
     await new Promise(r => setTimeout(r, 1500));
@@ -884,20 +895,23 @@ async function saveUser() {
   const id=document.getElementById('u-id').value.trim(), name=document.getElementById('u-name').value.trim(), pass=document.getElementById('u-pass').value, role=document.getElementById('u-role').value;
   const scheduleIn=document.getElementById('u-schedule-in').value, scheduleOut=document.getElementById('u-schedule-out').value;
   if (!id||!name) { alert('กรุณากรอก ID และชื่อ'); return; }
+  if (!requireAdminCreds()) return;
   const url=getUrl(); if (!url) return;
   showLoad(true);
   try {
-    const res=await fetch(url,{method:'POST',mode:'no-cors',headers:{'Content-Type':'application/json'},body:JSON.stringify({token:API_TOKEN,action:'saveUser',id,name,pass,role,scheduleIn,scheduleOut})});
+    const res=await fetch(url,{method:'POST',mode:'no-cors',headers:{'Content-Type':'application/json'},body:JSON.stringify({token:API_TOKEN,actorId:session.id,actorPass:session.pass,action:'saveUser',id,name,pass,role,scheduleIn,scheduleOut})});
     closeUserModal(); await loadUsers();
   } catch(e) { alert('บันทึกไม่สำเร็จ'); }
   showLoad(false);
 }
 async function deleteUser() {
-  if (!editingUserId||!confirm('ลบผู้ใช้ '+editingUserId+'?')) return;
+  if (!editingUserId) return;
+  if (!requireAdminCreds()) return;
+  if (!confirm('ลบผู้ใช้ '+editingUserId+'?')) return;
   const url=getUrl(); if (!url) return;
   showLoad(true);
   try {
-    await fetch(url,{method:'POST',mode:'no-cors',headers:{'Content-Type':'application/json'},body:JSON.stringify({token:API_TOKEN,action:'deleteUser',id:editingUserId})});
+    await fetch(url,{method:'POST',mode:'no-cors',headers:{'Content-Type':'application/json'},body:JSON.stringify({token:API_TOKEN,actorId:session.id,actorPass:session.pass,action:'deleteUser',id:editingUserId})});
     closeUserModal(); await loadUsers();
   } catch(e) { alert('ลบไม่สำเร็จ'); }
   showLoad(false);

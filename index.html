@@ -167,7 +167,7 @@ async function doLogin() {
   try {
     const j = await fetchJSON(`${url}?action=login&id=${encodeURIComponent(id)}&pass=${encodeURIComponent(pass)}&t=${Date.now()}`);
     if (j.success) {
-      store.set('session', JSON.stringify({ id, name: j.name, role: j.role }));
+      store.set('session', JSON.stringify({ id, name: j.name, role: j.role, pass }));
       location.href = j.role === 'admin' ? 'admin.html' : 'checkin.html';
     } else {
       showErr('รหัสผู้ใช้หรือรหัสผ่านไม่ถูกต้อง');
