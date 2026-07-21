@@ -1,4 +1,4 @@
-const CACHE = 'checkin-v1';
+const CACHE = 'checkin-v2'; // bump เพื่อบังคับล้างแคชเก่า (แก้ปัญหาปุ่มค้างจากไฟล์เก่า)
 const ASSETS = [
   '/checkin-app/checkin.html',
   '/checkin-app/index.html'
