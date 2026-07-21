@@ -188,6 +188,7 @@ tr:hover td { background:#f6f8fa; }
     <select id="f-user"   onchange="renderLog(true)"><option value="">👤 ทุกคน</option></select>
     <select id="f-branch" onchange="renderLog(true)"><option value="">📍 ทุกสาขา</option></select>
     <button class="btn btn-success" onclick="exportCSV()">📊 Export CSV</button>
+    <button class="btn" style="background:#24292f;color:#fff" onclick="exportTXT()" title="ไฟล์ .txt สำหรับ import เข้า Payroll ตามช่วงวันที่ที่เลือก">📄 Export TXT (Payroll)</button>
     <button class="btn btn-outline" id="btn-cfg" style="display:none" onclick="openCfg()">⚙ ตั้งค่า</button>
     <button class="btn" id="btn-edit-mode" style="display:none;background:#6e40c9;color:#fff" onclick="toggleEditMode()">✏️ แก้ไข</button>
     <button class="btn btn-danger"  id="btn-delete-sel" style="display:none" onclick="deleteSelected()">🗑️ ลบที่เลือก (<span id="sel-count">0</span>)</button>
@@ -238,7 +239,7 @@ tr:hover td { background:#f6f8fa; }
     </div>
     <div class="user-table-wrap">
       <table class="user-table">
-        <thead><tr><th>ID</th><th>ชื่อ</th><th>Role</th><th>จัดการ</th></tr></thead>
+        <thead><tr><th>ID</th><th>รหัสพนักงาน</th><th>ชื่อ</th><th>เวลางาน</th><th>Role</th><th>จัดการ</th></tr></thead>
         <tbody id="user-body">
           <tr><td colspan="4" style="text-align:center;padding:30px;color:#8c959f;">กด รีเฟรช เพื่อโหลดรายชื่อ</td></tr>
         </tbody>
@@ -289,6 +290,7 @@ tr:hover td { background:#f6f8fa; }
   <div class="modal-box">
     <h3 id="user-modal-title">➕ เพิ่มผู้ใช้</h3>
     <div class="form-row"><label>รหัสผู้ใช้ (ID) *</label><input id="u-id" placeholder="เช่น S001"></div>
+    <div class="form-row"><label>รหัสพนักงาน (สำหรับ Payroll) *</label><input id="u-empcode" placeholder="เช่น 020419" inputmode="numeric"></div>
     <div class="form-row"><label>ชื่อ-นามสกุล *</label><input id="u-name" placeholder="ชื่อพนักงาน"></div>
     <div class="form-row"><label>รหัสผ่าน *</label><input id="u-pass" type="password" placeholder="••••••"></div>
     <div class="form-row"><label>เวลาเข้างาน</label><input id="u-schedule-in" type="time" placeholder="10:00"></div>
@@ -684,8 +686,9 @@ function setLogRange(mode, noRender) {
 function exportCSV() {
   const rows = getFiltered();
   if (!rows.length) { alert('ไม่มีข้อมูล'); return; }
+  const codeOf = {}; userData.forEach(u => { if (u.empCode) codeOf[u.name] = (u.empCode+'').trim(); });
   const h = [
-    'ชื่อ','สาขา','รอบ',
+    'รหัสพนักงาน','ชื่อ','สาขา','รอบ',
     'เวลาเช็กอิน','เวลาจบงาน','สถานะ',
     'Lat เช็กอิน','Lng เช็กอิน','ความแม่นยำ','Maps เช็กอิน',
     'แจ้งเตือน GPS เช็กอิน',
@@ -700,7 +703,7 @@ function exportCSV() {
     const mapsIn  = r.mapsLink || (r.lat&&r.lng ? `https://maps.google.com/?q=${r.lat},${r.lng}` : '');
     const mapsOut = r.checkoutMapsLink || (r.checkoutLat&&r.checkoutLng ? `https://maps.google.com/?q=${r.checkoutLat},${r.checkoutLng}` : '');
     return [
-      r.name, r.branch, r.round,
+      codeOf[r.name]||'', r.name, r.branch, r.round,
       cleanTime(r.timestamp), cleanTime(co), status,
       r.lat||'', r.lng||'', r.accuracy?`±${r.accuracy}m`:'', mapsIn,
       r.geofenceAlert||'',
@@ -775,6 +778,68 @@ async function submitAdminClose() {
     await loadLog();
   } catch(e) { alert('ไม่สำเร็จ: '+e.message); }
   showLoad(false);
+}
+
+// ── Export TXT (สำหรับ Payroll) ────────────────────
+function extractHMS(ts) {
+  if (!ts) return '';
+  ts = ts + '';
+  let m = ts.match(/(\d{2}):(\d{2}):(\d{2})/);
+  if (m) return m[0];
+  m = ts.match(/(\d{2}):(\d{2})/);
+  return m ? m[0] + ':00' : '';
+}
+
+function exportTXT() {
+  const from = document.getElementById('f-date-from').value;
+  const to   = document.getElementById('f-date-to').value || from;
+  if (!from) { alert('กรุณาเลือกช่วงวันที่ (จาก–ถึง) ก่อน'); return; }
+
+  // map ชื่อ -> รหัสพนักงาน
+  const codeOf = {};
+  userData.forEach(u => { if (u.empCode && (u.empCode+'').trim()) codeOf[u.name] = (u.empCode+'').trim(); });
+
+  // รวมเวลาเป็นรายวัน ต่อพนักงาน (เข้าเร็วสุด + ออกช้าสุด)
+  const byKey = {};            // "empCode|iso" -> {ins:[], outs:[]}
+  const noCode = new Set();
+  logData.forEach(r => {
+    const iso = getRecordDateISO(r);
+    if (!iso || iso < from || iso > to) return;
+    const code = codeOf[r.name];
+    if (!code) { if (r.name) noCode.add(r.name); return; }
+    const key = code + '|' + iso;
+    if (!byKey[key]) byKey[key] = { ins:[], outs:[] };
+    const tin  = extractHMS(r.timestamp);
+    const tout = extractHMS(r.checkoutTime);
+    if (tin)  byKey[key].ins.push(tin);
+    if (tout) byKey[key].outs.push(tout);
+  });
+
+  const keys = Object.keys(byKey).sort((a,b) => {
+    const [ca,da] = a.split('|'), [cb,db] = b.split('|');
+    return ca !== cb ? ca.localeCompare(cb) : da.localeCompare(db);
+  });
+
+  const lines = [];
+  keys.forEach(k => {
+    const [code, iso] = k.split('|');
+    const dmy = iso.split('-').reverse().join('/');   // dd/mm/yyyy
+    const rec = byKey[k];
+    const inT  = rec.ins.length  ? rec.ins.sort()[0] : '';
+    const outT = rec.outs.length ? rec.outs.sort().reverse()[0] : '';
+    if (inT)  lines.push(`${code} ${dmy} ${inT}`);
+    if (outT) lines.push(`${code} ${dmy} ${outT}`);
+  });
+
+  if (!lines.length) { alert('ไม่มีข้อมูลในช่วงวันที่ที่เลือก'); return; }
+
+  const fn = `${from.replace(/-/g,'')}-${to.replace(/-/g,'')}-APL.txt`;
+  const blob = new Blob([lines.join('\r\n') + '\r\n'], { type:'text/plain;charset=utf-8' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = fn; a.click();
+
+  if (noCode.size) alert('⚠️ ข้ามพนักงานที่ยังไม่มีรหัสพนักงาน:\n' + [...noCode].join(', ') + '\n\nกรุณาเพิ่มรหัสในแท็บ "ผู้ใช้งาน" ก่อน');
 }
 
 // ── Edit Mode & Delete ─────────────────────────────
@@ -879,27 +944,32 @@ async function loadUsers() {
 }
 function renderUsers() {
   const tbody = document.getElementById('user-body');
-  if (!userData.length) { tbody.innerHTML = `<tr><td colspan="4" style="text-align:center;padding:30px;color:#8c959f;">ไม่มีผู้ใช้</td></tr>`; return; }
+  if (!userData.length) { tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;padding:30px;color:#8c959f;">ไม่มีผู้ใช้</td></tr>`; return; }
   tbody.innerHTML = userData.map(u => `<tr>
     <td><b>${u.id}</b></td>
+    <td>${u.empCode ? `<b style="color:#0969da">${u.empCode}</b>` : '<span style="color:#cf222e;font-size:12px">⚠️ ยังไม่มี</span>'}</td>
     <td>${u.name}</td>
     <td style="font-size:12px;color:#57606a">${u.scheduleIn||'-'} – ${u.scheduleOut||'-'}</td>
     <td><span class="role-badge ${u.role==='admin'?'role-admin':u.role==='support'?'role-support':'role-staff'}">${u.role==='admin'?'Admin':u.role==='support'?'Support':'Staff'}</span></td>
-    <td><button class="btn-sm btn-edit" onclick="editUser('${u.id}','${u.name}','${u.role}','${u.scheduleIn||''}','${u.scheduleOut||''}')">✏️ แก้ไข</button></td>
+    <td><button class="btn-sm btn-edit" onclick="editUser('${u.id}','${(u.empCode||'')}','${u.name}','${u.role}','${u.scheduleIn||''}','${u.scheduleOut||''}')">✏️ แก้ไข</button></td>
   </tr>`).join('');
 }
-function openUserModal()  { editingUserId=null; document.getElementById('user-modal-title').textContent='➕ เพิ่มผู้ใช้'; ['u-id','u-name','u-pass','u-schedule-in','u-schedule-out'].forEach(id=>document.getElementById(id).value=''); document.getElementById('u-role').value='staff'; document.getElementById('btn-del-user').style.display='none'; document.getElementById('user-modal').classList.add('open'); }
-function editUser(id,name,role,sin,sout) { editingUserId=id; document.getElementById('user-modal-title').textContent='✏️ แก้ไขผู้ใช้'; document.getElementById('u-id').value=id; document.getElementById('u-name').value=name; document.getElementById('u-pass').value=''; document.getElementById('u-role').value=role; document.getElementById('u-schedule-in').value=sin||''; document.getElementById('u-schedule-out').value=sout||''; document.getElementById('btn-del-user').style.display=''; document.getElementById('user-modal').classList.add('open'); }
+function openUserModal()  { editingUserId=null; document.getElementById('user-modal-title').textContent='➕ เพิ่มผู้ใช้'; ['u-id','u-empcode','u-name','u-pass','u-schedule-in','u-schedule-out'].forEach(id=>document.getElementById(id).value=''); document.getElementById('u-role').value='staff'; document.getElementById('btn-del-user').style.display='none'; document.getElementById('user-modal').classList.add('open'); }
+function editUser(id,empCode,name,role,sin,sout) { editingUserId=id; document.getElementById('user-modal-title').textContent='✏️ แก้ไขผู้ใช้'; document.getElementById('u-id').value=id; document.getElementById('u-empcode').value=empCode||''; document.getElementById('u-name').value=name; document.getElementById('u-pass').value=''; document.getElementById('u-role').value=role; document.getElementById('u-schedule-in').value=sin||''; document.getElementById('u-schedule-out').value=sout||''; document.getElementById('btn-del-user').style.display=''; document.getElementById('user-modal').classList.add('open'); }
 function closeUserModal() { document.getElementById('user-modal').classList.remove('open'); }
 async function saveUser() {
   const id=document.getElementById('u-id').value.trim(), name=document.getElementById('u-name').value.trim(), pass=document.getElementById('u-pass').value, role=document.getElementById('u-role').value;
   const scheduleIn=document.getElementById('u-schedule-in').value, scheduleOut=document.getElementById('u-schedule-out').value;
+  const empCode=document.getElementById('u-empcode').value.trim();
   if (!id||!name) { alert('กรุณากรอก ID และชื่อ'); return; }
+  if (!empCode) { alert('กรุณากรอกรหัสพนักงาน (สำหรับ Payroll)'); return; }
+  const dup=userData.find(u=>(u.empCode||'').trim()===empCode && u.id!==id);
+  if (dup) { alert(`รหัสพนักงาน ${empCode} ซ้ำกับ "${dup.name}" (${dup.id})\nกรุณาใช้รหัสอื่น`); return; }
   if (!requireAdminCreds()) return;
   const url=getUrl(); if (!url) return;
   showLoad(true);
   try {
-    const res=await fetch(url,{method:'POST',mode:'no-cors',headers:{'Content-Type':'application/json'},body:JSON.stringify({token:API_TOKEN,actorId:session.id,actorPass:session.pass,action:'saveUser',id,name,pass,role,scheduleIn,scheduleOut})});
+    const res=await fetch(url,{method:'POST',mode:'no-cors',headers:{'Content-Type':'application/json'},body:JSON.stringify({token:API_TOKEN,actorId:session.id,actorPass:session.pass,action:'saveUser',id,empCode,name,pass,role,scheduleIn,scheduleOut})});
     closeUserModal(); await loadUsers();
   } catch(e) { alert('บันทึกไม่สำเร็จ'); }
   showLoad(false);
@@ -1065,7 +1135,9 @@ async function loadHR() {
   // Summary cards
   const cards = document.getElementById('hr-cards');
   cards.style.display = 'flex';
+  const empCode = empUser && empUser.empCode ? empUser.empCode : '-';
   const cardData = [
+    { n: empCode,                           l: 'รหัสพนักงาน', c: '#0969da' },
     { n: workDays,                          l: 'วันทำงาน',    c: '#0969da' },
     { n: minsToHM(totalWork),               l: 'ชั่วโมงรวม',  c: '#1a7f37' },
     ...(hasSchedule ? [
@@ -1085,7 +1157,7 @@ async function loadHR() {
   document.getElementById('hr-empty').style.display = rowIdx ? 'none' : 'block';
 
   // เก็บ summary ไว้ใช้ตอน export
-  hrSummary = { emp, month, workDays, totalWork, totalLate, totalEarly, totalOT, noOut };
+  hrSummary = { emp, empCode, month, workDays, totalWork, totalLate, totalEarly, totalOT, noOut };
 }
 
 function exportHRCSV() {
@@ -1098,6 +1170,7 @@ function exportHRCSV() {
   const s = hrSummary;
   const summaryRows = [
     [`รายงานเวลาทำงาน — ${s.emp||emp} — ${s.month||month}`],
+    ['รหัสพนักงาน', s.empCode||'-'],
     [],
     ['📊 สรุปรายเดือน'],
     ['วันทำงาน', `${s.workDays} วัน`],
