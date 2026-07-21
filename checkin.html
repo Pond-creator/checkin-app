@@ -1108,10 +1108,10 @@ function closeModal() {
 }
 
 // ── Leave (แจ้งลา) ─────────────────────────────────
-let leaveMode = 'full', leaveCert = '';
+var leaveMode = 'full', leaveCert = '';
 
 // การลา/วันหยุด "วันนี้" — ดึงจากเซิร์ฟเวอร์ (เชื่อถือได้ทุกเครื่อง, เที่ยงคืนหายเอง)
-let myLeaves = [];
+var myLeaves = [];
 async function loadMyLeaves() {
   try {
     const j = await fetchJSON(`${SCRIPT_URL}?action=getLeave&t=${Date.now()}`);
