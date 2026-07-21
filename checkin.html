@@ -315,7 +315,7 @@ body { font-family: 'Sarabun', sans-serif; background: #f0f2f5; min-height: 100v
   <button class="btn-extra" onclick="openExtraModal()">＋ เช็คเวลาเข้า/ออกงาน</button>
 </div>
 <div class="leave-wrap">
-  <button class="btn-leave" onclick="openLeaveModal()">🏖️ แจ้งลา</button>
+  <button class="btn-leave" onclick="openLeaveModal()">🏖️ แจ้งลา / วันหยุดประจำ</button>
 </div>
 
 <!-- Extra Round Modal -->
@@ -365,11 +365,12 @@ body { font-family: 'Sarabun', sans-serif; background: #f0f2f5; min-height: 100v
 <!-- Leave Modal -->
 <div class="extra-modal-bg" id="leave-modal-bg">
   <div class="extra-modal-box" style="max-width:380px;max-height:88vh;overflow-y:auto">
-    <h3>🏖️ แจ้งลา</h3>
+    <h3>🏖️ แจ้งลา / วันหยุดประจำ</h3>
     <div class="ex-form-row">
-      <label>📋 ประเภทการลา *</label>
+      <label>📋 ประเภท *</label>
       <select id="lv-type" onchange="onLeaveTypeChange()">
         <option value="">-- เลือกประเภท --</option>
+        <option value="วันหยุดประจำ">วันหยุดประจำ</option>
         <option value="ลาป่วย">ลาป่วย</option>
         <option value="ลากิจ">ลากิจ</option>
         <option value="พักร้อน">พักร้อน</option>
@@ -1118,13 +1119,22 @@ function openLeaveModal() {
   document.getElementById('lv-cert').value = '';
   document.getElementById('lv-cert-preview').style.display = 'none';
   leaveCert = '';
+  onLeaveTypeChange();
   document.getElementById('leave-modal-bg').classList.add('open');
 }
 function closeLeaveModal() { document.getElementById('leave-modal-bg').classList.remove('open'); }
 
 function onLeaveTypeChange() {
-  const isSick = document.getElementById('lv-type').value === 'ลาป่วย';
-  document.getElementById('lv-cert-row').style.display = isSick ? '' : 'none';
+  const v = document.getElementById('lv-type').value;
+  document.getElementById('lv-cert-row').style.display = (v === 'ลาป่วย') ? '' : 'none';
+  // วันหยุดประจำ → ทั้งวันอย่างเดียว (ปิดปุ่มระบุช่วงเวลา)
+  const partBtn = document.getElementById('lv-mode-part');
+  if (v === 'วันหยุดประจำ') {
+    setLeaveMode('full');
+    partBtn.disabled = true; partBtn.style.opacity = '0.4'; partBtn.style.cursor = 'not-allowed';
+  } else {
+    partBtn.disabled = false; partBtn.style.opacity = ''; partBtn.style.cursor = 'pointer';
+  }
 }
 
 function setLeaveMode(m) {

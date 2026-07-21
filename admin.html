@@ -253,6 +253,9 @@ tr:hover td { background:#f6f8fa; }
 <div class="tab-content" id="tab-leave">
   <div class="toolbar">
     <button class="btn btn-primary" onclick="loadLeave()">🔄 โหลดข้อมูลการลา</button>
+    <select id="lv-f-emp" onchange="renderLeave()"><option value="">👤 ทุกคน</option></select>
+    <input type="month" id="lv-f-month" onchange="renderLeave()">
+    <button class="btn btn-success" onclick="exportLeaveCSV()">📊 Export Excel</button>
   </div>
   <div class="tbl-wrap">
     <table>
@@ -1042,15 +1045,29 @@ async function loadLeave() {
   try {
     const json = await fetchJSON(`${url}?action=getLeave&t=${Date.now()}`);
     leaveData = json.data || [];
+    const names = [...new Set(leaveData.map(r=>r.name).filter(Boolean))].sort();
+    const sel = document.getElementById('lv-f-emp'); const prev = sel.value;
+    sel.innerHTML = '<option value="">👤 ทุกคน</option>' + names.map(n=>`<option value="${n}">${n}</option>`).join('');
+    if (prev) sel.value = prev;
     renderLeave();
   } catch(e) { alert('โหลดไม่สำเร็จ'); }
   showLoad(false);
 }
+function getFilteredLeave() {
+  const emp   = document.getElementById('lv-f-emp').value;
+  const month = document.getElementById('lv-f-month').value;
+  return leaveData.filter(r => {
+    if (emp && r.name !== emp) return false;
+    if (month && !dmyToISO(r.leaveDate).startsWith(month)) return false;
+    return true;
+  });
+}
 function renderLeave() {
   const tbody = document.getElementById('leave-body');
-  if (!leaveData.length) { tbody.innerHTML = `<tr><td colspan="9"><div class="empty"><div class="ic">🏖️</div>ยังไม่มีข้อมูลการลา</div></td></tr>`; return; }
-  const col = { 'ลาป่วย':'#cf222e','ลากิจ':'#0969da','พักร้อน':'#8250df','ลาอื่นๆ':'#57606a' };
-  tbody.innerHTML = leaveData.map((r,i) => {
+  const list = getFilteredLeave();
+  if (!list.length) { tbody.innerHTML = `<tr><td colspan="9"><div class="empty"><div class="ic">🏖️</div>ไม่พบข้อมูลการลา</div></td></tr>`; return; }
+  const col = { 'วันหยุดประจำ':'#1a7f37','ลาป่วย':'#cf222e','ลากิจ':'#0969da','พักร้อน':'#8250df','ลาอื่นๆ':'#57606a' };
+  tbody.innerHTML = list.map((r,i) => {
     const cert = fixPhotoUrl(r.cert);
     const certCell = (cert && cert.indexOf('error') < 0)
       ? `<img class="photo-th" src="${cert}" onclick="openLightbox('${cert}')">`
@@ -1069,6 +1086,25 @@ function renderLeave() {
       <td style="font-size:11px;color:#8c959f">${r.timestamp||'-'}</td>
     </tr>`;
   }).join('');
+}
+
+function exportLeaveCSV() {
+  const rows = getFilteredLeave();
+  if (!rows.length) { alert('ไม่มีข้อมูล'); return; }
+  const codeOf = {}; userData.forEach(u => { if (u.empCode) codeOf[u.name] = (u.empCode+'').trim(); });
+  const h = ['วันที่ลา','รหัสพนักงาน','ชื่อ','ประเภท','ช่วงเวลา','ชั่วโมง','หมายเหตุ','ใบรับรอง','บันทึกเมื่อ'];
+  const data = rows.map(r => {
+    const time = r.mode === 'ช่วงเวลา' ? `${r.startTime}-${r.endTime}` : 'ทั้งวัน';
+    const hrs  = r.mode === 'ช่วงเวลา' ? (r.hours ? `${r.hours} ชม.` : '') : 'ทั้งวัน';
+    const cert = (r.cert && r.cert.indexOf('error') < 0) ? r.cert : '';
+    return [r.leaveDate, codeOf[r.name]||'', r.name, r.leaveType, time, hrs, r.note, cert, r.timestamp];
+  });
+  const csv = [h, ...data].map(row => row.map(v => `"${(v||'').toString().replace(/"/g,'""')}"`).join(',')).join('\n');
+  const month = document.getElementById('lv-f-month').value;
+  const emp   = document.getElementById('lv-f-emp').value;
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob(['﻿'+csv], {type:'text/csv;charset=utf-8'}));
+  a.download = `leave_${emp||'all'}_${month||'all'}.csv`; a.click();
 }
 
 // ── Users Tab ──────────────────────────────────────
