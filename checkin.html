@@ -302,6 +302,9 @@ body { font-family: 'Sarabun', sans-serif; background: #f0f2f5; min-height: 100v
     <div class="nav-item" onclick="openHistory()">
       <span class="ni-icon">🕐</span> ประวัติ 7 วัน
     </div>
+    <div class="nav-item" onclick="openUpcomingLeave()">
+      <span class="ni-icon">📅</span> ลาล่วงหน้า
+    </div>
   </div>
   <div class="nav-logout" onclick="logout()">
     <span class="ni-icon">🚪</span> ออกจากระบบ
@@ -423,6 +426,19 @@ body { font-family: 'Sarabun', sans-serif; background: #f0f2f5; min-height: 100v
         <div style="font-size:32px">📅</div>
         <div style="margin-top:8px;font-size:14px">กำลังโหลด...</div>
       </div>
+    </div>
+  </div>
+</div>
+
+<!-- Upcoming Leave Modal -->
+<div class="hist-bg" id="upcoming-bg" onclick="closeUpcomingLeave()">
+  <div class="hist-box" onclick="event.stopPropagation()">
+    <div class="hist-head">
+      <h3>📅 ลาล่วงหน้า / วันหยุดที่จะถึง</h3>
+      <button class="hist-close" onclick="closeUpcomingLeave()">✕</button>
+    </div>
+    <div class="hist-body" id="upcoming-body">
+      <div style="text-align:center;padding:40px;color:#8c959f"><div style="font-size:32px">📅</div><div style="margin-top:8px;font-size:14px">กำลังโหลด...</div></div>
     </div>
   </div>
 </div>
@@ -1206,6 +1222,45 @@ async function submitLeave() {
   closeLeaveModal();
   setTimeout(loadMyLeaves, 1200); // รอ GAS เขียนเสร็จแล้วรีเฟรชการ์ด
   alert(`✅ ส่งใบลาเรียบร้อย\n${type} • ${leaveDate}${leaveMode==='part'?` • ${startTime}-${endTime} (${hours} ชม.)`:' • ทั้งวัน'}`);
+}
+
+// ── Upcoming Leave (ลาล่วงหน้า) ────────────────────
+function dmyToISO(s){ const m=(s||'').match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})/); if(!m)return''; return `${m[3]}-${m[2].padStart(2,'0')}-${m[1].padStart(2,'0')}`; }
+
+async function openUpcomingLeave() {
+  closeNav();
+  document.getElementById('upcoming-bg').classList.add('open');
+  document.getElementById('upcoming-body').innerHTML = `<div style="text-align:center;padding:40px;color:#8c959f"><div style="font-size:32px">📅</div><div style="margin-top:8px;font-size:14px">กำลังโหลด...</div></div>`;
+  await loadMyLeaves();
+  renderUpcoming();
+}
+function closeUpcomingLeave() { document.getElementById('upcoming-bg').classList.remove('open'); }
+
+function renderUpcoming() {
+  const body = document.getElementById('upcoming-body');
+  const todayISO = todayKey();
+  const items = myLeaves
+    .map(l => ({ ...l, iso: dmyToISO(l.leaveDate) }))
+    .filter(l => l.iso && l.iso >= todayISO)
+    .sort((a,b) => a.iso.localeCompare(b.iso));
+  if (!items.length) {
+    body.innerHTML = `<div style="text-align:center;padding:40px;color:#8c959f"><div style="font-size:32px">🌴</div><div style="margin-top:8px">ยังไม่มีลา/วันหยุดล่วงหน้า</div></div>`;
+    return;
+  }
+  body.innerHTML = items.map(l => {
+    const t = l.mode === 'ช่วงเวลา' ? `${l.startTime}-${l.endTime} (${l.hours} ชม.)` : 'ทั้งวัน';
+    const isToday = l.iso === todayISO;
+    const [y,m,d] = l.iso.split('-');
+    const dateTh = new Date(l.iso+'T00:00:00').toLocaleDateString('th-TH',{weekday:'short',day:'numeric',month:'short',year:'numeric'});
+    return `<div class="hist-row" style="background:#fff8e6">
+      <div class="hr-left">
+        <div class="hr-branch">🏖️ ${l.leaveType} <span style="font-size:12px;color:#9a7b1f">${t}</span></div>
+        <div class="hr-time">📅 ${dateTh}</div>
+        ${l.note ? `<div class="hr-time">📝 ${l.note}</div>` : ''}
+      </div>
+      <span class="hr-status ${isToday?'hs-done':'hs-pending'}">${isToday?'วันนี้':'ล่วงหน้า'}</span>
+    </div>`;
+  }).join('');
 }
 
 // ── History ────────────────────────────────────────
