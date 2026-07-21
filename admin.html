@@ -424,15 +424,15 @@ tr:hover td { background:#f6f8fa; }
 
 <script>
 // ── Auth ───────────────────────────────────────────
-const mem = {};
-const store = {
+var mem = {};
+var store = {
   get: k => { try { return localStorage.getItem(k); } catch(e) { return mem[k]||null; } },
   set: (k,v) => { try { localStorage.setItem(k,v); } catch(e) { mem[k]=v; } }
 };
-const session = (() => { try { return JSON.parse(store.get('session')||'null'); } catch { return null; } })();
+var session = (() => { try { return JSON.parse(store.get('session')||'null'); } catch { return null; } })();
 if (!session || (session.role !== 'admin' && session.role !== 'support')) { alert('ต้องล็อกอินด้วยบัญชี Admin หรือ Support'); location.href = 'index.html'; }
 document.getElementById('nav-name').textContent = session ? session.name : '—';
-const IS_ADMIN = session && session.role === 'admin';
+var IS_ADMIN = session && session.role === 'admin';
 
 function openNav()  { document.getElementById('nav-overlay').classList.add('open'); document.getElementById('nav-drawer').classList.add('open'); }
 function closeNav() { document.getElementById('nav-overlay').classList.remove('open'); document.getElementById('nav-drawer').classList.remove('open'); }
@@ -448,13 +448,13 @@ function requireAdminCreds() {
 }
 
 // ── State ──────────────────────────────────────────
-let logData  = [];
-let userData = [];
-let activeStatCard = 'all';
-let logRangeMode = 'today';
+var logData  = [];
+var userData = [];
+var activeStatCard = 'all';
+var logRangeMode = 'today';
 
-const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxst_UC3w1zJJ_1gc3aBthvRnEhYbdX76E0z7hDV8nWEKh2tVlWV2YEpQMiCVzMOhuv/exec';
-const API_TOKEN  = 'FLO-ckn-8Kq2Wm7Zx4Rp9Nv3Ts6Yb1Ha'; // 🔐 ต้องตรงกับ GAS
+var SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxst_UC3w1zJJ_1gc3aBthvRnEhYbdX76E0z7hDV8nWEKh2tVlWV2YEpQMiCVzMOhuv/exec';
+var API_TOKEN  = 'FLO-ckn-8Kq2Wm7Zx4Rp9Nv3Ts6Yb1Ha'; // 🔐 ต้องตรงกับ GAS
 function getUrl()    { return SCRIPT_URL || store.get('adminUrl') || store.get('scriptUrl') || ''; }
 function showLoad(v) { document.getElementById('loading').classList.toggle('show', v); }
 function fmtDate(d)  { return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
@@ -774,7 +774,7 @@ function exportCSV() {
 }
 
 // ── Admin Checkout (จบงานแทนพนักงาน) ───────────────
-let acPending = null;
+var acPending = null;
 
 function adminCloseJob(name, round, dateISO) {
   if (!dateISO) { alert('ไม่พบวันที่ของรายการนี้'); return; }
@@ -950,7 +950,7 @@ function doExportTXT() {
 }
 
 // ── Edit Mode & Delete ─────────────────────────────
-let editMode = false;
+var editMode = false;
 
 function toggleEditMode() {
   editMode = !editMode;
@@ -999,7 +999,7 @@ async function deleteSelected() {
 }
 
 // ── Deleted Log Tab ────────────────────────────────
-let deletedData = [];
+var deletedData = [];
 async function loadDeleted() {
   const url = getUrl(); if (!url) return;
   showLoad(true);
@@ -1038,7 +1038,7 @@ function renderDeleted() {
 }
 
 // ── Leave Tab ──────────────────────────────────────
-let leaveData = [];
+var leaveData = [];
 async function loadLeave() {
   const url = getUrl(); if (!url) return;
   showLoad(true);
@@ -1108,7 +1108,7 @@ function exportLeaveCSV() {
 }
 
 // ── Users Tab ──────────────────────────────────────
-let editingUserId = null;
+var editingUserId = null;
 async function loadUsers() {
   const url = getUrl(); if (!url) return;
   showLoad(true);
@@ -1174,11 +1174,11 @@ async function deleteUser() {
 }
 
 // ── HR Tab ─────────────────────────────────────────
-const HR_IN  = '10:30';
-const HR_OUT = '19:00';
-const DAYS_TH = ['อา','จ','อ','พ','พฤ','ศ','ส'];
-let hrData = [];
-let hrSummary = {};
+var HR_IN  = '10:30';
+var HR_OUT = '19:00';
+var DAYS_TH = ['อา','จ','อ','พ','พฤ','ศ','ส'];
+var hrData = [];
+var hrSummary = {};
 
 function initHR() {
   const sel = document.getElementById('hr-month');

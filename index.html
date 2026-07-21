@@ -115,11 +115,11 @@ body {
 </div>
 
 <script>
-const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxst_UC3w1zJJ_1gc3aBthvRnEhYbdX76E0z7hDV8nWEKh2tVlWV2YEpQMiCVzMOhuv/exec';
-const API_TOKEN  = 'FLO-ckn-8Kq2Wm7Zx4Rp9Nv3Ts6Yb1Ha'; // 🔐 ต้องตรงกับ GAS
+var SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxst_UC3w1zJJ_1gc3aBthvRnEhYbdX76E0z7hDV8nWEKh2tVlWV2YEpQMiCVzMOhuv/exec';
+var API_TOKEN  = 'FLO-ckn-8Kq2Wm7Zx4Rp9Nv3Ts6Yb1Ha'; // 🔐 ต้องตรงกับ GAS
 
-const mem = {};
-const store = {
+var mem = {};
+var store = {
   get: k => { try { return localStorage.getItem(k)||null; } catch(e) { return mem[k]||null; } },
   set: (k,v) => { try { localStorage.setItem(k,v); } catch(e) { mem[k]=v; } }
 };
@@ -143,13 +143,13 @@ async function fetchJSON(url, tries = 3) {
 }
 
 // Auto-redirect if already logged in
-const sess = (() => { try { return JSON.parse(store.get('session')||'null'); } catch { return null; } })();
+var sess = (() => { try { return JSON.parse(store.get('session')||'null'); } catch { return null; } })();
 if (sess && sess.name) {
   location.href = sess.role === 'admin' ? 'admin.html' : 'checkin.html';
 }
 
 // Load saved URL
-const cfgEl = document.getElementById('cfg-url');
+var cfgEl = document.getElementById('cfg-url');
 cfgEl.value = store.get('scriptUrl') || '';
 
 // Enter key support
