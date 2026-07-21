@@ -157,6 +157,7 @@ tr:hover td { background:#f6f8fa; }
 <div class="tabs" id="main-tabs">
   <div class="tab active" onclick="switchTab('log')">📋 Check-in Log</div>
   <div class="tab" onclick="switchTab('hr')">🕐 เวลาทำงาน</div>
+  <div class="tab" onclick="switchTab('leave')">🏖️ การลา</div>
   <div class="tab" id="tab-users-btn" style="display:none" onclick="switchTab('users')">👥 ผู้ใช้งาน</div>
   <div class="tab" id="tab-deleted-btn" style="display:none" onclick="switchTab('deleted')">🗑️ Deleted Log</div>
 </div>
@@ -245,6 +246,24 @@ tr:hover td { background:#f6f8fa; }
         </tbody>
       </table>
     </div>
+  </div>
+</div>
+
+<!-- ══ TAB: LEAVE ══ -->
+<div class="tab-content" id="tab-leave">
+  <div class="toolbar">
+    <button class="btn btn-primary" onclick="loadLeave()">🔄 โหลดข้อมูลการลา</button>
+  </div>
+  <div class="tbl-wrap">
+    <table>
+      <thead><tr>
+        <th>#</th><th>วันที่ลา</th><th>ชื่อ</th><th>ประเภท</th><th>ช่วงเวลา</th>
+        <th>ชั่วโมง</th><th>หมายเหตุ</th><th>ใบรับรอง</th><th>บันทึกเมื่อ</th>
+      </tr></thead>
+      <tbody id="leave-body">
+        <tr><td colspan="9"><div class="empty"><div class="ic">🏖️</div>กด "โหลดข้อมูลการลา"</div></td></tr>
+      </tbody>
+    </table>
   </div>
 </div>
 
@@ -467,12 +486,13 @@ if (IS_ADMIN) {
 // ── Tab ────────────────────────────────────────────
 function switchTab(name) {
   if (name === 'deleted' && !IS_ADMIN) return;
-  const tabs = ['log','hr','users','deleted'];
+  const tabs = ['log','hr','leave','users','deleted'];
   document.querySelectorAll('.tab').forEach((t,i) => t.classList.toggle('active', tabs[i]===name));
   document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
   document.getElementById('tab-'+name).classList.add('active');
   if (name === 'users')   loadUsers();
   if (name === 'hr')      initHR();
+  if (name === 'leave')   loadLeave();
   if (name === 'deleted') loadDeleted();
   if (name === 'log')     exitEditMode();
 }
@@ -1010,6 +1030,43 @@ function renderDeleted() {
       </td>
       <td style="font-size:12px;color:#cf222e">${r.deletedAt||'-'}</td>
       <td style="font-size:12px;color:#57606a">${r.deletedBy||'-'}</td>
+    </tr>`;
+  }).join('');
+}
+
+// ── Leave Tab ──────────────────────────────────────
+let leaveData = [];
+async function loadLeave() {
+  const url = getUrl(); if (!url) return;
+  showLoad(true);
+  try {
+    const json = await fetchJSON(`${url}?action=getLeave&t=${Date.now()}`);
+    leaveData = json.data || [];
+    renderLeave();
+  } catch(e) { alert('โหลดไม่สำเร็จ'); }
+  showLoad(false);
+}
+function renderLeave() {
+  const tbody = document.getElementById('leave-body');
+  if (!leaveData.length) { tbody.innerHTML = `<tr><td colspan="9"><div class="empty"><div class="ic">🏖️</div>ยังไม่มีข้อมูลการลา</div></td></tr>`; return; }
+  const col = { 'ลาป่วย':'#cf222e','ลากิจ':'#0969da','พักร้อน':'#8250df','ลาอื่นๆ':'#57606a' };
+  tbody.innerHTML = leaveData.map((r,i) => {
+    const cert = fixPhotoUrl(r.cert);
+    const certCell = (cert && cert.indexOf('error') < 0)
+      ? `<img class="photo-th" src="${cert}" onclick="openLightbox('${cert}')">`
+      : '<span style="color:#8c959f">-</span>';
+    const time = r.mode === 'ช่วงเวลา' ? `${r.startTime}-${r.endTime}` : 'ทั้งวัน';
+    const hrs  = r.mode === 'ช่วงเวลา' ? (r.hours ? `${r.hours} ชม.` : '-') : 'ทั้งวัน';
+    return `<tr>
+      <td style="color:#8c959f;font-size:11px">${i+1}</td>
+      <td><b>${r.leaveDate||'-'}</b></td>
+      <td>${r.name||'-'}</td>
+      <td><span style="color:${col[r.leaveType]||'#57606a'};font-weight:700">${r.leaveType||'-'}</span></td>
+      <td>${time}</td>
+      <td>${hrs}</td>
+      <td style="font-size:12px;color:#57606a">${r.note||'-'}</td>
+      <td>${certCell}</td>
+      <td style="font-size:11px;color:#8c959f">${r.timestamp||'-'}</td>
     </tr>`;
   }).join('');
 }

@@ -150,6 +150,19 @@ body { font-family: 'Sarabun', sans-serif; background: #f0f2f5; min-height: 100v
 }
 .btn-extra:hover { border-color: #0969da; color: #0969da; background: #f0f7ff; }
 
+/* Leave */
+.leave-wrap { padding: 24px 16px 28px; margin-top: 8px; border-top: 1px solid #e8eaed; }
+.btn-leave {
+  width: 100%; padding: 13px; border-radius: 10px;
+  border: 2px solid #f0b429; background: #fff8e6;
+  color: #b7791f; font-size: 15px; font-weight: 700; cursor: pointer;
+  font-family: inherit; transition: all .2s;
+}
+.btn-leave:hover  { background: #fef3c7; }
+.btn-leave:active { transform: scale(0.98); }
+.lv-mode { flex: 1; padding: 9px; border: 1.5px solid #d0d7de; background: #fff; border-radius: 8px; font-family: inherit; font-size: 13px; cursor: pointer; color: #57606a; }
+.lv-mode.on { border-color: #f0b429; background: #fff8e6; color: #b7791f; font-weight: 700; }
+
 /* Extra Modal */
 .extra-modal-bg {
   display: none; position: fixed; inset: 0; background: rgba(0,0,0,.55);
@@ -292,6 +305,9 @@ body { font-family: 'Sarabun', sans-serif; background: #f0f2f5; min-height: 100v
 <div class="extra-round-wrap">
   <button class="btn-extra" onclick="openExtraModal()">＋ เช็คเวลาเข้า/ออกงาน</button>
 </div>
+<div class="leave-wrap">
+  <button class="btn-leave" onclick="openLeaveModal()">🏖️ แจ้งลา</button>
+</div>
 
 <!-- Extra Round Modal -->
 <div class="extra-modal-bg" id="extra-modal-bg">
@@ -333,6 +349,54 @@ body { font-family: 'Sarabun', sans-serif; background: #f0f2f5; min-height: 100v
     <div class="ex-actions">
       <button onclick="closeExtraModal()" style="background:#f6f8fa;color:#57606a;">ยกเลิก</button>
       <button onclick="confirmAddExtra()" style="background:#0969da;color:#fff;">➕ เพิ่มรอบ</button>
+    </div>
+  </div>
+</div>
+
+<!-- Leave Modal -->
+<div class="extra-modal-bg" id="leave-modal-bg">
+  <div class="extra-modal-box" style="max-width:380px;max-height:88vh;overflow-y:auto">
+    <h3>🏖️ แจ้งลา</h3>
+    <div class="ex-form-row">
+      <label>📋 ประเภทการลา *</label>
+      <select id="lv-type" onchange="onLeaveTypeChange()">
+        <option value="">-- เลือกประเภท --</option>
+        <option value="ลาป่วย">ลาป่วย</option>
+        <option value="ลากิจ">ลากิจ</option>
+        <option value="พักร้อน">พักร้อน</option>
+        <option value="ลาอื่นๆ">ลาอื่นๆ</option>
+      </select>
+    </div>
+    <div class="ex-form-row">
+      <label>📅 วันที่ลา *</label>
+      <input id="lv-date" type="date">
+    </div>
+    <div class="ex-form-row">
+      <label>⏰ ช่วงเวลา</label>
+      <div style="display:flex;gap:8px">
+        <button type="button" id="lv-mode-full" class="lv-mode on" onclick="setLeaveMode('full')">ลาทั้งวัน</button>
+        <button type="button" id="lv-mode-part" class="lv-mode" onclick="setLeaveMode('part')">ระบุช่วงเวลา</button>
+      </div>
+      <div id="lv-time-row" style="display:none;align-items:center;gap:8px;margin-top:10px">
+        <input id="lv-start" type="time" onchange="calcLeaveHours()" style="flex:1;padding:9px;border:1.5px solid #d0d7de;border-radius:8px;font-family:inherit">
+        <span>-</span>
+        <input id="lv-end" type="time" onchange="calcLeaveHours()" style="flex:1;padding:9px;border:1.5px solid #d0d7de;border-radius:8px;font-family:inherit">
+        <span id="lv-hours" style="font-size:12px;color:#0969da;font-weight:700;white-space:nowrap"></span>
+      </div>
+    </div>
+    <div class="ex-form-row">
+      <label>📝 หมายเหตุ</label>
+      <textarea id="lv-note" rows="2" placeholder="เหตุผล/รายละเอียด..." maxlength="150"
+        style="width:100%;padding:10px 12px;border:1.5px solid #d0d7de;border-radius:8px;font-size:14px;outline:none;font-family:inherit;resize:vertical"></textarea>
+    </div>
+    <div class="ex-form-row" id="lv-cert-row" style="display:none">
+      <label>📎 ใบรับรองแพทย์ (แนบรูป)</label>
+      <input id="lv-cert" type="file" accept="image/*" onchange="onCertPick(event)" style="width:100%;font-size:13px">
+      <img id="lv-cert-preview" style="display:none;max-width:100%;margin-top:8px;border-radius:8px;border:1px solid #d0d7de">
+    </div>
+    <div class="ex-actions">
+      <button onclick="closeLeaveModal()" style="background:#f6f8fa;color:#57606a;">ยกเลิก</button>
+      <button onclick="submitLeave()" style="background:#f0b429;color:#fff;">✅ ส่งใบลา</button>
     </div>
   </div>
 </div>
@@ -1009,6 +1073,94 @@ function closeModal() {
   stopStream(); clearInterval(ovTimer);
   document.getElementById('overlay').classList.remove('open');
   checkoutIdx = null;
+}
+
+// ── Leave (แจ้งลา) ─────────────────────────────────
+let leaveMode = 'full', leaveCert = '';
+
+function openLeaveModal() {
+  document.getElementById('lv-type').value = '';
+  document.getElementById('lv-date').value = todayKey();
+  document.getElementById('lv-note').value = '';
+  document.getElementById('lv-start').value = '';
+  document.getElementById('lv-end').value = '';
+  document.getElementById('lv-hours').textContent = '';
+  setLeaveMode('full');
+  document.getElementById('lv-cert-row').style.display = 'none';
+  document.getElementById('lv-cert').value = '';
+  document.getElementById('lv-cert-preview').style.display = 'none';
+  leaveCert = '';
+  document.getElementById('leave-modal-bg').classList.add('open');
+}
+function closeLeaveModal() { document.getElementById('leave-modal-bg').classList.remove('open'); }
+
+function onLeaveTypeChange() {
+  const isSick = document.getElementById('lv-type').value === 'ลาป่วย';
+  document.getElementById('lv-cert-row').style.display = isSick ? '' : 'none';
+}
+
+function setLeaveMode(m) {
+  leaveMode = m;
+  document.getElementById('lv-mode-full').classList.toggle('on', m === 'full');
+  document.getElementById('lv-mode-part').classList.toggle('on', m === 'part');
+  document.getElementById('lv-time-row').style.display = m === 'part' ? 'flex' : 'none';
+  if (m === 'full') document.getElementById('lv-hours').textContent = '';
+}
+
+function calcLeaveHours() {
+  const s = toMins(document.getElementById('lv-start').value);
+  const e = toMins(document.getElementById('lv-end').value);
+  const el = document.getElementById('lv-hours');
+  if (s >= 0 && e > s) { el.textContent = `= ${((e - s) / 60).toFixed(2).replace(/\.00$/,'')} ชม.`; el.style.color = '#0969da'; }
+  else { el.textContent = e >= 0 && e <= s ? 'เวลาไม่ถูกต้อง' : ''; el.style.color = '#cf222e'; }
+}
+
+function onCertPick(ev) {
+  const f = ev.target.files[0];
+  if (!f) { leaveCert = ''; return; }
+  const r = new FileReader();
+  r.onload = () => {
+    leaveCert = r.result;
+    const img = document.getElementById('lv-cert-preview');
+    img.src = leaveCert; img.style.display = 'block';
+  };
+  r.readAsDataURL(f);
+}
+
+async function submitLeave() {
+  const type = document.getElementById('lv-type').value;
+  const dISO = document.getElementById('lv-date').value;
+  const note = document.getElementById('lv-note').value.trim();
+  if (!type) { alert('กรุณาเลือกประเภทการลา'); return; }
+  if (!dISO) { alert('กรุณาเลือกวันที่ลา'); return; }
+
+  let startTime = '', endTime = '', hours = '';
+  if (leaveMode === 'part') {
+    startTime = document.getElementById('lv-start').value;
+    endTime   = document.getElementById('lv-end').value;
+    const s = toMins(startTime), e = toMins(endTime);
+    if (s < 0 || e < 0) { alert('กรุณาระบุช่วงเวลาให้ครบ'); return; }
+    if (e <= s) { alert('เวลาสิ้นสุดต้องมากกว่าเวลาเริ่ม'); return; }
+    hours = ((e - s) / 60).toFixed(2).replace(/\.00$/,'');
+  }
+
+  const [y, m, d] = dISO.split('-');
+  const leaveDate = `${d}/${m}/${y}`;
+  const payload = {
+    token: API_TOKEN, action: 'saveLeave', name: MY_NAME,
+    leaveType: type, leaveDate,
+    mode: leaveMode === 'part' ? 'ช่วงเวลา' : 'ทั้งวัน',
+    startTime, endTime, hours, note, cert: leaveCert || ''
+  };
+
+  const btn = document.querySelector('#leave-modal-bg .ex-actions button:last-child');
+  if (btn) { btn.disabled = true; btn.textContent = 'กำลังส่ง...'; }
+  try {
+    await fetch(SCRIPT_URL, { method:'POST', mode:'no-cors', headers:{'Content-Type':'application/json'}, body: JSON.stringify(payload) });
+  } catch(e) {}
+  if (btn) { btn.disabled = false; btn.textContent = '✅ ส่งใบลา'; }
+  closeLeaveModal();
+  alert(`✅ ส่งใบลาเรียบร้อย\n${type} • ${leaveDate}${leaveMode==='part'?` • ${startTime}-${endTime} (${hours} ชม.)`:' • ทั้งวัน'}`);
 }
 
 // ── History ────────────────────────────────────────
