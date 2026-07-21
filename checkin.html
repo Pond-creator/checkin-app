@@ -162,6 +162,14 @@ body { font-family: 'Sarabun', sans-serif; background: #f0f2f5; min-height: 100v
 .btn-leave:active { transform: scale(0.98); }
 .lv-mode { flex: 1; padding: 9px; border: 1.5px solid #d0d7de; background: #fff; border-radius: 8px; font-family: inherit; font-size: 13px; cursor: pointer; color: #57606a; }
 .lv-mode.on { border-color: #f0b429; background: #fff8e6; color: #b7791f; font-weight: 700; }
+.leave-today-title { padding: 14px 20px 6px; font-size: 13px; color: #b7791f; font-weight: 700; }
+.leave-card {
+  background: #fff8e6; border: 2px solid #f0b429; border-radius: 12px;
+  padding: 12px 16px; margin-bottom: 10px;
+}
+.leave-card .lc-type { font-size: 15px; font-weight: 700; color: #b7791f; }
+.leave-card .lc-time { font-size: 12px; color: #9a7b1f; margin-top: 2px; }
+.leave-card .lc-note { font-size: 12px; color: #8c959f; margin-top: 2px; }
 
 /* Extra Modal */
 .extra-modal-bg {
@@ -300,6 +308,7 @@ body { font-family: 'Sarabun', sans-serif; background: #f0f2f5; min-height: 100v
   </div>
 </div>
 
+<div id="leave-today"></div>
 <div class="section-title">รอบเช็กอินวันนี้</div>
 <div class="rounds" id="rounds"></div>
 <div class="extra-round-wrap">
@@ -599,6 +608,7 @@ function tick() {
   document.getElementById('htime').textContent = n.toLocaleTimeString('th-TH', { hour:'2-digit', minute:'2-digit', second:'2-digit' });
   document.getElementById('hdate').textContent = n.toLocaleDateString('th-TH', { weekday:'long', day:'numeric', month:'long', year:'numeric' });
   renderRounds();
+  renderTodayLeave();
 }
 setInterval(tick, 1000); tick();
 
@@ -1078,6 +1088,24 @@ function closeModal() {
 // ── Leave (แจ้งลา) ─────────────────────────────────
 let leaveMode = 'full', leaveCert = '';
 
+// การลาของ "วันนี้" (เก็บ localStorage ตามวันที่ลา → ผ่านวันแล้วหายเอง)
+function getLeavesOn(dateKey) { try { return JSON.parse(store.get('leave_'+dateKey)||'[]'); } catch { return []; } }
+function renderTodayLeave() {
+  const el = document.getElementById('leave-today');
+  if (!el) return;
+  const leaves = getLeavesOn(todayKey());
+  if (!leaves.length) { el.innerHTML = ''; return; }
+  el.innerHTML = `<div class="leave-today-title">🏖️ การลาวันนี้</div><div style="padding:0 16px 4px">` +
+    leaves.map(l => {
+      const t = l.mode === 'ช่วงเวลา' ? `${l.start}-${l.end} (${l.hours} ชม.)` : 'ลาทั้งวัน';
+      return `<div class="leave-card">
+        <div class="lc-type">🏖️ ${l.type}</div>
+        <div class="lc-time">⏰ ${t}</div>
+        ${l.note ? `<div class="lc-note">📝 ${l.note}</div>` : ''}
+      </div>`;
+    }).join('') + `</div>`;
+}
+
 function openLeaveModal() {
   document.getElementById('lv-type').value = '';
   document.getElementById('lv-date').value = todayKey();
@@ -1159,6 +1187,11 @@ async function submitLeave() {
     await fetch(SCRIPT_URL, { method:'POST', mode:'no-cors', headers:{'Content-Type':'application/json'}, body: JSON.stringify(payload) });
   } catch(e) {}
   if (btn) { btn.disabled = false; btn.textContent = '✅ ส่งใบลา'; }
+  // เก็บลง localStorage ตามวันที่ลา → แสดงในหน้าจอวันนั้น (ผ่านวันแล้วหายเอง)
+  const arr = getLeavesOn(dISO);
+  arr.push({ type, mode: payload.mode, start: startTime, end: endTime, hours, note });
+  store.set('leave_'+dISO, JSON.stringify(arr));
+  renderTodayLeave();
   closeLeaveModal();
   alert(`✅ ส่งใบลาเรียบร้อย\n${type} • ${leaveDate}${leaveMode==='part'?` • ${startTime}-${endTime} (${hours} ชม.)`:' • ทั้งวัน'}`);
 }
