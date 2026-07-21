@@ -532,12 +532,16 @@ async function fetchJSON(url, tries = 3) {
   url += (url.includes('?') ? '&' : '?') + 'token=' + encodeURIComponent(API_TOKEN);
   let lastErr;
   for (let i = 0; i < tries; i++) {
+    const ctrl = new AbortController();
+    const timer = setTimeout(() => ctrl.abort(), 12000); // กันค้างถาวร
     try {
-      const res  = await fetch(url);
+      const res  = await fetch(url, { signal: ctrl.signal });
       const text = await res.text();
+      clearTimeout(timer);
       if (text.trim().startsWith('<')) throw new Error('GAS ยังตื่นไม่เต็มที่'); // cold-start HTML
       return JSON.parse(text);
     } catch(e) {
+      clearTimeout(timer);
       lastErr = e;
       if (i < tries - 1) await new Promise(r => setTimeout(r, 1500));
     }
@@ -1227,12 +1231,12 @@ async function submitLeave() {
 // ── Upcoming Leave (ลาล่วงหน้า) ────────────────────
 function dmyToISO(s){ const m=(s||'').match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})/); if(!m)return''; return `${m[3]}-${m[2].padStart(2,'0')}-${m[1].padStart(2,'0')}`; }
 
-async function openUpcomingLeave() {
+function openUpcomingLeave() {
   closeNav();
   document.getElementById('upcoming-bg').classList.add('open');
-  document.getElementById('upcoming-body').innerHTML = `<div style="text-align:center;padding:40px;color:#8c959f"><div style="font-size:32px">📅</div><div style="margin-top:8px;font-size:14px">กำลังโหลด...</div></div>`;
-  await loadMyLeaves();
-  renderUpcoming();
+  if (myLeaves.length) renderUpcoming();   // แสดงจากข้อมูลที่มีทันที
+  else document.getElementById('upcoming-body').innerHTML = `<div style="text-align:center;padding:40px;color:#8c959f"><div style="font-size:32px">📅</div><div style="margin-top:8px;font-size:14px">กำลังโหลด...</div></div>`;
+  loadMyLeaves().then(renderUpcoming).catch(renderUpcoming); // รีเฟรชเบื้องหลัง (ไม่ค้าง)
 }
 function closeUpcomingLeave() { document.getElementById('upcoming-bg').classList.remove('open'); }
 
