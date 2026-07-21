@@ -188,7 +188,7 @@ tr:hover td { background:#f6f8fa; }
     <select id="f-user"   onchange="renderLog(true)"><option value="">👤 ทุกคน</option></select>
     <select id="f-branch" onchange="renderLog(true)"><option value="">📍 ทุกสาขา</option></select>
     <button class="btn btn-success" onclick="exportCSV()">📊 Export CSV</button>
-    <button class="btn" style="background:#24292f;color:#fff" onclick="exportTXT()" title="ไฟล์ .txt สำหรับ import เข้า Payroll ตามช่วงวันที่ที่เลือก">📄 Export TXT (Payroll)</button>
+    <button class="btn" style="background:#24292f;color:#fff" onclick="openTxtModal()" title="ไฟล์ .txt สำหรับ import เข้า Payroll ตามช่วงวันที่ที่เลือก">📄 Export TXT (Payroll)</button>
     <button class="btn btn-outline" id="btn-cfg" style="display:none" onclick="openCfg()">⚙ ตั้งค่า</button>
     <button class="btn" id="btn-edit-mode" style="display:none;background:#6e40c9;color:#fff" onclick="toggleEditMode()">✏️ แก้ไข</button>
     <button class="btn btn-danger"  id="btn-delete-sel" style="display:none" onclick="deleteSelected()">🗑️ ลบที่เลือก (<span id="sel-count">0</span>)</button>
@@ -338,6 +338,24 @@ tr:hover td { background:#f6f8fa; }
     <div class="modal-actions">
       <button onclick="closeAdminCloseModal()" style="background:#f6f8fa;color:#57606a;">ยกเลิก</button>
       <button onclick="submitAdminClose()" style="background:#6e40c9;color:#fff;">✅ ยืนยันจบงานให้</button>
+    </div>
+  </div>
+</div>
+
+<!-- Export TXT Modal -->
+<div class="modal-bg" id="txt-modal">
+  <div class="modal-box">
+    <h3>📄 Export TXT (Payroll)</h3>
+    <div style="font-size:12px;color:#57606a;margin-bottom:10px" id="txt-range">ช่วงวันที่: —</div>
+    <div style="margin-bottom:8px;padding-bottom:6px;border-bottom:1px solid #e1e4e8">
+      <label style="font-size:13px;font-weight:700;color:#1f2328;cursor:pointer">
+        <input type="checkbox" id="txt-all" checked onclick="txtToggleAll(this)" style="vertical-align:middle"> เลือกทั้งหมด
+      </label>
+    </div>
+    <div id="txt-emp-list" style="max-height:44vh;overflow-y:auto"></div>
+    <div class="modal-actions">
+      <button onclick="closeTxtModal()" style="background:#f6f8fa;color:#57606a;">ยกเลิก</button>
+      <button onclick="doExportTXT()" style="background:#24292f;color:#fff;">📄 สร้างไฟล์</button>
     </div>
   </div>
 </div>
@@ -790,23 +808,58 @@ function extractHMS(ts) {
   return m ? m[0] + ':00' : '';
 }
 
-function exportTXT() {
+function openTxtModal() {
   const from = document.getElementById('f-date-from').value;
   const to   = document.getElementById('f-date-to').value || from;
   if (!from) { alert('กรุณาเลือกช่วงวันที่ (จาก–ถึง) ก่อน'); return; }
+  if (!logData.length) { alert('กรุณากด "โหลดข้อมูล" ก่อน'); return; }
 
-  // map ชื่อ -> รหัสพนักงาน
+  const dmy = s => s.split('-').reverse().join('/');
+  document.getElementById('txt-range').textContent = `ช่วงวันที่: ${dmy(from)} – ${dmy(to)}`;
+
+  const withCode = userData.filter(u => u.empCode && (u.empCode+'').trim());
+  const without  = userData.filter(u => !(u.empCode && (u.empCode+'').trim()));
+
+  let html = withCode.map(u => `
+    <label style="display:flex;align-items:center;gap:8px;padding:7px 4px;font-size:14px;border-bottom:1px solid #f0f2f5;cursor:pointer">
+      <input type="checkbox" class="txt-emp" value="${u.empCode}" data-name="${u.name}" checked onchange="txtSyncAll()" style="width:16px;height:16px">
+      <span>${u.name}</span>
+      <span style="color:#0969da;font-size:12px;font-weight:700">(${u.empCode})</span>
+    </label>`).join('');
+  if (!withCode.length) html = `<div style="text-align:center;padding:20px;color:#cf222e;font-size:13px">ยังไม่มีพนักงานที่มีรหัส — กรุณาเพิ่มรหัสในแท็บ "ผู้ใช้งาน" ก่อน</div>`;
+  if (without.length) html += `<div style="margin-top:8px;font-size:11px;color:#8c959f">⚠️ ไม่มีรหัส (จะไม่ถูกดึง): ${without.map(u=>u.name).join(', ')}</div>`;
+
+  document.getElementById('txt-emp-list').innerHTML = html;
+  document.getElementById('txt-all').checked = withCode.length > 0;
+  document.getElementById('txt-modal').classList.add('open');
+}
+function closeTxtModal() { document.getElementById('txt-modal').classList.remove('open'); }
+function txtToggleAll(el) { document.querySelectorAll('.txt-emp').forEach(c => c.checked = el.checked); }
+function txtSyncAll() {
+  const all = [...document.querySelectorAll('.txt-emp')];
+  document.getElementById('txt-all').checked = all.length > 0 && all.every(c => c.checked);
+}
+
+function doExportTXT() {
+  const from = document.getElementById('f-date-from').value;
+  const to   = document.getElementById('f-date-to').value || from;
+  const picked = new Set([...document.querySelectorAll('.txt-emp:checked')].map(c => c.value));
+  if (!picked.size) { alert('กรุณาเลือกพนักงานอย่างน้อย 1 คน'); return; }
+
+  // map ชื่อ -> รหัสพนักงาน (เฉพาะคนที่เลือก)
   const codeOf = {};
-  userData.forEach(u => { if (u.empCode && (u.empCode+'').trim()) codeOf[u.name] = (u.empCode+'').trim(); });
+  userData.forEach(u => {
+    const c = (u.empCode+'').trim();
+    if (c && picked.has(c)) codeOf[u.name] = c;
+  });
 
   // รวมเวลาเป็นรายวัน ต่อพนักงาน (เข้าเร็วสุด + ออกช้าสุด)
-  const byKey = {};            // "empCode|iso" -> {ins:[], outs:[]}
-  const noCode = new Set();
+  const byKey = {};
   logData.forEach(r => {
     const iso = getRecordDateISO(r);
     if (!iso || iso < from || iso > to) return;
     const code = codeOf[r.name];
-    if (!code) { if (r.name) noCode.add(r.name); return; }
+    if (!code) return;
     const key = code + '|' + iso;
     if (!byKey[key]) byKey[key] = { ins:[], outs:[] };
     const tin  = extractHMS(r.timestamp);
@@ -823,7 +876,7 @@ function exportTXT() {
   const lines = [];
   keys.forEach(k => {
     const [code, iso] = k.split('|');
-    const dmy = iso.split('-').reverse().join('/');   // dd/mm/yyyy
+    const dmy = iso.split('-').reverse().join('/');
     const rec = byKey[k];
     const inT  = rec.ins.length  ? rec.ins.sort()[0] : '';
     const outT = rec.outs.length ? rec.outs.sort().reverse()[0] : '';
@@ -831,15 +884,14 @@ function exportTXT() {
     if (outT) lines.push(`${code} ${dmy} ${outT}`);
   });
 
-  if (!lines.length) { alert('ไม่มีข้อมูลในช่วงวันที่ที่เลือก'); return; }
+  if (!lines.length) { alert('ไม่มีข้อมูลของคนที่เลือกในช่วงวันที่นี้'); return; }
 
   const fn = `${from.replace(/-/g,'')}-${to.replace(/-/g,'')}-APL.txt`;
   const blob = new Blob([lines.join('\r\n') + '\r\n'], { type:'text/plain;charset=utf-8' });
   const a = document.createElement('a');
   a.href = URL.createObjectURL(blob);
   a.download = fn; a.click();
-
-  if (noCode.size) alert('⚠️ ข้ามพนักงานที่ยังไม่มีรหัสพนักงาน:\n' + [...noCode].join(', ') + '\n\nกรุณาเพิ่มรหัสในแท็บ "ผู้ใช้งาน" ก่อน');
+  closeTxtModal();
 }
 
 // ── Edit Mode & Delete ─────────────────────────────
