@@ -1215,9 +1215,15 @@ async function loadHR() {
     leaveData = lj.data || [];
   } catch(e) {}
   const leaveByDate = {};
+  const leaveByType = {};   // ประเภท -> {days, hours}
   leaveData.filter(l => l.name === emp).forEach(l => {
     const iso = dmyToISO(l.leaveDate);
-    if (iso && iso.startsWith(month)) (leaveByDate[iso] = leaveByDate[iso] || []).push(l);
+    if (!iso || !iso.startsWith(month)) return;
+    (leaveByDate[iso] = leaveByDate[iso] || []).push(l);
+    const t = l.leaveType || 'ลาอื่นๆ';
+    if (!leaveByType[t]) leaveByType[t] = { days:0, hours:0 };
+    if (l.mode === 'ช่วงเวลา') leaveByType[t].hours += parseFloat(l.hours) || 0;
+    else leaveByType[t].days += 1;
   });
 
   // ใช้เวลาของพนักงานแต่ละคน
@@ -1325,6 +1331,10 @@ async function loadHR() {
     ] : []),
     { n: noOut > 0 ? `${noOut} วัน` : '0', l: 'ไม่มีเวลาออก', c: noOut>0?'#cf222e':'#1a7f37' },
     { n: leaveDays > 0 ? `${leaveDays} วัน` : '0', l: 'วันลา', c: leaveDays>0?'#b7791f':'#1a7f37' },
+    ...Object.entries(leaveByType).map(([t,v]) => {
+      const parts = []; if (v.days) parts.push(`${v.days} วัน`); if (v.hours) parts.push(`${v.hours} ชม.`);
+      return { n: parts.join(' ') || '0', l: t, c: '#b7791f' };
+    }),
   ];
   cards.innerHTML = cardData.map(c=>`
     <div style="background:#fff;border-radius:10px;padding:12px 18px;border:1px solid #d0d7de;flex:1;min-width:120px">
@@ -1336,7 +1346,7 @@ async function loadHR() {
   document.getElementById('hr-empty').style.display = rowIdx ? 'none' : 'block';
 
   // เก็บ summary ไว้ใช้ตอน export
-  hrSummary = { emp, empCode, month, workDays, totalWork, totalLate, totalEarly, totalOT, noOut, leaveDays };
+  hrSummary = { emp, empCode, month, workDays, totalWork, totalLate, totalEarly, totalOT, noOut, leaveDays, leaveByType };
 }
 
 function exportHRCSV() {
@@ -1359,6 +1369,10 @@ function exportHRCSV() {
     ['OT (รวม)', minsToHM(s.totalOT)],
     ['ไม่มีเวลาออก', `${s.noOut} วัน`],
     ['วันลา', `${s.leaveDays||0} วัน`],
+    ...Object.entries(s.leaveByType||{}).map(([t,v]) => {
+      const parts=[]; if(v.days)parts.push(`${v.days} วัน`); if(v.hours)parts.push(`${v.hours} ชม.`);
+      return [`  • ${t}`, parts.join(' ')||'0'];
+    }),
     [],
     ['#','วันที่','วัน','เวลาเข้า','เวลาออก','สาย','ออกก่อนเวลา','OT','หมายเหตุ'],
   ];
