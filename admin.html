@@ -258,6 +258,7 @@ tr:hover td { background:#f6f8fa; }
       <input type="month" id="hr-month" style="padding:7px 12px;border:1px solid #d0d7de;border-radius:8px;font-size:14px">
       <button class="btn btn-primary" onclick="loadHR()">📊 ดูรายงาน</button>
       <button class="btn btn-outline" onclick="exportHRCSV()">📥 Export CSV</button>
+      <button class="btn" style="background:#24292f;color:#fff" onclick="openTxtModal()" title="ไฟล์ .txt สำหรับ import เข้า Payroll (เลือกช่วงวันที่ + พนักงานในหน้าต่างถัดไป)">📄 Export TXT (Payroll)</button>
     </div>
     <div id="hr-cards" style="display:none;gap:12px;flex-wrap:wrap;margin-bottom:20px"></div>
     <div style="overflow-x:auto">
@@ -346,7 +347,14 @@ tr:hover td { background:#f6f8fa; }
 <div class="modal-bg" id="txt-modal">
   <div class="modal-box">
     <h3>📄 Export TXT (Payroll)</h3>
-    <div style="font-size:12px;color:#57606a;margin-bottom:10px" id="txt-range">ช่วงวันที่: —</div>
+    <div style="margin-bottom:12px">
+      <label style="font-size:12px;font-weight:700;color:#57606a;display:block;margin-bottom:5px">📅 ช่วงวันที่ (งวด Payroll)</label>
+      <div style="display:flex;gap:8px;align-items:center">
+        <input type="date" id="txt-from" style="flex:1;padding:8px 10px;border:1.5px solid #d0d7de;border-radius:8px;font-family:inherit;font-size:14px">
+        <span style="font-size:12px;color:#57606a">ถึง</span>
+        <input type="date" id="txt-to" style="flex:1;padding:8px 10px;border:1.5px solid #d0d7de;border-radius:8px;font-family:inherit;font-size:14px">
+      </div>
+    </div>
     <div style="margin-bottom:8px;padding-bottom:6px;border-bottom:1px solid #e1e4e8">
       <label style="font-size:13px;font-weight:700;color:#1f2328;cursor:pointer">
         <input type="checkbox" id="txt-all" checked onclick="txtToggleAll(this)" style="vertical-align:middle"> เลือกทั้งหมด
@@ -809,13 +817,14 @@ function extractHMS(ts) {
 }
 
 function openTxtModal() {
-  const from = document.getElementById('f-date-from').value;
-  const to   = document.getElementById('f-date-to').value || from;
-  if (!from) { alert('กรุณาเลือกช่วงวันที่ (จาก–ถึง) ก่อน'); return; }
-  if (!logData.length) { alert('กรุณากด "โหลดข้อมูล" ก่อน'); return; }
+  if (!logData.length) { alert('กรุณากด "โหลดข้อมูล" ในแท็บ Check-in Log ก่อน'); return; }
 
-  const dmy = s => s.split('-').reverse().join('/');
-  document.getElementById('txt-range').textContent = `ช่วงวันที่: ${dmy(from)} – ${dmy(to)}`;
+  // งวด default: 20 เดือนก่อน – 19 เดือนนี้ (แก้ได้)
+  const now  = new Date();
+  const from = new Date(now.getFullYear(), now.getMonth()-1, 20);
+  const to   = new Date(now.getFullYear(), now.getMonth(), 19);
+  if (!document.getElementById('txt-from').value) document.getElementById('txt-from').value = fmtDate(from);
+  if (!document.getElementById('txt-to').value)   document.getElementById('txt-to').value   = fmtDate(to);
 
   const withCode = userData.filter(u => u.empCode && (u.empCode+'').trim());
   const without  = userData.filter(u => !(u.empCode && (u.empCode+'').trim()));
@@ -841,8 +850,10 @@ function txtSyncAll() {
 }
 
 function doExportTXT() {
-  const from = document.getElementById('f-date-from').value;
-  const to   = document.getElementById('f-date-to').value || from;
+  const from = document.getElementById('txt-from').value;
+  const to   = document.getElementById('txt-to').value || from;
+  if (!from || !to) { alert('กรุณาเลือกช่วงวันที่ (จาก–ถึง)'); return; }
+  if (from > to) { alert('วันที่เริ่มต้องไม่เกินวันที่สิ้นสุด'); return; }
   const picked = new Set([...document.querySelectorAll('.txt-emp:checked')].map(c => c.value));
   if (!picked.size) { alert('กรุณาเลือกพนักงานอย่างน้อย 1 คน'); return; }
 
