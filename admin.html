@@ -1163,6 +1163,8 @@ function fillHREmp() {
 
 function toMins(t) { if(!t||!t.includes(':'))return -1; const[h,m]=(t+'').split(':').map(Number);return(h||0)*60+(m||0); }
 function minsToHM(m) { if(m<0)return'-'; return `${Math.floor(m/60)}ชม.${m%60>0?m%60+'น.':''}`; }
+function dmyToISO(s){ const m=(s||'').match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})/); if(!m)return''; let y=+m[3]; if(y>2400)y-=543; return `${y}-${m[2].padStart(2,'0')}-${m[1].padStart(2,'0')}`; }
+function leaveSummary(l){ const t=l.leaveType||'ลา'; return l.mode==='ช่วงเวลา' ? `${t} ${l.startTime}-${l.endTime} (${l.hours}ชม.)` : `${t} ทั้งวัน`; }
 
 function recToISO(r) {
   // try date field first
@@ -1207,12 +1209,23 @@ async function loadHR() {
     byDate[iso].push(r);
   });
 
+  // โหลดข้อมูลลา + จัดกลุ่มตามวันที่ (merge เข้ารายงาน วันไม่แหว่ง)
+  try {
+    const lj = await fetchJSON(`${getUrl()}?action=getLeave&t=${Date.now()}`);
+    leaveData = lj.data || [];
+  } catch(e) {}
+  const leaveByDate = {};
+  leaveData.filter(l => l.name === emp).forEach(l => {
+    const iso = dmyToISO(l.leaveDate);
+    if (iso && iso.startsWith(month)) (leaveByDate[iso] = leaveByDate[iso] || []).push(l);
+  });
+
   // ใช้เวลาของพนักงานแต่ละคน
   const empUser = userData.find(u => u.name === emp);
   const hasSchedule = !!(empUser && empUser.scheduleIn && empUser.scheduleOut);
   const HIN  = hasSchedule ? toMins(empUser.scheduleIn)  : -1;
   const HOUT = hasSchedule ? toMins(empUser.scheduleOut) : -1;
-  let totalWork=0, totalLate=0, totalEarly=0, totalOT=0, workDays=0, noOut=0;
+  let totalWork=0, totalLate=0, totalEarly=0, totalOT=0, workDays=0, noOut=0, leaveDays=0;
 
   const tbody = document.getElementById('hr-body');
   let rows = '';
@@ -1223,10 +1236,24 @@ async function loadHR() {
     const dow  = dt.getDay(); // 0=อา 6=ส
     const dayLabel = DAYS_TH[dow];
     const isWeekend = dow === 0 || dow === 6;
-    const recs = byDate[iso] || [];
+    const recs   = byDate[iso] || [];
+    const leaves = leaveByDate[iso] || [];
 
-    if (!recs.length && !isWeekend) return; // ข้ามวันที่ไม่มีข้อมูล (แสดงเฉพาะวันที่มีงาน + เสาร์-อาทิตย์ที่มีงาน)
-    if (!recs.length) return; // ถ้าเสาร์-อาทิตย์แต่ไม่มีงานก็ข้าม
+    if (!recs.length && !leaves.length) return; // ไม่มีทั้งงานและการลา = ข้าม
+
+    // วันที่ลาอย่างเดียว (ไม่มีเช็คอิน) → แสดงเป็นแถวลา ไม่ให้แหว่ง
+    if (!recs.length) {
+      rowIdx++; leaveDays++;
+      const lsum = leaves.map(leaveSummary).join(', ');
+      rows += `<tr style="background:#fff8e6">
+        <td style="padding:10px 14px;font-size:12px;color:#8c959f">${rowIdx}</td>
+        <td style="padding:10px 14px;font-size:13px">${iso.split('-').reverse().join('/')}</td>
+        <td style="padding:10px 14px;font-size:13px;font-weight:700;color:${isWeekend?'#8250df':'#1f2328'}">${dayLabel}</td>
+        <td style="padding:10px 14px;font-size:13px" colspan="5"><span style="color:#b7791f;font-weight:700">🏖️ ลา</span></td>
+        <td style="padding:10px 14px;font-size:12px"><span style="color:#b7791f;font-weight:700">${lsum}</span></td>
+      </tr>`;
+      return;
+    }
 
     rowIdx++;
     const inTimes  = recs.map(r=>extractTime(r.timestamp)).filter(Boolean);
@@ -1259,6 +1286,7 @@ async function loadHR() {
     }
     if (!hasOut) { note = '⚠️ ไม่มีเวลาออก — แจ้งหัวหน้า'; noOut++; }
     if (adminNote) note = adminNote + (note ? ` | ${note}` : '');
+    if (leaves.length) { note = `<span style="color:#b7791f;font-weight:700">🏖️ ${leaves.map(leaveSummary).join(', ')}</span>` + (note ? ` | ${note}` : ''); }
     if (taskType) note = taskType + (note ? ` | ${note}` : '');
     if (inM >= 0 && hasOut && outM > inM) totalWork += outM - inM;
 
@@ -1296,6 +1324,7 @@ async function loadHR() {
       { n: minsToHM(totalOT),               l: 'OT (รวม)',     c: '#8250df' },
     ] : []),
     { n: noOut > 0 ? `${noOut} วัน` : '0', l: 'ไม่มีเวลาออก', c: noOut>0?'#cf222e':'#1a7f37' },
+    { n: leaveDays > 0 ? `${leaveDays} วัน` : '0', l: 'วันลา', c: leaveDays>0?'#b7791f':'#1a7f37' },
   ];
   cards.innerHTML = cardData.map(c=>`
     <div style="background:#fff;border-radius:10px;padding:12px 18px;border:1px solid #d0d7de;flex:1;min-width:120px">
@@ -1307,7 +1336,7 @@ async function loadHR() {
   document.getElementById('hr-empty').style.display = rowIdx ? 'none' : 'block';
 
   // เก็บ summary ไว้ใช้ตอน export
-  hrSummary = { emp, empCode, month, workDays, totalWork, totalLate, totalEarly, totalOT, noOut };
+  hrSummary = { emp, empCode, month, workDays, totalWork, totalLate, totalEarly, totalOT, noOut, leaveDays };
 }
 
 function exportHRCSV() {
@@ -1329,6 +1358,7 @@ function exportHRCSV() {
     ['ออกก่อนเวลา (รวม)', minsToHM(s.totalEarly)],
     ['OT (รวม)', minsToHM(s.totalOT)],
     ['ไม่มีเวลาออก', `${s.noOut} วัน`],
+    ['วันลา', `${s.leaveDays||0} วัน`],
     [],
     ['#','วันที่','วัน','เวลาเข้า','เวลาออก','สาย','ออกก่อนเวลา','OT','หมายเหตุ'],
   ];
