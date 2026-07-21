@@ -381,7 +381,7 @@ body { font-family: 'Sarabun', sans-serif; background: #f0f2f5; min-height: 100v
       <label>📅 วันที่ลา *</label>
       <input id="lv-date" type="date">
     </div>
-    <div class="ex-form-row">
+    <div class="ex-form-row" id="lv-timemode-row">
       <label>⏰ ช่วงเวลา</label>
       <div style="display:flex;gap:8px">
         <button type="button" id="lv-mode-full" class="lv-mode on" onclick="setLeaveMode('full')">ลาทั้งวัน</button>
@@ -406,7 +406,7 @@ body { font-family: 'Sarabun', sans-serif; background: #f0f2f5; min-height: 100v
     </div>
     <div class="ex-actions">
       <button onclick="closeLeaveModal()" style="background:#f6f8fa;color:#57606a;">ยกเลิก</button>
-      <button onclick="submitLeave()" style="background:#f0b429;color:#fff;">✅ ส่งใบลา</button>
+      <button onclick="submitLeave()" style="background:#f0b429;color:#fff;">✅ ส่งข้อมูล</button>
     </div>
   </div>
 </div>
@@ -1128,13 +1128,10 @@ function onLeaveTypeChange() {
   const v = document.getElementById('lv-type').value;
   document.getElementById('lv-cert-row').style.display = (v === 'ลาป่วย') ? '' : 'none';
   // วันหยุดประจำ → ทั้งวันอย่างเดียว (ปิดปุ่มระบุช่วงเวลา)
-  const partBtn = document.getElementById('lv-mode-part');
-  if (v === 'วันหยุดประจำ') {
-    setLeaveMode('full');
-    partBtn.disabled = true; partBtn.style.opacity = '0.4'; partBtn.style.cursor = 'not-allowed';
-  } else {
-    partBtn.disabled = false; partBtn.style.opacity = ''; partBtn.style.cursor = 'pointer';
-  }
+  // วันหยุดประจำ → ทั้งวันเสมอ ซ่อนบล็อกช่วงเวลาทิ้ง เหลือแค่วันที่ + หมายเหตุ
+  const isHoliday = v === 'วันหยุดประจำ';
+  if (isHoliday) setLeaveMode('full');
+  document.getElementById('lv-timemode-row').style.display = isHoliday ? 'none' : '';
 }
 
 function setLeaveMode(m) {
@@ -1196,7 +1193,7 @@ async function submitLeave() {
   try {
     await fetch(SCRIPT_URL, { method:'POST', mode:'no-cors', headers:{'Content-Type':'application/json'}, body: JSON.stringify(payload) });
   } catch(e) {}
-  if (btn) { btn.disabled = false; btn.textContent = '✅ ส่งใบลา'; }
+  if (btn) { btn.disabled = false; btn.textContent = '✅ ส่งข้อมูล'; }
   // เก็บลง localStorage ตามวันที่ลา → แสดงในหน้าจอวันนั้น (ผ่านวันแล้วหายเอง)
   const arr = getLeavesOn(dISO);
   arr.push({ type, mode: payload.mode, start: startTime, end: endTime, hours, note });
