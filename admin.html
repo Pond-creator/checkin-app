@@ -350,9 +350,9 @@ tr:hover td { background:#f6f8fa; }
     <div style="margin-bottom:12px">
       <label style="font-size:12px;font-weight:700;color:#57606a;display:block;margin-bottom:5px">📅 ช่วงวันที่ (งวด Payroll)</label>
       <div style="display:flex;gap:8px;align-items:center">
-        <input type="date" id="txt-from" style="flex:1;padding:8px 10px;border:1.5px solid #d0d7de;border-radius:8px;font-family:inherit;font-size:14px">
+        <input type="date" id="txt-from" onchange="txtUpdateFilename()" style="flex:1;padding:8px 10px;border:1.5px solid #d0d7de;border-radius:8px;font-family:inherit;font-size:14px">
         <span style="font-size:12px;color:#57606a">ถึง</span>
-        <input type="date" id="txt-to" style="flex:1;padding:8px 10px;border:1.5px solid #d0d7de;border-radius:8px;font-family:inherit;font-size:14px">
+        <input type="date" id="txt-to" onchange="txtUpdateFilename()" style="flex:1;padding:8px 10px;border:1.5px solid #d0d7de;border-radius:8px;font-family:inherit;font-size:14px">
       </div>
     </div>
     <div style="margin-bottom:8px;padding-bottom:6px;border-bottom:1px solid #e1e4e8">
@@ -360,7 +360,15 @@ tr:hover td { background:#f6f8fa; }
         <input type="checkbox" id="txt-all" checked onclick="txtToggleAll(this)" style="vertical-align:middle"> เลือกทั้งหมด
       </label>
     </div>
-    <div id="txt-emp-list" style="max-height:44vh;overflow-y:auto"></div>
+    <div id="txt-emp-list" style="max-height:38vh;overflow-y:auto"></div>
+    <div style="margin-top:12px">
+      <label style="font-size:12px;font-weight:700;color:#57606a;display:block;margin-bottom:5px">📝 ชื่อไฟล์</label>
+      <div style="display:flex;align-items:center;gap:6px">
+        <input type="text" id="txt-filename" placeholder="เช่น 20260620-20260719-APL" style="flex:1;padding:8px 10px;border:1.5px solid #d0d7de;border-radius:8px;font-family:inherit;font-size:13px">
+        <span style="font-size:13px;color:#57606a;font-weight:700">.txt</span>
+      </div>
+      <div style="font-size:11px;color:#8c959f;margin-top:3px">พิมพ์ต่อท้ายได้เลย (เช่น APL / AP / LM)</div>
+    </div>
     <div class="modal-actions">
       <button onclick="closeTxtModal()" style="background:#f6f8fa;color:#57606a;">ยกเลิก</button>
       <button onclick="doExportTXT()" style="background:#24292f;color:#fff;">📄 สร้างไฟล์</button>
@@ -825,6 +833,7 @@ function openTxtModal() {
   const to   = new Date(now.getFullYear(), now.getMonth(), 19);
   if (!document.getElementById('txt-from').value) document.getElementById('txt-from').value = fmtDate(from);
   if (!document.getElementById('txt-to').value)   document.getElementById('txt-to').value   = fmtDate(to);
+  txtUpdateFilename();
 
   const withCode = userData.filter(u => u.empCode && (u.empCode+'').trim());
   const without  = userData.filter(u => !(u.empCode && (u.empCode+'').trim()));
@@ -843,6 +852,15 @@ function openTxtModal() {
   document.getElementById('txt-modal').classList.add('open');
 }
 function closeTxtModal() { document.getElementById('txt-modal').classList.remove('open'); }
+function txtUpdateFilename() {
+  const from = document.getElementById('txt-from').value;
+  const to   = document.getElementById('txt-to').value;
+  if (!from || !to) return;
+  const prefix = `${from.replace(/-/g,'')}-${to.replace(/-/g,'')}-`;
+  const el = document.getElementById('txt-filename');
+  const suffix = (el.value || '').replace(/^\d{8}-\d{8}-/, ''); // เก็บส่วนที่พิมพ์เอง
+  el.value = prefix + suffix;
+}
 function txtToggleAll(el) { document.querySelectorAll('.txt-emp').forEach(c => c.checked = el.checked); }
 function txtSyncAll() {
   const all = [...document.querySelectorAll('.txt-emp')];
@@ -897,7 +915,10 @@ function doExportTXT() {
 
   if (!lines.length) { alert('ไม่มีข้อมูลของคนที่เลือกในช่วงวันที่นี้'); return; }
 
-  const fn = `${from.replace(/-/g,'')}-${to.replace(/-/g,'')}-APL.txt`;
+  let base = (document.getElementById('txt-filename').value || '').trim();
+  if (!base) base = `${from.replace(/-/g,'')}-${to.replace(/-/g,'')}`;
+  base = base.replace(/[\\/:*?"<>|]/g, '').replace(/-+$/,''); // ตัดอักขระต้องห้าม + ขีดท้าย
+  const fn = base + '.txt';
   const blob = new Blob([lines.join('\r\n') + '\r\n'], { type:'text/plain;charset=utf-8' });
   const a = document.createElement('a');
   a.href = URL.createObjectURL(blob);
