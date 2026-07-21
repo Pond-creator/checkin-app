@@ -1047,14 +1047,23 @@ async function saveUser() {
   const empCode=document.getElementById('u-empcode').value.trim();
   if (!id||!name) { alert('กรุณากรอก ID และชื่อ'); return; }
   if (!empCode) { alert('กรุณากรอกรหัสพนักงาน (สำหรับ Payroll)'); return; }
+  if (!editingUserId && !pass) { alert('กรุณากรอกรหัสผ่านสำหรับผู้ใช้ใหม่'); return; }
+  const dupId=!editingUserId && userData.find(u=>u.id.toString()===id);
+  if (dupId) { alert(`รหัสผู้ใช้ (ID) "${id}" มีอยู่แล้ว (${dupId.name})\nกรุณาใช้ ID อื่น`); return; }
   const dup=userData.find(u=>(u.empCode||'').trim()===empCode && u.id!==id);
   if (dup) { alert(`รหัสพนักงาน ${empCode} ซ้ำกับ "${dup.name}" (${dup.id})\nกรุณาใช้รหัสอื่น`); return; }
   if (!requireAdminCreds()) return;
   const url=getUrl(); if (!url) return;
   showLoad(true);
   try {
-    const res=await fetch(url,{method:'POST',mode:'no-cors',headers:{'Content-Type':'application/json'},body:JSON.stringify({token:API_TOKEN,actorId:session.id,actorPass:session.pass,action:'saveUser',id,empCode,name,pass,role,scheduleIn,scheduleOut})});
-    closeUserModal(); await loadUsers();
+    await fetch(url,{method:'POST',mode:'no-cors',headers:{'Content-Type':'application/json'},body:JSON.stringify({token:API_TOKEN,actorId:session.id,actorPass:session.pass,action:'saveUser',id,empCode,name,pass,role,scheduleIn,scheduleOut})});
+    await new Promise(r=>setTimeout(r,1200));   // รอ GAS เขียนเสร็จก่อนโหลดใหม่
+    await loadUsers();
+    if (!userData.find(u=>u.id.toString()===id.toString())) {
+      alert('⚠️ บันทึกไม่สำเร็จ\nอาจเพราะรหัสพนักงาน/ID ซ้ำ หรือข้อมูลไม่ครบ กรุณาลองใหม่');
+    } else {
+      closeUserModal();
+    }
   } catch(e) { alert('บันทึกไม่สำเร็จ'); }
   showLoad(false);
 }
