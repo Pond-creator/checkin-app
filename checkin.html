@@ -622,6 +622,7 @@ async function fetchBranches() {
   } catch(e) { _branches = []; }
 }
 fetchBranches();
+loadMyLeaves();
 
 // ── GPS ────────────────────────────────────────────
 function haversine(lat1,lon1,lat2,lon2) {
@@ -1089,18 +1090,26 @@ function closeModal() {
 // ── Leave (แจ้งลา) ─────────────────────────────────
 let leaveMode = 'full', leaveCert = '';
 
-// การลาของ "วันนี้" (เก็บ localStorage ตามวันที่ลา → ผ่านวันแล้วหายเอง)
-function getLeavesOn(dateKey) { try { return JSON.parse(store.get('leave_'+dateKey)||'[]'); } catch { return []; } }
+// การลา/วันหยุด "วันนี้" — ดึงจากเซิร์ฟเวอร์ (เชื่อถือได้ทุกเครื่อง, เที่ยงคืนหายเอง)
+let myLeaves = [];
+async function loadMyLeaves() {
+  try {
+    const j = await fetchJSON(`${SCRIPT_URL}?action=getLeave&t=${Date.now()}`);
+    myLeaves = (j.data || []).filter(l => l.name === MY_NAME);
+  } catch(e) { myLeaves = []; }
+  renderTodayLeave();
+}
 function renderTodayLeave() {
   const el = document.getElementById('leave-today');
   if (!el) return;
-  const leaves = getLeavesOn(todayKey());
+  const today = nowDateStr(); // dd/MM/yyyy
+  const leaves = myLeaves.filter(l => (l.leaveDate||'') === today);
   if (!leaves.length) { el.innerHTML = ''; return; }
-  el.innerHTML = `<div class="leave-today-title">🏖️ การลาวันนี้</div><div style="padding:0 16px 4px">` +
+  el.innerHTML = `<div class="leave-today-title">🏖️ การลา/วันหยุดวันนี้</div><div style="padding:0 16px 4px">` +
     leaves.map(l => {
-      const t = l.mode === 'ช่วงเวลา' ? `${l.start}-${l.end} (${l.hours} ชม.)` : 'ลาทั้งวัน';
+      const t = l.mode === 'ช่วงเวลา' ? `${l.startTime}-${l.endTime} (${l.hours} ชม.)` : 'ทั้งวัน';
       return `<div class="leave-card">
-        <div class="lc-type">🏖️ ${l.type}</div>
+        <div class="lc-type">🏖️ ${l.leaveType}</div>
         <div class="lc-time">⏰ ${t}</div>
         ${l.note ? `<div class="lc-note">📝 ${l.note}</div>` : ''}
       </div>`;
@@ -1194,12 +1203,8 @@ async function submitLeave() {
     await fetch(SCRIPT_URL, { method:'POST', mode:'no-cors', headers:{'Content-Type':'application/json'}, body: JSON.stringify(payload) });
   } catch(e) {}
   if (btn) { btn.disabled = false; btn.textContent = '✅ ส่งข้อมูล'; }
-  // เก็บลง localStorage ตามวันที่ลา → แสดงในหน้าจอวันนั้น (ผ่านวันแล้วหายเอง)
-  const arr = getLeavesOn(dISO);
-  arr.push({ type, mode: payload.mode, start: startTime, end: endTime, hours, note });
-  store.set('leave_'+dISO, JSON.stringify(arr));
-  renderTodayLeave();
   closeLeaveModal();
+  setTimeout(loadMyLeaves, 1200); // รอ GAS เขียนเสร็จแล้วรีเฟรชการ์ด
   alert(`✅ ส่งใบลาเรียบร้อย\n${type} • ${leaveDate}${leaveMode==='part'?` • ${startTime}-${endTime} (${hours} ชม.)`:' • ทั้งวัน'}`);
 }
 
