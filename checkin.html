@@ -427,12 +427,12 @@ body { font-family: 'Sarabun', sans-serif; background: #f0f2f5; min-height: 100v
 </div>
 
 <script>
-const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxst_UC3w1zJJ_1gc3aBthvRnEhYbdX76E0z7hDV8nWEKh2tVlWV2YEpQMiCVzMOhuv/exec';
-const API_TOKEN  = 'FLO-ckn-8Kq2Wm7Zx4Rp9Nv3Ts6Yb1Ha'; // 🔐 ต้องตรงกับ GAS
+var SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxst_UC3w1zJJ_1gc3aBthvRnEhYbdX76E0z7hDV8nWEKh2tVlWV2YEpQMiCVzMOhuv/exec';
+var API_TOKEN  = 'FLO-ckn-8Kq2Wm7Zx4Rp9Nv3Ts6Yb1Ha'; // 🔐 ต้องตรงกับ GAS
 
 // ── Storage ────────────────────────────────────────
-const mem = {};
-const store = {
+var mem = {};
+var store = {
   get: k => { try { return localStorage.getItem(k); } catch(e) { return mem[k]||null; } },
   set: (k,v) => { try { localStorage.setItem(k,v); } catch(e) { mem[k]=v; } }
 };
@@ -456,11 +456,11 @@ async function fetchJSON(url, tries = 3) {
 }
 
 // ── Auth ───────────────────────────────────────────
-const session = (() => { try { return JSON.parse(store.get('session')||'null'); } catch { return null; } })();
+var session = (() => { try { return JSON.parse(store.get('session')||'null'); } catch { return null; } })();
 if (!session) location.href = 'index.html';
 
-const MY_NAME = session ? session.name : '';
-const MY_ROLE = session ? session.role : 'staff';
+var MY_NAME = session ? session.name : '';
+var MY_ROLE = session ? session.role : 'staff';
 
 document.getElementById('display-name').textContent = MY_NAME;
 document.getElementById('nav-name').textContent = MY_NAME;
@@ -539,7 +539,7 @@ function tick() {
 setInterval(tick, 1000); tick();
 
 // ── Branches from log history ──────────────────────
-let _branches = [];
+var _branches = [];
 async function fetchBranches() {
   try {
     const j = await fetchJSON(`${SCRIPT_URL}?action=getEmp&name=${encodeURIComponent(MY_NAME)}&t=${Date.now()}`);
@@ -774,8 +774,8 @@ function deleteExtraRound(idx) {
 }
 
 // ── Check-in Flow ──────────────────────────────────
-let curRound = null, gps = null, photo = null, stream = null, ovTimer = null;
-let checkoutIdx = null;
+var curRound = null, gps = null, photo = null, stream = null, ovTimer = null;
+var checkoutIdx = null;
 
 function openRound(i) {
   const r = getAllRounds()[i];
