@@ -73,6 +73,7 @@ tr:nth-child(even) { background: #fafbfc; }
       <tr><td colspan="10"><div class="empty"><div class="ic">🏖️</div>กด "โหลดข้อมูลการลา"</div></td></tr>
     </tbody>
   </table>
+  <div id="lv-pager" style="display:flex;align-items:center;justify-content:center;gap:14px;padding:16px 0;font-size:13px;color:#57606a"></div>
 </div>
 
 <div class="loading" id="loading">⏳ กำลังโหลด...</div>
@@ -166,20 +167,44 @@ async function loadLeave() {
   showLoad(false);
 }
 
+var lvPage = 1;
+var LV_PAGE_SIZE = 50;
+
 function getFilteredLeave() {
   var emp   = document.getElementById('lv-f-emp').value;
   var month = document.getElementById('lv-f-month').value;
-  return leaveData.filter(function(r){
+  var list = leaveData.filter(function(r){
     if (emp && r.name !== emp) return false;
     if (month && dmyToISO(r.leaveDate).indexOf(month) !== 0) return false;
     return true;
   });
+  // ลาล่าสุดอยู่บนสุดเสมอ: เรียงตามวันที่ลา แล้วตามเวลาบันทึกล่าสุด
+  list.sort(function(a, b){
+    var da = dmyToISO(a.leaveDate), db = dmyToISO(b.leaveDate);
+    if (da !== db) return da < db ? 1 : -1;
+    return (a.timestamp||'') < (b.timestamp||'') ? 1 : -1;
+  });
+  return list;
 }
 
 function renderLeave() {
+  lvPage = 1; // กรอง/โหลดใหม่ทุกครั้ง กลับไปหน้าแรกเสมอ
+  renderLeavePage();
+}
+
+function renderLeavePage() {
   var tbody = document.getElementById('leave-body');
-  var list = getFilteredLeave();
-  if (!list.length) { tbody.innerHTML = '<tr><td colspan="10"><div class="empty"><div class="ic">🏖️</div>ไม่พบข้อมูลการลา</div></td></tr>'; return; }
+  var full  = getFilteredLeave();
+  var totalPages = Math.max(1, Math.ceil(full.length / LV_PAGE_SIZE));
+  if (lvPage > totalPages) lvPage = totalPages;
+  var start = (lvPage - 1) * LV_PAGE_SIZE;
+  var list  = full.slice(start, start + LV_PAGE_SIZE);
+
+  if (!full.length) {
+    tbody.innerHTML = '<tr><td colspan="10"><div class="empty"><div class="ic">🏖️</div>ไม่พบข้อมูลการลา</div></td></tr>';
+    document.getElementById('lv-pager').innerHTML = '';
+    return;
+  }
   var col = { 'วันหยุดประจำ':'#1a7f37', 'ลาป่วย':'#cf222e', 'ลากิจ':'#0969da', 'พักร้อน':'#8250df', 'ลาอื่นๆ':'#57606a' };
   var codeOf = {};
   userData.forEach(function(u){ if (u.empCode) codeOf[u.name] = (u.empCode+'').trim(); });
@@ -192,7 +217,7 @@ function renderLeave() {
     var time = r.mode === 'ช่วงเวลา' ? (r.startTime + '-' + r.endTime) : 'ทั้งวัน';
     var hrs  = r.mode === 'ช่วงเวลา' ? (r.hours ? r.hours + ' ชม.' : '-') : 'ทั้งวัน';
     return '<tr>' +
-      '<td style="color:#8c959f;font-size:11px">' + (i+1) + '</td>' +
+      '<td style="color:#8c959f;font-size:11px">' + (start + i + 1) + '</td>' +
       '<td><b>' + (r.leaveDate||'-') + '</b></td>' +
       '<td>' + (codeOf[r.name] || '-') + '</td>' +
       '<td>' + (r.name||'-') + '</td>' +
@@ -204,7 +229,18 @@ function renderLeave() {
       '<td style="font-size:11px;color:#8c959f">' + (r.timestamp||'-') + '</td>' +
     '</tr>';
   }).join('');
+
+  var pager = document.getElementById('lv-pager');
+  if (totalPages <= 1) { pager.innerHTML = ''; return; }
+  pager.innerHTML =
+    '<button class="btn" style="background:#f6f8fa;color:#57606a;border:1px solid #d0d7de" ' +
+      (lvPage<=1?'disabled':'') + ' onclick="lvGoPage(' + (lvPage-1) + ')">← ก่อนหน้า</button>' +
+    '<span>หน้า ' + lvPage + ' / ' + totalPages + ' (ทั้งหมด ' + full.length + ' รายการ)</span>' +
+    '<button class="btn" style="background:#f6f8fa;color:#57606a;border:1px solid #d0d7de" ' +
+      (lvPage>=totalPages?'disabled':'') + ' onclick="lvGoPage(' + (lvPage+1) + ')">ถัดไป →</button>';
 }
+
+function lvGoPage(p) { lvPage = p; renderLeavePage(); }
 
 function exportLeaveCSV() {
   var rows = getFilteredLeave();
@@ -228,6 +264,9 @@ function exportLeaveCSV() {
   a.download = 'leave_' + (emp||'all') + '_' + (month||'all') + '.csv';
   a.click();
 }
+
+// โหลดข้อมูลอัตโนมัติตอนเปิดหน้า (ยังกดปุ่ม "โหลดข้อมูลการลา" เพื่อรีเฟรชเองได้ตามปกติ)
+loadLeave();
 </script>
 </body>
 </html>
