@@ -150,6 +150,15 @@ body { font-family: 'Sarabun', sans-serif; background: #f0f2f5; min-height: 100v
 }
 .btn-extra:hover { border-color: #0969da; color: #0969da; background: #f0f7ff; }
 
+/* Leave (isolated feature — see IIFE at bottom of script) */
+.leave-today-title { padding: 14px 20px 6px; font-size: 13px; color: #b7791f; font-weight: 700; }
+.leave-card { background: #fff8e6; border: 2px solid #f0b429; border-radius: 12px; padding: 12px 16px; margin: 0 16px 10px; }
+.leave-card .lc-type { font-size: 15px; font-weight: 700; color: #b7791f; }
+.leave-card .lc-time { font-size: 12px; color: #9a7b1f; margin-top: 2px; }
+.leave-card .lc-note { font-size: 12px; color: #8c959f; margin-top: 2px; }
+.lv-mode { flex: 1; padding: 9px; border: 1.5px solid #d0d7de; background: #fff; border-radius: 8px; font-family: inherit; font-size: 13px; cursor: pointer; color: #57606a; }
+.lv-mode.on { border-color: #f0b429; background: #fff8e6; color: #b7791f; font-weight: 700; }
+
 /* Extra Modal */
 .extra-modal-bg {
   display: none; position: fixed; inset: 0; background: rgba(0,0,0,.55);
@@ -255,7 +264,7 @@ body { font-family: 'Sarabun', sans-serif; background: #f0f2f5; min-height: 100v
   </div>
   <div class="header-right">
     <button class="btn-menu" onclick="location.reload()" title="รีเฟรช">🔄</button>
-    <button class="btn-menu" onclick="openNav()">☰</button>
+    <button class="btn-menu" onclick="openNav()" style="position:relative">☰<span id="leave-badge" style="display:none;position:absolute;top:-3px;right:-3px;width:16px;height:16px;background:#d97706;color:#fff;border-radius:50%;font-size:10px;font-weight:700;align-items:center;justify-content:center;line-height:1">❗</span></button>
   </div>
 </div>
 
@@ -281,16 +290,26 @@ body { font-family: 'Sarabun', sans-serif; background: #f0f2f5; min-height: 100v
     <div class="nav-item" onclick="openHistory()">
       <span class="ni-icon">🕐</span> ประวัติ 7 วัน
     </div>
+    <div class="nav-item" onclick="window.openUpcomingLeave && window.openUpcomingLeave()">
+      <span class="ni-icon">📅</span> ลาล่วงหน้า
+    </div>
   </div>
   <div class="nav-logout" onclick="logout()">
     <span class="ni-icon">🚪</span> ออกจากระบบ
   </div>
 </div>
 
+<div id="leave-today"></div>
 <div class="section-title">รอบเช็กอินวันนี้</div>
 <div class="rounds" id="rounds"></div>
 <div class="extra-round-wrap">
   <button class="btn-extra" onclick="openExtraModal()">＋ เช็คเวลาเข้า/ออกงาน</button>
+</div>
+<div style="padding:20px 16px 28px;margin-top:8px;border-top:1px solid #e8eaed">
+  <button onclick="window.openLeaveModal && window.openLeaveModal()"
+    style="width:100%;padding:13px;border-radius:10px;border:2px solid #f0b429;background:#fff8e6;color:#b7791f;font-size:15px;font-weight:700;cursor:pointer;font-family:inherit">
+    🏖️ แจ้งลา / วันหยุดประจำ
+  </button>
 </div>
 
 <!-- Extra Round Modal -->
@@ -333,6 +352,68 @@ body { font-family: 'Sarabun', sans-serif; background: #f0f2f5; min-height: 100v
     <div class="ex-actions">
       <button onclick="closeExtraModal()" style="background:#f6f8fa;color:#57606a;">ยกเลิก</button>
       <button onclick="confirmAddExtra()" style="background:#0969da;color:#fff;">➕ เพิ่มรอบ</button>
+    </div>
+  </div>
+</div>
+
+<!-- Leave Modal (isolated feature — see IIFE at bottom of script) -->
+<div class="extra-modal-bg" id="leave-modal-bg">
+  <div class="extra-modal-box" style="max-width:380px;max-height:88vh;overflow-y:auto">
+    <h3>🏖️ แจ้งลา / วันหยุดประจำ</h3>
+    <div class="ex-form-row">
+      <label>📋 ประเภท *</label>
+      <select id="lv-type" onchange="onLeaveTypeChange()">
+        <option value="">-- เลือกประเภท --</option>
+        <option value="วันหยุดประจำ">วันหยุดประจำ</option>
+        <option value="ลาป่วย">ลาป่วย</option>
+        <option value="ลากิจ">ลากิจ</option>
+        <option value="พักร้อน">พักร้อน</option>
+        <option value="ลาอื่นๆ">ลาอื่นๆ</option>
+      </select>
+    </div>
+    <div class="ex-form-row">
+      <label>📅 วันที่ *</label>
+      <input id="lv-date" type="date">
+    </div>
+    <div class="ex-form-row" id="lv-timemode-row">
+      <label>⏰ ช่วงเวลา</label>
+      <div style="display:flex;gap:8px">
+        <button type="button" id="lv-mode-full" class="lv-mode on" onclick="setLeaveMode('full')">ลาทั้งวัน</button>
+        <button type="button" id="lv-mode-part" class="lv-mode" onclick="setLeaveMode('part')">ระบุช่วงเวลา</button>
+      </div>
+      <div id="lv-time-row" style="display:none;align-items:center;gap:8px;margin-top:10px">
+        <input id="lv-start" type="time" onchange="calcLeaveHours()" style="flex:1;padding:9px;border:1.5px solid #d0d7de;border-radius:8px;font-family:inherit">
+        <span>-</span>
+        <input id="lv-end" type="time" onchange="calcLeaveHours()" style="flex:1;padding:9px;border:1.5px solid #d0d7de;border-radius:8px;font-family:inherit">
+        <span id="lv-hours" style="font-size:12px;color:#0969da;font-weight:700;white-space:nowrap"></span>
+      </div>
+    </div>
+    <div class="ex-form-row">
+      <label>📝 หมายเหตุ</label>
+      <textarea id="lv-note" rows="2" placeholder="เหตุผล/รายละเอียด..." maxlength="150"
+        style="width:100%;padding:10px 12px;border:1.5px solid #d0d7de;border-radius:8px;font-size:14px;outline:none;font-family:inherit;resize:vertical"></textarea>
+    </div>
+    <div class="ex-form-row" id="lv-cert-row" style="display:none">
+      <label>📎 ใบรับรองแพทย์ (แนบรูป)</label>
+      <input id="lv-cert" type="file" accept="image/*" onchange="onCertPick(event)" style="width:100%;font-size:13px">
+      <img id="lv-cert-preview" style="display:none;max-width:100%;margin-top:8px;border-radius:8px;border:1px solid #d0d7de">
+    </div>
+    <div class="ex-actions">
+      <button onclick="closeLeaveModal()" style="background:#f6f8fa;color:#57606a;">ยกเลิก</button>
+      <button onclick="submitLeave()" style="background:#f0b429;color:#fff;">✅ ส่งข้อมูล</button>
+    </div>
+  </div>
+</div>
+
+<!-- Upcoming Leave Modal (isolated feature) -->
+<div class="hist-bg" id="upcoming-bg" onclick="closeUpcomingLeave()">
+  <div class="hist-box" onclick="event.stopPropagation()">
+    <div class="hist-head">
+      <h3>📅 ลาล่วงหน้า / วันหยุดที่จะถึง</h3>
+      <button class="hist-close" onclick="closeUpcomingLeave()">✕</button>
+    </div>
+    <div class="hist-body" id="upcoming-body">
+      <div style="text-align:center;padding:40px;color:#8c959f"><div style="font-size:32px">📅</div><div style="margin-top:8px;font-size:14px">กำลังโหลด...</div></div>
     </div>
   </div>
 </div>
@@ -1080,6 +1161,207 @@ window.addEventListener('beforeunload', () => { stopStream(); clearInterval(ovTi
 if ('serviceWorker' in navigator) {
   navigator.serviceWorker.register('/checkin-app/sw.js').catch(()=>{});
 }
+
+// ══════════════════════════════════════════════════════════════
+// 🏖️ LEAVE FEATURE — self-contained IIFE, isolated from the rest
+// of the app. All state below is function-scoped (var/let inside
+// this closure), never a global binding — cannot collide with or
+// break the check-in flow above. Only the entry points needed by
+// onclick="" attributes are exposed on window.
+// ══════════════════════════════════════════════════════════════
+(function(){
+  'use strict';
+
+  var leaveMode = 'full';
+  var leaveCert = '';
+  var myLeaves  = [];
+
+  function dmyToISO(s) {
+    var m = (s || '').match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})/);
+    if (!m) return '';
+    return m[3] + '-' + m[2].padStart(2,'0') + '-' + m[1].padStart(2,'0');
+  }
+
+  async function loadMyLeaves() {
+    try {
+      var j = await fetchJSON(SCRIPT_URL + '?action=getLeave&t=' + Date.now());
+      myLeaves = (j.data || []).filter(function(l){ return l.name === MY_NAME; });
+    } catch(e) { myLeaves = []; }
+    renderTodayLeave();
+    renderLeaveBadge();
+  }
+
+  function renderLeaveBadge() {
+    var badge = document.getElementById('leave-badge');
+    if (!badge) return;
+    var today = todayKey();
+    var hasUpcoming = myLeaves.some(function(l){
+      var iso = dmyToISO(l.leaveDate);
+      return iso && iso >= today;
+    });
+    badge.style.display = hasUpcoming ? 'flex' : 'none';
+  }
+
+  function renderTodayLeave() {
+    var el = document.getElementById('leave-today');
+    if (!el) return;
+    var today = nowDateStr(); // dd/MM/yyyy
+    var leaves = myLeaves.filter(function(l){ return (l.leaveDate||'') === today; });
+    if (!leaves.length) { el.innerHTML = ''; return; }
+    el.innerHTML = '<div class="leave-today-title">🏖️ การลา/วันหยุดวันนี้</div>' +
+      leaves.map(function(l){
+        var t = l.mode === 'ช่วงเวลา' ? (l.startTime + '-' + l.endTime + ' (' + l.hours + ' ชม.)') : 'ทั้งวัน';
+        return '<div class="leave-card">' +
+          '<div class="lc-type">🏖️ ' + l.leaveType + '</div>' +
+          '<div class="lc-time">⏰ ' + t + '</div>' +
+          (l.note ? '<div class="lc-note">📝 ' + l.note + '</div>' : '') +
+        '</div>';
+      }).join('');
+  }
+
+  function openLeaveModal() {
+    document.getElementById('lv-type').value = '';
+    document.getElementById('lv-date').value = todayKey();
+    document.getElementById('lv-note').value = '';
+    document.getElementById('lv-start').value = '';
+    document.getElementById('lv-end').value = '';
+    document.getElementById('lv-hours').textContent = '';
+    setLeaveMode('full');
+    document.getElementById('lv-cert-row').style.display = 'none';
+    document.getElementById('lv-cert').value = '';
+    document.getElementById('lv-cert-preview').style.display = 'none';
+    leaveCert = '';
+    onLeaveTypeChange();
+    document.getElementById('leave-modal-bg').classList.add('open');
+  }
+  function closeLeaveModal() { document.getElementById('leave-modal-bg').classList.remove('open'); }
+
+  function onLeaveTypeChange() {
+    var v = document.getElementById('lv-type').value;
+    document.getElementById('lv-cert-row').style.display = (v === 'ลาป่วย') ? '' : 'none';
+    var isHoliday = v === 'วันหยุดประจำ';
+    if (isHoliday) setLeaveMode('full');
+    document.getElementById('lv-timemode-row').style.display = isHoliday ? 'none' : '';
+  }
+
+  function setLeaveMode(m) {
+    leaveMode = m;
+    document.getElementById('lv-mode-full').classList.toggle('on', m === 'full');
+    document.getElementById('lv-mode-part').classList.toggle('on', m === 'part');
+    document.getElementById('lv-time-row').style.display = m === 'part' ? 'flex' : 'none';
+    if (m === 'full') document.getElementById('lv-hours').textContent = '';
+  }
+
+  function calcLeaveHours() {
+    var s = toMins(document.getElementById('lv-start').value);
+    var e = toMins(document.getElementById('lv-end').value);
+    var el = document.getElementById('lv-hours');
+    if (s >= 0 && e > s) { el.textContent = '= ' + ((e - s) / 60).toFixed(2).replace(/\.00$/,'') + ' ชม.'; el.style.color = '#0969da'; }
+    else { el.textContent = (e >= 0 && e <= s) ? 'เวลาไม่ถูกต้อง' : ''; el.style.color = '#cf222e'; }
+  }
+
+  function onCertPick(ev) {
+    var f = ev.target.files[0];
+    if (!f) { leaveCert = ''; return; }
+    var r = new FileReader();
+    r.onload = function(){
+      leaveCert = r.result;
+      var img = document.getElementById('lv-cert-preview');
+      img.src = leaveCert; img.style.display = 'block';
+    };
+    r.readAsDataURL(f);
+  }
+
+  async function submitLeave() {
+    var type = document.getElementById('lv-type').value;
+    var dISO = document.getElementById('lv-date').value;
+    var note = document.getElementById('lv-note').value.trim();
+    if (!type) { alert('กรุณาเลือกประเภทการลา'); return; }
+    if (!dISO) { alert('กรุณาเลือกวันที่ลา'); return; }
+
+    var startTime = '', endTime = '', hours = '';
+    if (leaveMode === 'part') {
+      startTime = document.getElementById('lv-start').value;
+      endTime   = document.getElementById('lv-end').value;
+      var s = toMins(startTime), e = toMins(endTime);
+      if (s < 0 || e < 0) { alert('กรุณาระบุช่วงเวลาให้ครบ'); return; }
+      if (e <= s) { alert('เวลาสิ้นสุดต้องมากกว่าเวลาเริ่ม'); return; }
+      hours = ((e - s) / 60).toFixed(2).replace(/\.00$/,'');
+    }
+
+    var parts = dISO.split('-');
+    var leaveDate = parts[2] + '/' + parts[1] + '/' + parts[0];
+    var payload = {
+      token: API_TOKEN, action: 'saveLeave', name: MY_NAME,
+      leaveType: type, leaveDate: leaveDate,
+      mode: leaveMode === 'part' ? 'ช่วงเวลา' : 'ทั้งวัน',
+      startTime: startTime, endTime: endTime, hours: hours, note: note, cert: leaveCert || ''
+    };
+
+    var btn = document.querySelector('#leave-modal-bg .ex-actions button:last-child');
+    if (btn) { btn.disabled = true; btn.textContent = 'กำลังส่ง...'; }
+    try {
+      await fetch(SCRIPT_URL, { method:'POST', mode:'no-cors', headers:{'Content-Type':'application/json'}, body: JSON.stringify(payload) });
+    } catch(e) {}
+    if (btn) { btn.disabled = false; btn.textContent = '✅ ส่งข้อมูล'; }
+    closeLeaveModal();
+    setTimeout(loadMyLeaves, 1200);
+    alert('✅ ส่งข้อมูลเรียบร้อย\n' + type + ' • ' + leaveDate + (leaveMode==='part' ? (' • ' + startTime + '-' + endTime + ' (' + hours + ' ชม.)') : ' • ทั้งวัน'));
+  }
+
+  function openUpcomingLeave() {
+    closeNav();
+    document.getElementById('upcoming-bg').classList.add('open');
+    if (myLeaves.length) renderUpcoming();
+    else document.getElementById('upcoming-body').innerHTML = '<div style="text-align:center;padding:40px;color:#8c959f"><div style="font-size:32px">📅</div><div style="margin-top:8px;font-size:14px">กำลังโหลด...</div></div>';
+    loadMyLeaves().then(renderUpcoming).catch(renderUpcoming);
+  }
+  function closeUpcomingLeave() { document.getElementById('upcoming-bg').classList.remove('open'); }
+
+  function renderUpcoming() {
+    var body = document.getElementById('upcoming-body');
+    var todayISO = todayKey();
+    var items = myLeaves
+      .map(function(l){ return Object.assign({}, l, { iso: dmyToISO(l.leaveDate) }); })
+      .filter(function(l){ return l.iso && l.iso >= todayISO; })
+      .sort(function(a,b){ return a.iso.localeCompare(b.iso); });
+    if (!items.length) {
+      body.innerHTML = '<div style="text-align:center;padding:40px;color:#8c959f"><div style="font-size:32px">🌴</div><div style="margin-top:8px">ยังไม่มีลา/วันหยุดล่วงหน้า</div></div>';
+      return;
+    }
+    body.innerHTML = items.map(function(l){
+      var t = l.mode === 'ช่วงเวลา' ? (l.startTime + '-' + l.endTime + ' (' + l.hours + ' ชม.)') : 'ทั้งวัน';
+      var isToday = l.iso === todayISO;
+      var dateTh = new Date(l.iso+'T00:00:00').toLocaleDateString('th-TH',{weekday:'short',day:'numeric',month:'short',year:'numeric'});
+      return '<div class="hist-row" style="background:#fff8e6">' +
+        '<div class="hr-left">' +
+          '<div class="hr-branch">🏖️ ' + l.leaveType + ' <span style="font-size:12px;color:#9a7b1f">' + t + '</span></div>' +
+          '<div class="hr-time">📅 ' + dateTh + '</div>' +
+          (l.note ? ('<div class="hr-time">📝 ' + l.note + '</div>') : '') +
+        '</div>' +
+        '<span class="hr-status ' + (isToday?'hs-done':'hs-pending') + '">' + (isToday?'วันนี้':'ล่วงหน้า') + '</span>' +
+      '</div>';
+    }).join('');
+  }
+
+  // Expose only the entry points needed by onclick="" attributes.
+  window.openLeaveModal     = openLeaveModal;
+  window.closeLeaveModal    = closeLeaveModal;
+  window.onLeaveTypeChange  = onLeaveTypeChange;
+  window.setLeaveMode       = setLeaveMode;
+  window.calcLeaveHours     = calcLeaveHours;
+  window.onCertPick         = onCertPick;
+  window.submitLeave        = submitLeave;
+  window.openUpcomingLeave  = openUpcomingLeave;
+  window.closeUpcomingLeave = closeUpcomingLeave;
+
+  // Load leave data once on page open (non-blocking; badge/card update when ready)
+  loadMyLeaves();
+
+  // Own timer (independent of the main tick()) — keeps today's card / badge in
+  // sync across midnight without needing any hook into the check-in script.
+  setInterval(function(){ renderTodayLeave(); renderLeaveBadge(); }, 1000);
+})();
 </script>
 </body>
 </html>
