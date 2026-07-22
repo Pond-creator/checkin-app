@@ -158,6 +158,7 @@ tr:hover td { background:#f6f8fa; }
 <div class="tabs" id="main-tabs">
   <div class="tab active" onclick="switchTab('log')">📋 Check-in Log</div>
   <div class="tab" onclick="switchTab('hr')">🕐 เวลาทำงาน</div>
+  <div class="tab" onclick="location.href='leave-report.html'">🏖️ การลา</div>
   <div class="tab" id="tab-users-btn" style="display:none" onclick="switchTab('users')">👥 ผู้ใช้งาน</div>
   <div class="tab" id="tab-deleted-btn" style="display:none" onclick="switchTab('deleted')">🗑️ Deleted Log</div>
 </div>
@@ -468,7 +469,7 @@ if (IS_ADMIN) {
 // ── Tab ────────────────────────────────────────────
 function switchTab(name) {
   if (name === 'deleted' && !IS_ADMIN) return;
-  const tabs = ['log','hr','users','deleted'];
+  const tabs = ['log','hr','__leave-report-link__','users','deleted']; // ช่องที่ 3 คือแท็บลิงก์ไปหน้า leave-report.html (ไม่ใช่แท็บสลับในหน้า) ใส่ไว้กันตำแหน่ง index เพี้ยน
   document.querySelectorAll('.tab').forEach((t,i) => t.classList.toggle('active', tabs[i]===name));
   document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
   document.getElementById('tab-'+name).classList.add('active');
