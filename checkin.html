@@ -291,7 +291,8 @@ body { font-family: 'Sarabun', sans-serif; background: #f0f2f5; min-height: 100v
       <span class="ni-icon">🕐</span> ประวัติ 7 วัน
     </div>
     <div class="nav-item" onclick="window.openUpcomingLeave && window.openUpcomingLeave()">
-      <span class="ni-icon">📅</span> ลาล่วงหน้า
+      <span class="ni-icon">📅</span> ลา/หยุดประจำ
+      <span id="leave-badge-nav" style="display:none;margin-left:auto;background:#d97706;color:#fff;border-radius:50%;width:18px;height:18px;font-size:11px;font-weight:700;align-items:center;justify-content:center;line-height:1">❗</span>
     </div>
   </div>
   <div class="nav-logout" onclick="logout()">
@@ -1192,14 +1193,15 @@ if ('serviceWorker' in navigator) {
   }
 
   function renderLeaveBadge() {
-    var badge = document.getElementById('leave-badge');
-    if (!badge) return;
     var today = todayKey();
     var hasUpcoming = myLeaves.some(function(l){
       var iso = dmyToISO(l.leaveDate);
       return iso && iso >= today;
     });
-    badge.style.display = hasUpcoming ? 'flex' : 'none';
+    var badge = document.getElementById('leave-badge');
+    if (badge) badge.style.display = hasUpcoming ? 'flex' : 'none';
+    var badgeNav = document.getElementById('leave-badge-nav');
+    if (badgeNav) badgeNav.style.display = hasUpcoming ? 'flex' : 'none';
   }
 
   function renderTodayLeave() {
