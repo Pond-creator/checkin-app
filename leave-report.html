@@ -44,7 +44,10 @@ tr:nth-child(even) { background: #fafbfc; }
 <body>
 
 <div class="topbar">
-  <h1>🏖️ รายงานการลา / วันหยุดประจำ</h1>
+  <div style="display:flex;align-items:center;gap:12px">
+    <button class="btn-nav" onclick="location.href='admin.html'" title="กลับไปหน้า Admin Dashboard">← กลับ</button>
+    <h1>🏖️ รายงานการลา / วันหยุดประจำ</h1>
+  </div>
   <div class="topbar-right">
     <span id="who">—</span>
     <button class="btn-nav" onclick="location.href='admin.html'">⚡ Admin Dashboard</button>
