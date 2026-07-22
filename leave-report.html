@@ -58,6 +58,14 @@ tr:nth-child(even) { background: #fafbfc; }
 <div class="toolbar">
   <button class="btn btn-primary" onclick="loadLeave()">🔄 โหลดข้อมูลการลา</button>
   <select id="lv-f-emp"><option value="">👤 ทุกคน</option></select>
+  <select id="lv-f-type">
+    <option value="">📋 ทุกประเภท</option>
+    <option value="วันหยุดประจำ">วันหยุดประจำ</option>
+    <option value="ลาป่วย">ลาป่วย</option>
+    <option value="ลากิจ">ลากิจ</option>
+    <option value="พักร้อน">พักร้อน</option>
+    <option value="ลาอื่นๆ">ลาอื่นๆ</option>
+  </select>
   <input type="month" id="lv-f-month">
   <button class="btn" style="background:#f6f8fa;color:#57606a;border:1px solid #d0d7de" onclick="renderLeave()">🔍 กรอง</button>
   <button class="btn btn-success" onclick="exportLeaveCSV()">📊 Export Excel</button>
@@ -172,9 +180,11 @@ var LV_PAGE_SIZE = 50;
 
 function getFilteredLeave() {
   var emp   = document.getElementById('lv-f-emp').value;
+  var type  = document.getElementById('lv-f-type').value;
   var month = document.getElementById('lv-f-month').value;
   var list = leaveData.filter(function(r){
     if (emp && r.name !== emp) return false;
+    if (type && r.leaveType !== type) return false;
     if (month && dmyToISO(r.leaveDate).indexOf(month) !== 0) return false;
     return true;
   });
