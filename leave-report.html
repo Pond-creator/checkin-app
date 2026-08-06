@@ -66,9 +66,11 @@ tr:nth-child(even) { background: #fafbfc; }
     <option value="พักร้อน">พักร้อน</option>
     <option value="ลาอื่นๆ">ลาอื่นๆ</option>
   </select>
-  <input type="month" id="lv-f-month">
+  <input type="month" id="lv-f-month" onchange="onLeaveMonthChange()">
   <button class="btn" style="background:#f6f8fa;color:#57606a;border:1px solid #d0d7de" onclick="renderLeave()">🔍 กรอง</button>
   <button class="btn btn-success" onclick="exportLeaveCSV()">📊 Export Excel</button>
+  <button class="btn" style="background:#fff;color:#57606a;border:1px solid #d0d7de" onclick="loadLeave(true)" title="ดึงข้อมูลการลาทั้งหมดตั้งแต่เริ่มระบบ">📂 โหลดย้อนหลังทั้งหมด</button>
+  <span id="lv-scope" style="font-size:12px;color:#8c959f"></span>
 </div>
 
 <div class="tbl-wrap">
@@ -152,11 +154,17 @@ function closeLightbox() { document.getElementById('lightbox').classList.remove(
 var leaveData = [];
 var userData  = [];
 
-async function loadLeave() {
+// all=true → ดึงทั้งหมด, ไม่ส่ง → เดือนปัจจุบันเท่านั้น (ลดข้อมูลที่ต้องดึง)
+async function loadLeave(all) {
   showLoad(true);
+  var t = new Date();
+  var from = all ? '' : (t.getFullYear() + '-' + String(t.getMonth()+1).padStart(2,'0') + '-01');
   try {
-    var json = await fetchJSON(SCRIPT_URL + '?action=getLeave&t=' + Date.now());
+    var json = await fetchJSON(SCRIPT_URL + '?action=getLeave' + (from ? '&from='+from : '') + '&t=' + Date.now());
     leaveData = json.data || [];
+    document.getElementById('lv-scope').textContent =
+      all ? 'แสดงทั้งหมด (' + leaveData.length + ' รายการ)'
+          : 'แสดงเฉพาะเดือนนี้ (' + leaveData.length + ' รายการ)';
     try {
       var uj = await fetchJSON(SCRIPT_URL + '?action=getUsers&t=' + Date.now());
       userData = uj.data || [];
@@ -177,6 +185,23 @@ async function loadLeave() {
 
 var lvPage = 1;
 var LV_PAGE_SIZE = 50;
+
+// เลือกเดือนย้อนหลัง → ดึงข้อมูลเดือนนั้นมาก่อนแสดง (กันตารางว่างเพราะยังไม่โหลด)
+async function onLeaveMonthChange() {
+  var month = document.getElementById('lv-f-month').value;
+  if (!month) { renderLeave(); return; }
+  var y = +month.split('-')[0], m = +month.split('-')[1];
+  var from = month + '-01';
+  var to   = month + '-' + String(new Date(y, m, 0).getDate()).padStart(2,'0');
+  showLoad(true);
+  try {
+    var json = await fetchJSON(SCRIPT_URL + '?action=getLeave&from=' + from + '&to=' + to + '&t=' + Date.now());
+    leaveData = json.data || [];
+    document.getElementById('lv-scope').textContent = 'แสดงเดือน ' + month + ' (' + leaveData.length + ' รายการ)';
+    renderLeave();
+  } catch(e) { alert('โหลดไม่สำเร็จ: ' + e.message); }
+  showLoad(false);
+}
 
 function getFilteredLeave() {
   var emp   = document.getElementById('lv-f-emp').value;

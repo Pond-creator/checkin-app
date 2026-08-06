@@ -183,9 +183,9 @@ tr:hover td { background:#f6f8fa; }
         <button id="qf-range"     onclick="setLogRange('range')">ช่วงวันที่</button>
       </div>
       <span style="font-size:12px;color:#57606a">📅 จาก</span>
-      <input type="date" id="f-date-from" onchange="renderLog(true)">
+      <input type="date" id="f-date-from" onchange="onDateFilterChange()">
       <span style="font-size:12px;color:#57606a">ถึง</span>
-      <input type="date" id="f-date-to"   onchange="renderLog(true)">
+      <input type="date" id="f-date-to"   onchange="onDateFilterChange()">
     </div>
     <select id="f-user"   onchange="renderLog(true)"><option value="">👤 ทุกคน</option></select>
     <select id="f-branch" onchange="renderLog(true)"><option value="">📍 ทุกสาขา</option></select>
@@ -218,6 +218,8 @@ tr:hover td { background:#f6f8fa; }
 <div class="tab-content" id="tab-deleted">
   <div class="toolbar">
     <button class="btn btn-primary" onclick="loadDeleted()">🔄 โหลด Deleted Log</button>
+    <button class="btn btn-outline" onclick="loadDeleted(true)" title="ดึงข้อมูลที่ลบทั้งหมดตั้งแต่เริ่มระบบ">📂 โหลดย้อนหลังทั้งหมด</button>
+    <span id="deleted-scope" style="font-size:12px;color:#8c959f"></span>
   </div>
   <div class="tbl-wrap">
     <table>
@@ -519,13 +521,50 @@ function dateRange(from, to) {
 }
 
 // ── Log Tab ────────────────────────────────────────
-async function loadLog() {
-  const url = getUrl();
-  if (!url) { openCfg(); return; }
+// วันที่เก่าสุดที่โหลดมาแล้ว (ISO) — null = โหลดครบทั้งหมดแล้ว
+var loadedFrom = null;
+
+// ค่าเริ่มต้น: ต้นเดือนนี้ หรือ 7 วันย้อนหลัง (เอาอันที่เก่ากว่า)
+// ครอบคลุมปุ่ม วันนี้/เมื่อวาน/สัปดาห์/เดือน + รายงาน HR เดือนปัจจุบัน โดยไม่ต้องดึงซ้ำ
+function defaultLogFrom() {
+  const t = new Date();
+  const firstOfMonth = fmtDate(new Date(t.getFullYear(), t.getMonth(), 1));
+  const sevenDaysAgo = fmtDate(new Date(t.getTime() - 7*86400000));
+  return firstOfMonth < sevenDaysAgo ? firstOfMonth : sevenDaysAgo;
+}
+
+// ดึงข้อมูลเพิ่มถ้าช่วงที่ขอ เก่ากว่าที่โหลดไว้
+async function ensureLoaded(fromISO) {
+  if (!fromISO) return;
+  if (loadedFrom === null) return;        // โหลดครบแล้ว
+  if (fromISO >= loadedFrom) return;      // ครอบคลุมอยู่แล้ว
+  const url = getUrl(); if (!url) return;
   showLoad(true);
   try {
-    const json = await fetchJSON(`${url}?action=getAll&t=${Date.now()}`);
+    const json = await fetchJSON(`${url}?action=getAll&from=${fromISO}&t=${Date.now()}`);
     logData = json.data || [];
+    loadedFrom = fromISO;
+    populateFilters();
+  } catch(e) { alert('โหลดข้อมูลเพิ่มไม่สำเร็จ: '+e.message); }
+  showLoad(false);
+}
+
+// เรียกเมื่อผู้ใช้เลือกวันที่เอง (ช่วงวันที่)
+async function onDateFilterChange() {
+  await ensureLoaded(document.getElementById('f-date-from').value);
+  renderLog(true);
+}
+
+async function loadLog(fromISO) {
+  const url = getUrl();
+  if (!url) { openCfg(); return; }
+  if (fromISO === undefined) fromISO = defaultLogFrom();
+  showLoad(true);
+  try {
+    const q = fromISO ? `&from=${fromISO}` : '';
+    const json = await fetchJSON(`${url}?action=getAll${q}&t=${Date.now()}`);
+    logData = json.data || [];
+    loadedFrom = fromISO || null;
     populateFilters();
     setLogRange('today', true);
     activeStatCard = 'all';
@@ -696,7 +735,7 @@ function statFilter(type) {
 }
 
 // ── Date range buttons ─────────────────────────────
-function setLogRange(mode, noRender) {
+async function setLogRange(mode, noRender) {
   logRangeMode = mode;
   const today = new Date();
   let from, to;
@@ -715,7 +754,10 @@ function setLogRange(mode, noRender) {
 
   ['today','yesterday','week','month','year','range'].forEach(m => document.getElementById('qf-'+m).classList.toggle('on', m===mode));
   if (from) { document.getElementById('f-date-from').value = from; document.getElementById('f-date-to').value = to; }
-  if (!noRender) renderLog();
+  if (!noRender) {
+    await ensureLoaded(from || document.getElementById('f-date-from').value);
+    renderLog();
+  }
 }
 
 // ── Export CSV ─────────────────────────────────────
@@ -869,13 +911,15 @@ function txtSyncAll() {
   document.getElementById('txt-all').checked = all.length > 0 && all.every(c => c.checked);
 }
 
-function doExportTXT() {
+async function doExportTXT() {
   const from = document.getElementById('txt-from').value;
   const to   = document.getElementById('txt-to').value || from;
   if (!from || !to) { alert('กรุณาเลือกช่วงวันที่ (จาก–ถึง)'); return; }
   if (from > to) { alert('วันที่เริ่มต้องไม่เกินวันที่สิ้นสุด'); return; }
   const picked = new Set([...document.querySelectorAll('.txt-emp:checked')].map(c => c.value));
   if (!picked.size) { alert('กรุณาเลือกพนักงานอย่างน้อย 1 คน'); return; }
+
+  await ensureLoaded(from);   // งวดย้อนหลังอาจเก่ากว่าที่โหลดไว้ → ดึงเพิ่มก่อน
 
   // map ชื่อ -> รหัสพนักงาน (เฉพาะคนที่เลือก)
   const codeOf = {};
@@ -979,13 +1023,20 @@ async function deleteSelected() {
 
 // ── Deleted Log Tab ────────────────────────────────
 var deletedData = [];
-async function loadDeleted() {
+// all=true → ดึงทั้งหมด, ไม่ส่ง → เดือนปัจจุบันเท่านั้น (ลดข้อมูลที่ต้องดึง)
+async function loadDeleted(all) {
   const url = getUrl(); if (!url) return;
+  const t = new Date();
+  const from = all ? '' : fmtDate(new Date(t.getFullYear(), t.getMonth(), 1));
   showLoad(true);
   try {
-    const json = await fetchJSON(`${url}?action=getDeleted&t=${Date.now()}`);
+    const q = from ? `&from=${from}` : '';
+    const json = await fetchJSON(`${url}?action=getDeleted${q}&t=${Date.now()}`);
     deletedData = json.data || [];
     renderDeleted();
+    document.getElementById('deleted-scope').textContent =
+      all ? `แสดงทั้งหมด (${deletedData.length} รายการ)`
+          : `แสดงเฉพาะเดือนนี้ (${deletedData.length} รายการ)`;
   } catch(e) { alert('โหลดไม่สำเร็จ'); }
   showLoad(false);
 }
@@ -1134,6 +1185,7 @@ async function loadHR() {
   const month = document.getElementById('hr-month').value;
   if (!emp || !month) { alert('กรุณาเลือกพนักงานและเดือน'); return; }
 
+  await ensureLoaded(month + '-01');   // เดือนที่เลือกอาจเก่ากว่าที่โหลดไว้ → ดึงเพิ่มก่อน
   const [y, m] = month.split('-').map(Number);
   const daysInMonth = new Date(y, m, 0).getDate();
   const allDates = Array.from({length: daysInMonth}, (_,i) => {
