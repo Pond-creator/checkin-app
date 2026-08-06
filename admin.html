@@ -218,8 +218,8 @@ tr:hover td { background:#f6f8fa; }
 <div class="tab-content" id="tab-deleted">
   <div class="toolbar">
     <button class="btn btn-primary" onclick="loadDeleted()">🔄 โหลด Deleted Log</button>
-    <button class="btn btn-outline" onclick="loadDeleted(true)" title="ดึงข้อมูลที่ลบทั้งหมดตั้งแต่เริ่มระบบ">📂 โหลดย้อนหลังทั้งหมด</button>
     <span id="deleted-scope" style="font-size:12px;color:#8c959f"></span>
+    <span style="font-size:12px;color:#8c959f">· ดูย้อนหลังได้ที่ชีต 🗑️ Deleted Log</span>
   </div>
   <div class="tbl-wrap">
     <table>
@@ -1023,20 +1023,17 @@ async function deleteSelected() {
 
 // ── Deleted Log Tab ────────────────────────────────
 var deletedData = [];
-// all=true → ดึงทั้งหมด, ไม่ส่ง → เดือนปัจจุบันเท่านั้น (ลดข้อมูลที่ต้องดึง)
-async function loadDeleted(all) {
+// ดึงเฉพาะเดือนปัจจุบันเสมอ — ย้อนหลังให้ดูที่ชีต 🗑️ Deleted Log โดยตรง
+async function loadDeleted() {
   const url = getUrl(); if (!url) return;
   const t = new Date();
-  const from = all ? '' : fmtDate(new Date(t.getFullYear(), t.getMonth(), 1));
+  const from = fmtDate(new Date(t.getFullYear(), t.getMonth(), 1));
   showLoad(true);
   try {
-    const q = from ? `&from=${from}` : '';
-    const json = await fetchJSON(`${url}?action=getDeleted${q}&t=${Date.now()}`);
+    const json = await fetchJSON(`${url}?action=getDeleted&from=${from}&t=${Date.now()}`);
     deletedData = json.data || [];
     renderDeleted();
-    document.getElementById('deleted-scope').textContent =
-      all ? `แสดงทั้งหมด (${deletedData.length} รายการ)`
-          : `แสดงเฉพาะเดือนนี้ (${deletedData.length} รายการ)`;
+    document.getElementById('deleted-scope').textContent = `แสดงเฉพาะเดือนนี้ (${deletedData.length} รายการ)`;
   } catch(e) { alert('โหลดไม่สำเร็จ'); }
   showLoad(false);
 }
