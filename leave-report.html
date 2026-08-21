@@ -176,9 +176,10 @@ function initLoadRange() {
     var d = new Date(t.getFullYear(), t.getMonth() - (n - 1), 1);
     return n + ' เดือนล่าสุด (' + TH_MONTH[d.getMonth()] + ' – ' + TH_MONTH[t.getMonth()] + ')';
   }
+  // default = 2 เดือนล่าสุด เพราะงวดเงินเดือนคาบเกี่ยวเดือนก่อน+เดือนนี้
   document.getElementById('lv-load-range').innerHTML =
     '<option value="1">เดือนนี้ (' + cur + ')</option>' +
-    '<option value="2">' + label(2) + '</option>' +
+    '<option value="2" selected>' + label(2) + '</option>' +
     '<option value="3">' + label(3) + '</option>' +
     '<option value="6">' + label(6) + '</option>' +
     '<option value="all">ทั้งหมด (ทุกเดือนย้อนหลัง)</option>';
