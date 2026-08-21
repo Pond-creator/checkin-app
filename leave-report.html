@@ -66,11 +66,16 @@ tr:nth-child(even) { background: #fafbfc; }
     <option value="พักร้อน">พักร้อน</option>
     <option value="ลาอื่นๆ">ลาอื่นๆ</option>
   </select>
-  <input type="month" id="lv-f-month" onchange="onLeaveMonthChange()">
   <button class="btn" style="background:#f6f8fa;color:#57606a;border:1px solid #d0d7de" onclick="renderLeave()">🔍 กรอง</button>
   <button class="btn btn-success" onclick="exportLeaveCSV()">📊 Export Excel</button>
-  <button class="btn" style="background:#fff;color:#57606a;border:1px solid #d0d7de" onclick="loadLeave(true)" title="ดึงข้อมูลการลาทั้งหมดตั้งแต่เริ่มระบบ">📂 โหลดย้อนหลังทั้งหมด</button>
-  <span id="lv-scope" style="font-size:12px;color:#8c959f"></span>
+</div>
+
+<div class="toolbar" style="background:#fbfcfd">
+  <span style="font-size:12px;color:#1f2328;font-weight:700">📅 ช่วงเดือนที่โหลดข้อมูล:</span>
+  <select id="lv-load-range" onchange="loadLeave()" title="เลือกว่าจะดึงข้อมูลย้อนหลังกี่เดือน"></select>
+  <span style="font-size:12px;color:#8c959f">หรือเจาะเดือนเดียว:</span>
+  <input type="month" id="lv-f-month" onchange="onLeaveMonthChange()">
+  <span id="lv-scope" style="font-size:12px;color:#0969da;font-weight:700"></span>
 </div>
 
 <div class="tbl-wrap">
@@ -154,17 +159,45 @@ function closeLightbox() { document.getElementById('lightbox').classList.remove(
 var leaveData = [];
 var userData  = [];
 
-// all=true → ดึงทั้งหมด, ไม่ส่ง → เดือนปัจจุบันเท่านั้น (ลดข้อมูลที่ต้องดึง)
-async function loadLeave(all) {
-  showLoad(true);
+var TH_MONTH = ['ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'];
+
+// วันที่ 1 ของเดือนที่ย้อนไป n เดือน (n=1 คือเดือนนี้)
+function monthsBackISO(n) {
   var t = new Date();
-  var from = all ? '' : (t.getFullYear() + '-' + String(t.getMonth()+1).padStart(2,'0') + '-01');
+  var d = new Date(t.getFullYear(), t.getMonth() - (n - 1), 1);
+  return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-01';
+}
+
+// สร้างตัวเลือกช่วงเดือน โดยโชว์ชื่อเดือนจริงให้เห็นชัดว่าจะได้ข้อมูลช่วงไหน
+function initLoadRange() {
+  var t = new Date();
+  var cur = TH_MONTH[t.getMonth()] + ' ' + t.getFullYear();
+  function label(n) {
+    var d = new Date(t.getFullYear(), t.getMonth() - (n - 1), 1);
+    return n + ' เดือนล่าสุด (' + TH_MONTH[d.getMonth()] + ' – ' + TH_MONTH[t.getMonth()] + ')';
+  }
+  document.getElementById('lv-load-range').innerHTML =
+    '<option value="1">เดือนนี้ (' + cur + ')</option>' +
+    '<option value="2">' + label(2) + '</option>' +
+    '<option value="3">' + label(3) + '</option>' +
+    '<option value="6">' + label(6) + '</option>' +
+    '<option value="all">ทั้งหมด (ทุกเดือนย้อนหลัง)</option>';
+}
+
+// all=true → ดึงทั้งหมด, ไม่ส่ง → ตามช่วงเดือนที่เลือกใน dropdown
+async function loadLeave(all) {
+  var sel  = document.getElementById('lv-load-range');
+  var mode = all ? 'all' : ((sel && sel.value) ? sel.value : '1');
+  if (all && sel) sel.value = 'all';
+  var from = (mode === 'all') ? '' : monthsBackISO(parseInt(mode, 10));
+  showLoad(true);
   try {
     var json = await fetchJSON(SCRIPT_URL + '?action=getLeave' + (from ? '&from='+from : '') + '&t=' + Date.now());
     leaveData = json.data || [];
-    document.getElementById('lv-scope').textContent =
-      all ? 'แสดงทั้งหมด (' + leaveData.length + ' รายการ)'
-          : 'แสดงเฉพาะเดือนนี้ (' + leaveData.length + ' รายการ)';
+    document.getElementById('lv-f-month').value = '';   // เคลียร์การเจาะเดือน เพราะเพิ่งโหลดช่วงใหม่
+    var scopeName = (mode === 'all') ? 'ทั้งหมด'
+                  : (sel ? sel.options[sel.selectedIndex].text : 'เดือนนี้');
+    document.getElementById('lv-scope').textContent = 'กำลังแสดง: ' + scopeName + ' — ' + leaveData.length + ' รายการ';
     try {
       var uj = await fetchJSON(SCRIPT_URL + '?action=getUsers&t=' + Date.now());
       userData = uj.data || [];
@@ -197,7 +230,8 @@ async function onLeaveMonthChange() {
   try {
     var json = await fetchJSON(SCRIPT_URL + '?action=getLeave&from=' + from + '&to=' + to + '&t=' + Date.now());
     leaveData = json.data || [];
-    document.getElementById('lv-scope').textContent = 'แสดงเดือน ' + month + ' (' + leaveData.length + ' รายการ)';
+    document.getElementById('lv-scope').textContent =
+      'กำลังแสดง: เฉพาะเดือน ' + TH_MONTH[m-1] + ' ' + y + ' — ' + leaveData.length + ' รายการ';
     renderLeave();
   } catch(e) { alert('โหลดไม่สำเร็จ: ' + e.message); }
   showLoad(false);
@@ -301,6 +335,7 @@ function exportLeaveCSV() {
 }
 
 // โหลดข้อมูลอัตโนมัติตอนเปิดหน้า (ยังกดปุ่ม "โหลดข้อมูลการลา" เพื่อรีเฟรชเองได้ตามปกติ)
+initLoadRange();
 loadLeave();
 </script>
 </body>
