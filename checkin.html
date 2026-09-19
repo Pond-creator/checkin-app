@@ -492,7 +492,9 @@ body { font-family: 'Sarabun', sans-serif; background: #f0f2f5; min-height: 100v
     <div class="pane" id="pane-loading">
       <div class="center-pane">
         <div class="spinner"></div>
-        <div style="color:#57606a;font-size:14px;">กำลังส่งข้อมูล...</div>
+        <div id="send-pct" style="font-size:30px;font-weight:800;color:#1f6feb;margin-top:10px;letter-spacing:.5px;">0%</div>
+        <div style="color:#57606a;font-size:14px;margin-top:2px;">กำลังส่งข้อมูล...</div>
+        <div style="color:#8c959f;font-size:12px;margin-top:6px;">อย่าปิดหน้านี้ รอสักครู่</div>
       </div>
     </div>
 
@@ -893,6 +895,25 @@ function showPane(name) {
   ['gps','cam','confirm','loading','success'].forEach(n =>
     document.getElementById('pane-'+n).classList.remove('show'));
   document.getElementById('pane-'+name).classList.add('show');
+  if (name === 'loading') startSendProgress(); else stopSendProgress();
+}
+
+// ── ตัวเลข % ตอนส่งข้อมูล ──
+// อ่านคำตอบจากเซิร์ฟเวอร์ไม่ได้ (no-cors) จึงรู้ % จริงไม่ได้
+// จึงให้ไต่ขึ้นแล้วช้าลง ค้างไว้ที่ 95% จะขึ้น 100% ต่อเมื่อส่งเสร็จจริงเท่านั้น
+var sendPct = 0, sendTimer = null;
+function setPct(v) { var el = document.getElementById('send-pct'); if (el) el.textContent = Math.floor(v) + '%'; }
+function startSendProgress() {
+  clearInterval(sendTimer);
+  sendPct = 0; setPct(0);
+  sendTimer = setInterval(function() {
+    var step = sendPct < 60 ? 3 : (sendPct < 85 ? 1 : 0.3);
+    sendPct = Math.min(95, sendPct + step);
+    setPct(sendPct);
+  }, 120);
+}
+function stopSendProgress() {
+  if (sendTimer) { clearInterval(sendTimer); sendTimer = null; setPct(100); }
 }
 
 // GPS
