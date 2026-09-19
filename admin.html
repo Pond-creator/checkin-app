@@ -443,9 +443,10 @@ function fmtDate(d)  { return d.getFullYear()+'-'+String(d.getMonth()+1).padStar
 function todayStr()  { return fmtDate(new Date()); }
 
 // ── fetch + auto-retry (กัน GAS cold start ตอบช้า/ตอบ HTML) ─
-async function fetchJSON(url, tries = 3) {
+async function fetchJSON(url, tries = 4) {
   url += (url.includes('?') ? '&' : '?') + 'token=' + encodeURIComponent(API_TOKEN);
   let lastErr;
+  const BACKOFF = [1200, 2500, 5000];   // รอนานขึ้นทีละรอบ ให้ Google หายอาการเอง
   for (let i = 0; i < tries; i++) {
     const ctrl  = new AbortController();
     const timer = setTimeout(() => ctrl.abort(), 12000);   // กัน GAS ค้างไม่ตอบ → หมุนไม่หยุด
@@ -453,14 +454,14 @@ async function fetchJSON(url, tries = 3) {
       const res  = await fetch(url, { signal: ctrl.signal });
       const text = await res.text();
       clearTimeout(timer);
-      if (text.trim().startsWith('<')) throw new Error('GAS ยังตื่นไม่เต็มที่'); // cold-start HTML
+      if (text.trim().startsWith('<')) throw new Error('GOOGLE_HTML');  // Google ตอบหน้าเว็บแทน JSON
       return JSON.parse(text);
     } catch(e) {
       clearTimeout(timer);
-      lastErr = (e && e.name === 'AbortError')
-        ? new Error('เซิร์ฟเวอร์ไม่ตอบใน 12 วินาที')
-        : e;
-      if (i < tries - 1) await new Promise(r => setTimeout(r, 1500));
+      if (e && e.name === 'AbortError')      lastErr = new Error('เซิร์ฟเวอร์ไม่ตอบใน 12 วินาที');
+      else if (e && e.message === 'GOOGLE_HTML') lastErr = new Error('Google ตอบกลับมาไม่ครบ — กด โหลดข้อมูล อีกครั้ง');
+      else lastErr = e;
+      if (i < tries - 1) await new Promise(r => setTimeout(r, BACKOFF[i] || 5000));
     }
   }
   throw lastErr;
@@ -551,7 +552,7 @@ async function ensureLoaded(fromISO) {
     logData = json.data || [];
     loadedFrom = fromISO;
     populateFilters();
-  } catch(e) { alert('โหลดข้อมูลเพิ่มไม่สำเร็จ: '+e.message); }
+  } catch(e) { showLoad(false); alert('โหลดข้อมูลเพิ่มไม่สำเร็จ: '+e.message); }
   showLoad(false);
 }
 
@@ -579,7 +580,7 @@ async function loadLog(fromISO) {
     document.getElementById('f-status').value = '';
     renderLog();
     document.getElementById('last-sync').textContent = 'อัปเดต ' + new Date().toLocaleTimeString('th-TH');
-  } catch(e) { alert('โหลดไม่สำเร็จ: '+e.message); }
+  } catch(e) { showLoad(false); alert('โหลดไม่สำเร็จ: '+e.message); }
   showLoad(false);   // ข้อมูลหลักมาแล้ว → ใช้งานได้เลย ไม่ต้องรอ getUsers
   // load users silently for HR tab (non-fatal — ข้อมูลหลักโหลดแล้ว)
   try {
@@ -860,7 +861,7 @@ async function submitAdminClose() {
     });
     await new Promise(r => setTimeout(r, 1500));
     await loadLog();
-  } catch(e) { alert('ไม่สำเร็จ: '+e.message); }
+  } catch(e) { showLoad(false); alert('ไม่สำเร็จ: '+e.message); }
   showLoad(false);
 }
 
@@ -1023,7 +1024,7 @@ async function deleteSelected() {
     await new Promise(r => setTimeout(r, 1500));
     await loadLog();
     exitEditMode();
-  } catch(e) { alert('ลบไม่สำเร็จ: '+e.message); }
+  } catch(e) { showLoad(false); alert('ลบไม่สำเร็จ: '+e.message); }
   showLoad(false);
 }
 
@@ -1040,7 +1041,7 @@ async function loadDeleted() {
     deletedData = json.data || [];
     renderDeleted();
     document.getElementById('deleted-scope').textContent = `แสดงเฉพาะเดือนนี้ (${deletedData.length} รายการ)`;
-  } catch(e) { alert('โหลดไม่สำเร็จ'); }
+  } catch(e) { showLoad(false); alert('โหลดไม่สำเร็จ'); }
   showLoad(false);
 }
 
@@ -1079,7 +1080,7 @@ async function loadUsers() {
     const json = await fetchJSON(`${url}?action=getUsers&t=${Date.now()}`);
     userData = json.data || [];
     renderUsers();
-  } catch(e) { alert('โหลดไม่สำเร็จ'); }
+  } catch(e) { showLoad(false); alert('โหลดไม่สำเร็จ'); }
   showLoad(false);
 }
 function renderUsers() {
@@ -1120,7 +1121,7 @@ async function saveUser() {
     } else {
       closeUserModal();
     }
-  } catch(e) { alert('บันทึกไม่สำเร็จ'); }
+  } catch(e) { showLoad(false); alert('บันทึกไม่สำเร็จ'); }
   showLoad(false);
 }
 async function deleteUser() {
@@ -1132,7 +1133,7 @@ async function deleteUser() {
   try {
     await fetch(url,{method:'POST',mode:'no-cors',headers:{'Content-Type':'application/json'},body:JSON.stringify({token:API_TOKEN,actorId:session.id,actorPass:session.pass,action:'deleteUser',id:editingUserId})});
     closeUserModal(); await loadUsers();
-  } catch(e) { alert('ลบไม่สำเร็จ'); }
+  } catch(e) { showLoad(false); alert('ลบไม่สำเร็จ'); }
   showLoad(false);
 }
 
