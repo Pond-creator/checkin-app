@@ -129,6 +129,17 @@ tr:hover td { background:#f6f8fa; }
 .loading-bar { display:none; background:rgba(0,0,0,.4); position:fixed; inset:0; z-index:500; align-items:center; justify-content:center; }
 .loading-bar.show { display:flex; }
 .loading-box { background:#fff; border-radius:12px; padding:28px 36px; text-align:center; }
+.err-bg { display:none; position:fixed; inset:0; background:rgba(0,0,0,.45); z-index:700; align-items:center; justify-content:center; padding:20px; }
+.err-bg.show { display:flex; }
+.err-box { background:#fff; border-radius:16px; padding:28px 26px 22px; text-align:center; max-width:360px; width:100%; box-shadow:0 12px 40px rgba(0,0,0,.25); animation:errPop .18s ease-out; }
+@keyframes errPop { from { transform:scale(.92); opacity:0 } to { transform:scale(1); opacity:1 } }
+.err-icon  { font-size:42px; line-height:1; }
+.err-title { font-size:17px; font-weight:700; color:#24292f; margin-top:12px; }
+.err-msg   { font-size:14px; color:#57606a; margin-top:8px; line-height:1.55; word-break:break-word; }
+.err-acts  { display:flex; gap:10px; margin-top:20px; }
+.err-acts button { flex:1; padding:11px 0; border:0; border-radius:9px; font-size:14px; font-weight:600; cursor:pointer; font-family:inherit; }
+.err-retry { background:#0969da; color:#fff; }
+.err-close { background:#eaeef2; color:#424a53; }
 </style>
 </head>
 <body>
@@ -400,6 +411,18 @@ tr:hover td { background:#f6f8fa; }
 </div>
 
 <!-- Loading -->
+<div class="err-bg" id="err-bg">
+  <div class="err-box">
+    <div class="err-icon" id="err-icon">⚠️</div>
+    <div class="err-title" id="err-title">โหลดข้อมูลไม่สำเร็จ</div>
+    <div class="err-msg" id="err-msg"></div>
+    <div class="err-acts">
+      <button class="err-close" id="err-btn-close" onclick="closeErr()">ปิด</button>
+      <button class="err-retry" id="err-btn-retry" onclick="retryErr()">🔄 ลองอีกครั้ง</button>
+    </div>
+  </div>
+</div>
+
 <div class="loading-bar" id="loading">
   <div class="loading-box"><div class="spinner"></div><div style="margin-top:10px;font-size:14px;color:#57606a;">กำลังโหลด...</div></div>
 </div>
@@ -439,6 +462,21 @@ var SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxst_UC3w1zJJ_1gc3aBth
 var API_TOKEN  = 'FLO-ckn-8Kq2Wm7Zx4Rp9Nv3Ts6Yb1Ha'; // 🔐 ต้องตรงกับ GAS
 function getUrl()    { return SCRIPT_URL || store.get('adminUrl') || store.get('scriptUrl') || ''; }
 function showLoad(v) { document.getElementById('loading').classList.toggle('show', v); }
+
+// ── กล่องแจ้งเตือนกลางจอ (แทน alert ของเบราว์เซอร์ที่เด้งบนสุด) ─
+var errRetryFn = null;
+function showErr(msg, retryFn, title, icon) {
+  errRetryFn = retryFn || null;
+  document.getElementById('err-icon').textContent  = icon  || '⚠️';
+  document.getElementById('err-title').textContent = title || 'โหลดข้อมูลไม่สำเร็จ';
+  document.getElementById('err-msg').textContent   = msg || '';
+  // งานบันทึก/ลบ ไม่ใส่ปุ่มลองใหม่ กันกดซ้ำแล้วข้อมูลเข้าซ้ำ
+  document.getElementById('err-btn-retry').style.display = errRetryFn ? '' : 'none';
+  document.getElementById('err-btn-close').textContent   = errRetryFn ? 'ปิด' : 'ตกลง';
+  document.getElementById('err-bg').classList.add('show');
+}
+function closeErr() { document.getElementById('err-bg').classList.remove('show'); errRetryFn = null; }
+function retryErr() { var fn = errRetryFn; closeErr(); if (fn) fn(); }
 function fmtDate(d)  { return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
 function todayStr()  { return fmtDate(new Date()); }
 
@@ -552,7 +590,7 @@ async function ensureLoaded(fromISO) {
     logData = json.data || [];
     loadedFrom = fromISO;
     populateFilters();
-  } catch(e) { showLoad(false); alert('โหลดข้อมูลเพิ่มไม่สำเร็จ: '+e.message); }
+  } catch(e) { showLoad(false); showErr(e.message, function(){ ensureLoaded(fromISO); }, 'โหลดข้อมูลย้อนหลังไม่สำเร็จ'); }
   showLoad(false);
 }
 
@@ -580,7 +618,7 @@ async function loadLog(fromISO) {
     document.getElementById('f-status').value = '';
     renderLog();
     document.getElementById('last-sync').textContent = 'อัปเดต ' + new Date().toLocaleTimeString('th-TH');
-  } catch(e) { showLoad(false); alert('โหลดไม่สำเร็จ: '+e.message); }
+  } catch(e) { showLoad(false); showErr(e.message, function(){ loadLog(fromISO); }); }
   showLoad(false);   // ข้อมูลหลักมาแล้ว → ใช้งานได้เลย ไม่ต้องรอ getUsers
   // load users silently for HR tab (non-fatal — ข้อมูลหลักโหลดแล้ว)
   try {
@@ -861,7 +899,7 @@ async function submitAdminClose() {
     });
     await new Promise(r => setTimeout(r, 1500));
     await loadLog();
-  } catch(e) { showLoad(false); alert('ไม่สำเร็จ: '+e.message); }
+  } catch(e) { showLoad(false); showErr(e.message + '\n\nกรุณากดโหลดข้อมูลเพื่อตรวจว่าบันทึกได้หรือไม่ ก่อนทำซ้ำ', null, 'จบงานให้ไม่สำเร็จ'); }
   showLoad(false);
 }
 
@@ -1024,7 +1062,7 @@ async function deleteSelected() {
     await new Promise(r => setTimeout(r, 1500));
     await loadLog();
     exitEditMode();
-  } catch(e) { showLoad(false); alert('ลบไม่สำเร็จ: '+e.message); }
+  } catch(e) { showLoad(false); showErr(e.message, null, 'ลบไม่สำเร็จ'); }
   showLoad(false);
 }
 
@@ -1041,7 +1079,7 @@ async function loadDeleted() {
     deletedData = json.data || [];
     renderDeleted();
     document.getElementById('deleted-scope').textContent = `แสดงเฉพาะเดือนนี้ (${deletedData.length} รายการ)`;
-  } catch(e) { showLoad(false); alert('โหลดไม่สำเร็จ'); }
+  } catch(e) { showLoad(false); showErr(e.message || 'ติดต่อเซิร์ฟเวอร์ไม่ได้', loadDeleted); }
   showLoad(false);
 }
 
@@ -1080,7 +1118,7 @@ async function loadUsers() {
     const json = await fetchJSON(`${url}?action=getUsers&t=${Date.now()}`);
     userData = json.data || [];
     renderUsers();
-  } catch(e) { showLoad(false); alert('โหลดไม่สำเร็จ'); }
+  } catch(e) { showLoad(false); showErr(e.message || 'ติดต่อเซิร์ฟเวอร์ไม่ได้', loadUsers); }
   showLoad(false);
 }
 function renderUsers() {
@@ -1121,7 +1159,7 @@ async function saveUser() {
     } else {
       closeUserModal();
     }
-  } catch(e) { showLoad(false); alert('บันทึกไม่สำเร็จ'); }
+  } catch(e) { showLoad(false); showErr(e.message || 'ติดต่อเซิร์ฟเวอร์ไม่ได้', null, 'บันทึกไม่สำเร็จ'); }
   showLoad(false);
 }
 async function deleteUser() {
@@ -1133,7 +1171,7 @@ async function deleteUser() {
   try {
     await fetch(url,{method:'POST',mode:'no-cors',headers:{'Content-Type':'application/json'},body:JSON.stringify({token:API_TOKEN,actorId:session.id,actorPass:session.pass,action:'deleteUser',id:editingUserId})});
     closeUserModal(); await loadUsers();
-  } catch(e) { showLoad(false); alert('ลบไม่สำเร็จ'); }
+  } catch(e) { showLoad(false); showErr(e.message || 'ติดต่อเซิร์ฟเวอร์ไม่ได้', null, 'ลบไม่สำเร็จ'); }
   showLoad(false);
 }
 
