@@ -1041,8 +1041,8 @@ async function submit() {
       : document.getElementById('task-type-sel').value) || ''
   };
   if (gps) store.set('gps_ci_' + todayKey() + '_' + r.start, JSON.stringify({ lat: gps.lat, lng: gps.lng }));
+  store.set(doneKey(r), ts);   // จดลงมือถือก่อนยิงเน็ต (30/09/2569) — ถ้าหน้าตายระหว่างรอ (สลับแอป/จอดับ) จะไม่ลืมว่าเช็กแล้ว
   try { await fetch(SCRIPT_URL, { method:'POST', mode:'no-cors', headers:{'Content-Type':'application/json'}, body:JSON.stringify(payload) }); } catch(e) {}
-  store.set(doneKey(r), ts);
   renderRounds();
   document.getElementById('m-success-icon').textContent  = '✅';
   document.getElementById('m-success-title').textContent = 'Check-In สำเร็จ!';
@@ -1088,6 +1088,7 @@ async function submitCheckout() {
     showPane('success'); return;
   }
 
+  store.set(checkoutKey(r), ts);   // จดลงมือถือก่อนยิงเน็ต (30/09/2569) — ถ้าหน้าตายระหว่างรอ (สลับแอป/จอดับ) จะไม่ลืมว่าเช็กแล้ว
   try {
     await fetch(SCRIPT_URL, {
       method:'POST', mode:'no-cors', headers:{'Content-Type':'application/json'},
@@ -1097,7 +1098,6 @@ async function submitCheckout() {
     });
   } catch(e) {}
 
-  store.set(checkoutKey(r), ts);
   renderRounds();
   document.getElementById('m-success-icon').textContent  = '🏁';
   document.getElementById('m-success-title').textContent = checkoutGeofenceAlert ? 'จบงานสำเร็จ ⚠️' : 'จบงานสำเร็จ!';
